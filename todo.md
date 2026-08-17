@@ -157,3 +157,7 @@
 - [x] Add generation status and average-duration interfaces plus non-duplicating retry guards for the existing Virtual Try-On contract.
 - [x] Add a future Vision validation interface for garment and identity preservation without generating fake quality scores.
 - [x] Verify progress behavior, timeout messaging, logs, validation-ready state, existing Try-On/Stylist compatibility, tests, build, checkpoint, and publish.
+- [x] Localize every Studio pose title and description through the selected EN/KO/ZH system language instead of showing seeded Korean text.
+- [x] Simplify body measurements to a women-only fit profile and remove gender selection from the flow and saved data presentation.
+- [x] Translate Product Manager and Studio Cut labels through EN/KO/ZH resources, standardize all prices to CNY, and remove side/detail/preview studio-cut controls while preserving the primary product image.
+- [x] Verify localizations, women-only measurements, CNY formatting, and simplified Product Manager cuts on mobile and tablet; run checks, checkpoint, and publish.

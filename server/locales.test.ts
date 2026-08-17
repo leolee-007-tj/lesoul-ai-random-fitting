@@ -6,6 +6,8 @@ import zh from "../client/src/i18n/locales/zh.json";
 const requiredKeys = [
   "nav.create", "home.headline", "studio.uploadTitle", "studio.random", "studio.select", "history.title",
   "products.title", "products.fabric", "products.csv", "result.adjustTitle", "result.regenerate", "result.shop", "result.share",
+  "poseCatalog.handPocket.title", "poseCatalog.handPocket.description", "poseCatalog.side.title", "poseCatalog.front.title", "poseCatalog.walking.title", "poseCatalog.crossedArms.title", "poseCatalog.seated.title",
+  "backgroundCatalog.seoulCafe", "backgroundCatalog.studio", "catalogUi.testModel", "catalogUi.startTest", "catalogUi.choosePose", "productManager.primaryImage", "productManager.priceCny", "productManager.mainReference",
 ];
 
 function readPath(source: Record<string, unknown>, path: string) {

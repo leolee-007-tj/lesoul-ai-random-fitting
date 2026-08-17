@@ -6,11 +6,11 @@ export const studioPhotoKey = "lesoul-studio-photo";
 export function readBodyMeasurements(): BodyMeasurements {
   try {
     const parsed = JSON.parse(localStorage.getItem(bodyMeasurementsKey) ?? "{}") as Partial<BodyMeasurements>;
-    return { ...defaultBodyMeasurements, ...parsed, unit: "cm", gender: parsed.gender ?? "female" };
+    return { ...defaultBodyMeasurements, ...parsed, unit: "cm", gender: "female" };
   } catch { return defaultBodyMeasurements; }
 }
 
-export function saveBodyMeasurements(measurements: BodyMeasurements) { localStorage.setItem(bodyMeasurementsKey, JSON.stringify({ ...measurements, unit: "cm" })); }
+export function saveBodyMeasurements(measurements: BodyMeasurements) { localStorage.setItem(bodyMeasurementsKey, JSON.stringify({ ...measurements, unit: "cm", gender: "female" })); }
 export function saveStudioPhoto(photo: string) { sessionStorage.setItem(studioPhotoKey, photo); }
 export function readStudioPhoto() { return sessionStorage.getItem(studioPhotoKey); }
 
@@ -24,4 +24,4 @@ export function validateMeasurements(measurements: BodyMeasurements) {
   return { valid: errors.length === 0, errors };
 }
 
-export function normalizeGender(value: string): Gender { return value === "male" || value === "other" ? value : "female"; }
+export function normalizeGender(_value: string): Gender { return "female"; }

@@ -49,7 +49,7 @@ describe("clothing preservation prompt", () => {
     });
     expect(prompt).toContain("Height 170cm");
     expect(prompt).toContain("Shoulder width 44cm");
-    expect(prompt).toContain("Front view: front-studio.jpg");
-    expect(prompt).toContain("Back view: back-studio.jpg");
+    expect(prompt).toContain("Primary front reference: front-studio.jpg");
+    expect(prompt).not.toContain("Back view: back-studio.jpg");
   });
 });

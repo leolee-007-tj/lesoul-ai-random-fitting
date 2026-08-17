@@ -63,7 +63,7 @@ export function describeGarmentForGeneration(garment: FashionGarment) {
   ].filter(Boolean).join(", ");
   const construction = [garment.details, garment.neckline ? `${garment.neckline} neckline` : null, garment.sleeve ? `${garment.sleeve} sleeves` : null].filter(Boolean).join(". ");
   const views = garment.imageViews;
-  const references = [views?.front?.studioCut && `Front view: ${views.front.studioCut}`, views?.back?.studioCut && `Back view: ${views.back.studioCut}`, views?.side?.studioCut && `Side view: ${views.side.studioCut}`, ...(views?.detail?.map((detail, index) => `Detail view ${index + 1}: ${detail.studioCut}`) ?? [])].filter(Boolean).join(". ");
+  const references = [views?.front?.studioCut && `Primary front reference: ${views.front.studioCut}`].filter(Boolean).join(". ");
   return `Wearing ${garment.name}${garment.color ? ` in ${garment.color}` : ""}: ${attributes || garment.description}. Features ${construction || garment.description}. ${references || `Reference clothing image: ${(garment.images?.[0] ?? garment.imageUrl)}`}.`;
 }
 
@@ -119,7 +119,7 @@ export class InternalImageFashionProvider implements FashionProvider {
   async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
     const preservationPrompt = buildClothingPreservationPrompt(request);
     try {
-      const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.studioCut, garment.imageViews?.back?.studioCut, garment.imageViews?.side?.studioCut, ...(garment.imageViews?.detail?.map((detail) => detail.studioCut) ?? []), garment.images?.[0] ?? garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 3);
+      const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.studioCut, garment.images?.[0] ?? garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 3);
       const productReferences = await Promise.all(productReferenceUrls.map(imageReference));
       const originalImages = [await imageReference(request.userImage), ...productReferences];
       const generated = await generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" });
