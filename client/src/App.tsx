@@ -4,13 +4,27 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
+import Gallery from "./pages/Gallery";
+import Generating from "./pages/Generating";
 import Home from "./pages/Home";
+import Pose from "./pages/Pose";
+import Result from "./pages/Result";
+import Upload from "./pages/Upload";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/auth"} component={Auth} />
+      <Route path={"/upload"} component={Upload} />
+      <Route path={"/pose"} component={Pose} />
+      <Route path={"/generating/:id"} component={Generating} />
+      <Route path={"/result/:id"} component={Result} />
+      <Route path={"/gallery"} component={Gallery} />
+      <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

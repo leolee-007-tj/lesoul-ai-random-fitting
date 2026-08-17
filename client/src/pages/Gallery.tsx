@@ -1,0 +1,13 @@
+import { useAuth } from "@/_core/hooks/useAuth";
+import AppHeader from "@/components/AppHeader";
+import { trpc } from "@/lib/trpc";
+import { ArrowRight, LoaderCircle, Plus, Sparkles } from "lucide-react";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
+
+export default function Gallery() {
+  const { isAuthenticated, loading } = useAuth(); const [, navigate] = useLocation(); const gallery = trpc.generations.list.useQuery(undefined, { enabled: isAuthenticated });
+  useEffect(() => { if (!loading && !isAuthenticated) navigate("/auth"); }, [isAuthenticated, loading, navigate]);
+  return <div className="min-h-screen bg-[#f7f2eb] text-[#382f2a]"><AppHeader /><main className="mx-auto max-w-6xl px-5 pb-14 pt-9 sm:px-8"><div className="flex items-end justify-between gap-4"><div><p className="text-xs font-bold tracking-[.2em] text-[#997e66]">PERSONAL ARCHIVE</p><h1 className="mt-2 font-serif text-4xl sm:text-5xl">나의 룩 갤러리</h1><p className="mt-3 text-sm text-[#746358]">지금까지 만든 LESOUL의 순간들을 다시 꺼내보세요.</p></div><button onClick={() => navigate("/upload")} className="inline-flex items-center gap-2 rounded-full bg-[#3f342d] px-4 py-3 text-xs font-semibold text-white"><Plus size={15} /> 새 룩</button></div>
+    {gallery.isLoading ? <div className="grid min-h-80 place-items-center"><LoaderCircle className="animate-spin text-[#8c735f]" /></div> : gallery.data?.length ? <section className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{gallery.data.map((item) => <button key={item.id} onClick={() => navigate(`/result/${item.id}`)} className="group relative aspect-[.75] overflow-hidden rounded-[1.5rem] bg-[#e1d3c1] text-left"><img src={item.resultImageUrl ?? item.userPhotoUrl} alt={`${item.lookCode} 룩`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-11 text-white"><p className="text-[10px] font-bold tracking-[.14em] opacity-80">{item.lookCode}</p><p className="mt-1 font-serif text-lg">{new Date(item.createdAt).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })}</p></div></button>)}</section> : <section className="mt-9 grid min-h-80 place-items-center rounded-[2rem] border border-dashed border-[#c8b39d] bg-[#fffaf3] text-center"><div><span className="mx-auto grid size-12 place-items-center rounded-full bg-[#eee0d0] text-[#80644f]"><Sparkles size={20} /></span><h2 className="mt-4 font-serif text-2xl">첫 번째 룩을 기다리고 있어요.</h2><button onClick={() => navigate("/upload")} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#7d6049]">룩 만들기 <ArrowRight size={15} /></button></div></section>}</main></div>;
+}

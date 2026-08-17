@@ -1,0 +1,67 @@
+import { z } from "zod";
+import { createGeneration, getCatalog, getGenerationForUser, listGenerationsForUser, saveGeneration, updateGenerationResult } from "../db";
+import { generateImage } from "../_core/imageGeneration";
+import { storagePut } from "../storage";
+import { selectOutfit } from "../styling";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
+
+const lookCode = () => `LOOK-${Math.floor(100 + Math.random() * 900)}`;
+
+async function createEditorialFallback(id: number, look: string, place: string) {
+  const safeLook = look.replace(/[<>&"']/g, "");
+  const safePlace = place.replace(/[<>&"']/g, "");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500"><rect width="1200" height="1500" fill="#e8ddd0"/><rect x="70" y="70" width="1060" height="1360" rx="48" fill="#fdf9f3" stroke="#b89e83" stroke-width="2"/><circle cx="965" cy="235" r="215" fill="#d2bba4" opacity=".45"/><rect x="168" y="365" width="864" height="650" rx="340" fill="#40332b"/><rect x="252" y="464" width="696" height="510" rx="260" fill="#8b7355"/><text x="125" y="180" fill="#705b49" font-family="serif" font-size="38" letter-spacing="11">LESOUL LOOK</text><text x="125" y="1205" fill="#3d3028" font-family="serif" font-size="90">EDITORIAL</text><text x="130" y="1272" fill="#806753" font-family="sans-serif" font-size="26" letter-spacing="5">${safeLook}</text><text x="130" y="1345" fill="#806753" font-family="sans-serif" font-size="25">${safePlace} · CURATED STYLE PREVIEW</text></svg>`;
+  return storagePut(`lesoul/editorials/${id}-fallback.svg`, svg, "image/svg+xml");
+}
+
+export const catalogRouter = router({
+  bootstrap: publicProcedure.query(async () => getCatalog()),
+  products: publicProcedure.query(async () => (await getCatalog()).products),
+  poses: publicProcedure.query(async () => (await getCatalog()).poses),
+  backgrounds: publicProcedure.query(async () => (await getCatalog()).backgrounds),
+});
+
+export const generationRouter = router({
+  prepare: protectedProcedure.input(z.object({ userPhotoUrl: z.string().min(1), poseId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    const catalog = await getCatalog();
+    const pose = catalog.poses.find((item) => item.id === input.poseId);
+    if (!pose) throw new Error("선택한 포즈를 찾을 수 없습니다.");
+    const outfit = selectOutfit(catalog.products, catalog.backgrounds);
+    const id = await createGeneration({
+      userId: ctx.user.id,
+      userPhotoUrl: input.userPhotoUrl,
+      poseId: pose.id,
+      backgroundId: outfit.background.id,
+      topProductId: outfit.top?.id,
+      bottomProductId: outfit.bottom?.id,
+      outerProductId: outfit.outer?.id,
+      dressProductId: outfit.dress?.id,
+      lookCode: lookCode(),
+    });
+    return { id, outfit, pose };
+  }),
+  list: protectedProcedure.query(async ({ ctx }) => listGenerationsForUser(ctx.user.id)),
+  byId: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => getGenerationForUser(input.id, ctx.user.id)),
+  generate: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    const detail = await getGenerationForUser(input.id, ctx.user.id);
+    if (!detail || !detail.pose || !detail.background) throw new Error("룩 정보를 찾을 수 없습니다.");
+    if (detail.generation.resultImageUrl) return { imageUrl: detail.generation.resultImageUrl, fallback: detail.generation.status === "failed" };
+    const clothing = detail.products.map((product) => `${product.name}: ${product.description}`).join("; ");
+    const prompt = `Create a premium Korean fashion editorial photograph. Preserve the identity and recognisable facial features of the woman in the reference photograph, but style her in this curated outfit: ${clothing}. Pose: ${detail.pose.promptKeyword}. Scene: ${detail.background.promptKeyword}. Full-body frame, poised natural styling, warm ivory and muted brown quiet-luxury palette, elegant fashion magazine photography, softly diffused natural light, photorealistic, refined and minimal, no text, no logo, no collage.`;
+    try {
+      const { url } = await generateImage({ prompt, originalImages: [{ url: detail.generation.userPhotoUrl, mimeType: "image/jpeg" }] });
+      if (!url) throw new Error("생성 이미지 URL이 반환되지 않았습니다.");
+      await updateGenerationResult(input.id, ctx.user.id, url, "complete");
+      return { imageUrl: url, fallback: false };
+    } catch (error) {
+      console.warn("[LESOUL] Image generation fallback:", error);
+      const fallback = await createEditorialFallback(input.id, detail.generation.lookCode, detail.background.name);
+      await updateGenerationResult(input.id, ctx.user.id, fallback.url, "failed");
+      return { imageUrl: fallback.url, fallback: true };
+    }
+  }),
+  save: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    await saveGeneration(input.id, ctx.user.id);
+    return { success: true };
+  }),
+});
