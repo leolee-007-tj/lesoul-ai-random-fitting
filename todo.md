@@ -143,3 +143,10 @@
 - [x] Connect the 2D background and pose assets to the Studio cards and verify the visual distinction on mobile and tablet.
 - [x] Run checks, checkpoint, and publish the 2D catalog update.
 - [x] Replace unavailable generated placeholder assets with reliable in-app SVG 2D pose and background illustrations.
+- [x] Extend the existing product metadata model for manual and future Vision-compatible recommendation attributes without replacing current product records.
+- [x] Add configurable Style Presets and a persisted recommendation-feedback model while preserving existing catalog and try-on data.
+- [x] Implement a deterministic compatibility scorer using active product IDs only for style, color, silhouette, season, material, and formality balance.
+- [x] Add validated Top 3 AI Stylist recommendations with score breakdown, reason text, optional fixed product, and persisted GOOD MATCH / BAD MATCH feedback.
+- [x] Add a Studio AI Stylist step that supports style selection, STYLE THIS ITEM, recommendation selection, and passes the selected existing products to the unchanged background and Virtual Try-On stages.
+- [x] Add unit and integration tests for active-inventory validation, fixed-product retention, score ordering, feedback persistence, and try-on handoff.
+- [x] Verify real catalog recommendations on mobile and tablet, then run checks, checkpoint, and publish.

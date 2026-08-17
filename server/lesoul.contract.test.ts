@@ -21,7 +21,7 @@ describe("LESOUL experience API contract", () => {
       "catalog.bootstrap", "catalog.products", "catalog.poses", "catalog.backgrounds",
       "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
       "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct",
-      "look.generate",
+      "look.generate", "stylist.presets", "stylist.recommend", "stylist.feedback",
     ]));
   });
 });

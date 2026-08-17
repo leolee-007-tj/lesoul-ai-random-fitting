@@ -1,4 +1,5 @@
 import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import type { CompatibilityWeights, StylistProductMetadata } from "../shared/stylist";
 
 /** Core identity record populated by Manus OAuth. */
 export const users = mysqlTable("users", {
@@ -36,6 +37,7 @@ export const products = mysqlTable("products", {
   sleeve: varchar("sleeve", { length: 120 }),
   purchaseUrl: text("purchaseUrl"),
   purchasePlatform: varchar("purchasePlatform", { length: 120 }),
+  stylistMetadata: json("stylistMetadata").$type<StylistProductMetadata>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -75,9 +77,34 @@ export const generations = mysqlTable("generations", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const stylePresets = mysqlTable("stylePresets", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 80 }).notNull(),
+  description: varchar("description", { length: 240 }).notNull(),
+  matchingTags: json("matchingTags").$type<string[]>().notNull(),
+  weights: json("weights").$type<CompatibilityWeights>().notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const stylistFeedback = mysqlTable("stylistFeedback", {
+  id: int("id").autoincrement().primaryKey(),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  stylePresetKey: varchar("stylePresetKey", { length: 64 }).notNull(),
+  anchorProductId: int("anchorProductId").references(() => products.id),
+  productIds: json("productIds").$type<number[]>().notNull(),
+  score: int("score").notNull(),
+  feedback: mysqlEnum("feedback", ["good", "bad"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type Pose = typeof poses.$inferSelect;
 export type Background = typeof backgrounds.$inferSelect;
 export type Generation = typeof generations.$inferSelect;
+export type StylePreset = typeof stylePresets.$inferSelect;
+export type StylistFeedback = typeof stylistFeedback.$inferSelect;

@@ -41,7 +41,7 @@ export type FashionLookRequest = {
   pose: { id: number; name: string; promptKeyword: string };
   clothing: FashionGarment[];
   background: { id: number; name: string; promptKeyword: string };
-  style: "RANDOM" | "DAILY" | "ELEGANT" | "CHIC" | "CASUAL" | "MINIMAL";
+  style: string;
   adjustments?: AdjustmentParams;
   bodyMeasurements?: BodyMeasurements;
 };

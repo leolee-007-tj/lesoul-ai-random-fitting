@@ -1,8 +1,9 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, generations, InsertUser, poses, products, users } from "../drizzle/schema";
+import { backgrounds, generations, InsertUser, poses, products, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
+import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -35,13 +36,16 @@ export async function ensureCatalog() {
     price: item.price, imageUrl: item.imageUrl, images: item.images, imageViews: item.imageViews, description: item.description,
     fabric: item.fabric, texture: item.texture, fit: item.fit, length: item.length, width: item.width,
     details: item.details, neckline: item.neckline, sleeve: item.sleeve,
-    purchaseUrl: item.purchaseUrl, purchasePlatform: item.purchasePlatform,
+    purchaseUrl: item.purchaseUrl, purchasePlatform: item.purchasePlatform, stylistMetadata: item.stylistMetadata,
   } })));
   await Promise.all(demoPoses.map((item) => db.insert(poses).values(item).onDuplicateKeyUpdate({ set: {
     promptKeyword: item.promptKeyword, imageUrl: item.imageUrl,
   } })));
   await Promise.all(demoBackgrounds.map((item) => db.insert(backgrounds).values(item).onDuplicateKeyUpdate({ set: {
     promptKeyword: item.promptKeyword, styleTags: item.styleTags, imageUrl: item.imageUrl,
+  } })));
+  await Promise.all(DEFAULT_STYLE_PRESETS.map((preset) => db.insert(stylePresets).values(preset).onDuplicateKeyUpdate({ set: {
+    name: preset.name, description: preset.description, matchingTags: preset.matchingTags, weights: preset.weights, isActive: 1,
   } })));
   return true;
 }
@@ -50,8 +54,28 @@ export async function getCatalog() {
   const db = await getDb();
   if (!db) throw new Error("The catalog is temporarily unavailable.");
   await ensureCatalog();
-  const [catalogProducts, catalogPoses, catalogBackgrounds] = await Promise.all([db.select().from(products), db.select().from(poses), db.select().from(backgrounds)]);
-  return { products: catalogProducts, poses: catalogPoses, backgrounds: catalogBackgrounds };
+  const [catalogProducts, catalogPoses, catalogBackgrounds, catalogStylePresets] = await Promise.all([db.select().from(products), db.select().from(poses), db.select().from(backgrounds), db.select().from(stylePresets).where(eq(stylePresets.isActive, 1))]);
+  return { products: catalogProducts, poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets };
+}
+
+export async function getActiveStylistProducts() {
+  const db = await getDb();
+  if (!db) throw new Error("The catalog is temporarily unavailable.");
+  await ensureCatalog();
+  return db.select().from(products).where(eq(products.status, "in_stock"));
+}
+
+export async function getActiveStylePresets() {
+  const db = await getDb();
+  if (!db) throw new Error("The style catalog is temporarily unavailable.");
+  await ensureCatalog();
+  return db.select().from(stylePresets).where(eq(stylePresets.isActive, 1));
+}
+
+export async function saveStylistFeedback(input: { visitorId: string; stylePresetKey: StylePresetKey; anchorProductId?: number | null; productIds: number[]; score: number; feedback: "good" | "bad" }) {
+  const db = await getDb();
+  if (!db) throw new Error("The feedback service is temporarily unavailable.");
+  await db.insert(stylistFeedback).values({ ...input, anchorProductId: input.anchorProductId ?? null });
 }
 
 export async function createGeneration(input: { userId: number; userPhotoUrl: string; poseId: number; backgroundId: number; topProductId?: number | null; bottomProductId?: number | null; outerProductId?: number | null; dressProductId?: number | null; lookCode: string; }) {

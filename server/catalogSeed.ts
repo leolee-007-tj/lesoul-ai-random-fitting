@@ -6,7 +6,7 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
 
 const rawDemoProducts: SeedProductBase[] = [
@@ -59,13 +59,26 @@ function garmentSpecifications(product: SeedProductBase): GarmentSpecifications 
   return base;
 }
 
-export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = rawDemoProducts.map((product) => ({
-  ...product,
-  ...garmentSpecifications(product),
-  images: [product.imageUrl],
-  imageViews: { front: { original: product.imageUrl, studioCut: product.imageUrl, thumbnail: product.imageUrl } },
-  purchasePlatform: "LESOUL Store",
-}));
+export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = rawDemoProducts.map((product) => {
+  const specifications = garmentSpecifications(product);
+  return {
+    ...product,
+    ...specifications,
+    images: [product.imageUrl],
+    imageViews: { front: { original: product.imageUrl, studioCut: product.imageUrl, thumbnail: product.imageUrl } },
+    purchasePlatform: "LESOUL Store",
+    stylistMetadata: {
+      mainColor: product.color,
+      materialAppearance: specifications.texture ?? undefined,
+      silhouette: specifications.width ?? undefined,
+      formality: product.style.includes("고급") || product.style.includes("출근") ? 4 : 2,
+      fashionMood: product.style.split(",").map((tag) => tag.trim()),
+      recommendedStyles: [],
+      compatibleColors: [],
+      source: "manual",
+    },
+  };
+});
 
 export const demoPoses: Omit<Pose, "id" | "createdAt">[] = [
   { name: "Natural Standing", promptKeyword: "standing naturally, relaxed confidence, full body", imageUrl: null },
