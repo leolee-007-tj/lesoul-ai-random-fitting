@@ -120,3 +120,6 @@
 - [x] Remove the Studio horizontal Upload/Pose/Outfit/Background progress row.
 - [x] Move Studio content upward into the reclaimed top space without reducing upload-card reachability.
 - [x] Verify mobile and tablet Studio layouts, run checks, checkpoint, and publish.
+- [x] Reduce the upload-step dotted full-body guide and position it beside the Upload and Camera controls.
+- [x] Raise and compact the upload action block while retaining the preview state and touch targets.
+- [x] Verify the revised upload card at mobile and tablet widths, run checks, checkpoint, and publish.
