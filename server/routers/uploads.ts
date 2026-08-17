@@ -25,10 +25,12 @@ export const uploadRouter = router({
       return { url };
     }),
   productImage: publicProcedure
-    .input(z.object({ dataUrl: z.string().min(40).max(12_000_000) }))
+    .input(z.object({ dataUrl: z.string().min(40).max(12_000_000), category: z.enum(["top", "bottom", "outer", "dress", "shoes", "bag"]).optional(), view: z.enum(["front", "back", "side", "detail"]).optional(), variant: z.enum(["original", "studio", "thumbnail"]).optional(), productKey: z.string().max(80).optional() }))
     .mutation(async ({ input }) => {
       const { buffer, mimeType, extension } = decodeImageDataUrl(input.dataUrl, MAX_PRODUCT_IMAGE_BYTES);
-      const { url } = await storagePut(`lesoul/catalog/products/${randomUUID()}.${extension}`, buffer, mimeType);
+      const key = input.productKey?.replace(/[^a-zA-Z0-9_-]/g, "") || randomUUID();
+      const category = input.category ?? "top"; const view = input.view ?? "detail"; const variant = input.variant ?? "studio";
+      const { url } = await storagePut(`lesoul/catalog/products/${category}/${key}/${view}_${variant}_${randomUUID()}.${extension}`, buffer, mimeType);
       return { url };
     }),
 });

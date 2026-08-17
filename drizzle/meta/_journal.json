@@ -29,6 +29,13 @@
       "when": 1786954796302,
       "tag": "0003_lowly_ink",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786956451108,
+      "tag": "0004_funny_invaders",
+      "breakpoints": true
     }
   ]
 }

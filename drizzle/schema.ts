@@ -24,6 +24,7 @@ export const products = mysqlTable("products", {
   price: int("price").notNull(),
   imageUrl: text("imageUrl").notNull(),
   images: json("images").$type<string[]>(),
+  imageViews: json("imageViews").$type<import("../shared/bodyMeasurements").ProductImageViews>(),
   description: text("description").notNull(),
   fabric: varchar("fabric", { length: 160 }),
   texture: varchar("texture", { length: 120 }),

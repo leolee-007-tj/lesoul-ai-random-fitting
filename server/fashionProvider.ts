@@ -1,4 +1,5 @@
 import { generateImage } from "./_core/imageGeneration";
+import type { BodyMeasurements, ProductImageViews } from "../shared/bodyMeasurements";
 
 export const CLOTHING_PRESERVATION_RULES = {
   mustPreserve: ["length", "width", "neckline", "sleeve", "color", "pattern", "fabric", "details"],
@@ -21,6 +22,7 @@ export type FashionGarment = {
   category: string;
   imageUrl: string;
   images?: string[] | null;
+  imageViews?: ProductImageViews | null;
   description: string;
   color?: string | null;
   fabric?: string | null;
@@ -40,6 +42,7 @@ export type FashionLookRequest = {
   background: { id: number; name: string; promptKeyword: string };
   style: "RANDOM" | "DAILY" | "ELEGANT" | "CHIC" | "CASUAL" | "MINIMAL";
   adjustments?: AdjustmentParams;
+  bodyMeasurements?: BodyMeasurements;
 };
 
 export type FashionLookResponse = {
@@ -58,13 +61,16 @@ export function describeGarmentForGeneration(garment: FashionGarment) {
     garment.width ? `${garment.width} width silhouette` : null,
   ].filter(Boolean).join(", ");
   const construction = [garment.details, garment.neckline ? `${garment.neckline} neckline` : null, garment.sleeve ? `${garment.sleeve} sleeves` : null].filter(Boolean).join(". ");
-  return `Wearing ${garment.name}${garment.color ? ` in ${garment.color}` : ""}: ${attributes || garment.description}. Features ${construction || garment.description}. Reference clothing image: ${(garment.images?.[0] ?? garment.imageUrl)}.`;
+  const views = garment.imageViews;
+  const references = [views?.front?.studioCut && `Front view: ${views.front.studioCut}`, views?.back?.studioCut && `Back view: ${views.back.studioCut}`, views?.side?.studioCut && `Side view: ${views.side.studioCut}`, ...(views?.detail?.map((detail, index) => `Detail view ${index + 1}: ${detail.studioCut}`) ?? [])].filter(Boolean).join(". ");
+  return `Wearing ${garment.name}${garment.color ? ` in ${garment.color}` : ""}: ${attributes || garment.description}. Features ${construction || garment.description}. ${references || `Reference clothing image: ${(garment.images?.[0] ?? garment.imageUrl)}`}.`;
 }
 
 export function buildClothingPreservationPrompt(request: FashionLookRequest) {
   const garmentDescriptions = request.clothing.map(describeGarmentForGeneration).join("\n");
   const adjustmentNote = request.adjustments ? `Permitted refinement request: ${JSON.stringify(request.adjustments)}. Preserve all identity-defining garment specifications unless this request explicitly changes a visual rendering nuance.` : "";
-  return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
+  const measurements = request.bodyMeasurements ? `Person measurements: Height ${request.bodyMeasurements.height}cm, Shoulder width ${request.bodyMeasurements.shoulderWidth}cm, Chest ${request.bodyMeasurements.chest ?? "not provided"}cm, Waist ${request.bodyMeasurements.waist ?? "not provided"}cm, Hip ${request.bodyMeasurements.hip ?? "not provided"}cm, Arm length ${request.bodyMeasurements.armLength ?? "not provided"}cm, Inseam ${request.bodyMeasurements.inseam ?? "not provided"}cm. The clothing must fit proportionally to these measurements and garment length and width must look natural on this body type.` : "";
+  return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\n${measurements}\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
 }
 
 export interface FashionProvider {
@@ -102,7 +108,8 @@ export class InternalImageFashionProvider implements FashionProvider {
 
   async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
     const preservationPrompt = buildClothingPreservationPrompt(request);
-    const originalImages = [imageReference(request.userImage), ...request.clothing.flatMap((garment) => [garment.images?.[0] ?? garment.imageUrl].filter(Boolean).map(imageReference))];
+    const productReferenceUrls = request.clothing.flatMap((garment) => [garment.imageViews?.front?.studioCut, garment.imageViews?.back?.studioCut, garment.imageViews?.side?.studioCut, ...(garment.imageViews?.detail?.map((detail) => detail.studioCut) ?? []), garment.images?.[0] ?? garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0);
+    const originalImages = [imageReference(request.userImage), ...productReferenceUrls.map(imageReference)];
     try {
       const generated = await generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" });
       if (!generated.url) throw new Error("Image service returned no generated image URL.");

@@ -41,3 +41,26 @@
 - [x] Add Shop This Look purchase links, mobile Web Share, copy/share actions, download, result OG share-card generation, and share metadata.
 - [x] Test all locales, product migrations, visual flows, production build, checkpoint, and updated deployment.
 - [x] Save the verified LESOUL AI LOOK v2 checkpoint and publish the updated experience.
+- [x] Add local-first body measurements with required height and shoulder fields, optional fit measurements, gender, validation, default values, and persistence.
+- [x] Add a body-measurements flow between photo upload and pose selection, including a visual measurement guide and multilingual skip/continue states.
+- [x] Validate upload aspect ratio as a likely full-body photo and provide localized, actionable retake guidance.
+- [x] Extend the product image model with front, back, side, and detail view metadata plus original/studio-cut/thumbnail URLs under category-scoped storage paths.
+- [x] Add deterministic white-background studio-cut preprocessing, front/back/side/detail upload slots, before/after previews, and per-slot studio-cut controls in Product Manager.
+- [x] Include user measurements and ordered multi-view product references in the clothing-preservation generation prompt.
+- [x] Add a tested measurement-based size recommendation engine and show recommended sizes on each resulting product card.
+- [x] Add Noto Sans SC and Inter language font support, localized date/price conventions, and EN/KO/ZH coverage for the new personalisation interfaces.
+- [x] Verify responsive personalisation flows, test all additions, save a checkpoint, and publish the updated build.
+- [x] Add per-slot studio-cut enable, regenerate, and remove controls for front, back, side, and detail product images.
+- [x] Localize measurement-based size recommendation reasons for English, Korean, and Chinese result screens.
+- [x] Add independent studio-cut toggle, regenerate, and remove controls for Detail 1 and Detail 2 image slots.
+- [x] Verify all front, back, side, Detail 1, and Detail 2 controls in responsive Product Manager QA.
+- [x] Wire Detail 1 and Detail 2 studio-cut toggles into slot-specific upload and regeneration processing.
+- [x] Target uploads to Detail 1 or Detail 2 rather than appending generic detail assets, then retest per-slot control behavior.
+- [x] Run final responsive QA after detail-slot completion, save a new checkpoint, and publish the personalized build.
+- [x] Save the verified personalization update checkpoint and publish the new production build.
+- [x] Wire each Detail 1 and Detail 2 upload action to set its active slot index before selecting a file.
+- [x] Re-verify indexed Detail 1·2 upload, regenerate, and remove controls after the explicit slot-target update.
+- [x] Add automated coverage for Detail 1 and Detail 2 asset slot replacement behavior.
+- [x] Capture post-update responsive QA evidence for Detail 1 and Detail 2 upload, regenerate, and remove controls.
+- [x] Open the Product Manager editor and record explicit Detail 1·2 control QA evidence before final publishing.
+- [x] Add the missing localized Product Manager price label and rerun locale checks.

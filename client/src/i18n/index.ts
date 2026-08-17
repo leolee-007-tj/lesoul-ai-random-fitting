@@ -26,6 +26,11 @@ i18n.use(initReactI18next).init({
   react: { useSuspense: false },
 });
 
+if (typeof document !== "undefined") {
+  document.documentElement.lang = i18n.language;
+  i18n.on("languageChanged", (language) => { document.documentElement.lang = language; });
+}
+
 export function setLesoulLanguage(language: SupportedLanguage) {
   localStorage.setItem(languageStorageKey, language);
   return i18n.changeLanguage(language);

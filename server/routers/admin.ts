@@ -12,6 +12,7 @@ const productInput = z.object({
   price: z.number().int().positive(),
   imageUrl: z.string().min(1),
   images: z.array(z.string().min(1)).max(5).optional(),
+  imageViews: z.object({ front: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), back: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), side: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), detail: z.array(z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() })).max(2).optional() }).optional(),
   description: z.string().min(2),
   fabric: z.string().max(160).nullable().optional(),
   texture: z.string().max(120).nullable().optional(),
@@ -29,7 +30,7 @@ export const adminRouter = router({
   products: publicProcedure.query(async () => (await getCatalog()).products),
   stats: publicProcedure.query(getAdminStats),
   createProduct: publicProcedure.input(productInput).mutation(async ({ input }) => {
-    await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null });
+    await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null });
     return { success: true };
   }),
   updateProduct: publicProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {

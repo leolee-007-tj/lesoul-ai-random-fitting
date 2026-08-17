@@ -6,7 +6,7 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
 
 const rawDemoProducts: SeedProductBase[] = [
@@ -63,6 +63,7 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = r
   ...product,
   ...garmentSpecifications(product),
   images: [product.imageUrl],
+  imageViews: { front: { original: product.imageUrl, studioCut: product.imageUrl, thumbnail: product.imageUrl } },
   purchasePlatform: "LESOUL Store",
 }));
 
