@@ -99,3 +99,7 @@
 - [x] Rerun final checks after result-panel QA and save the Safe Area release checkpoint.
 - [x] Save a checkpoint containing the verified Safe Area and result-preview changes.
 - [x] Confirm the auto-published live build exposes the Safe Area result-preview route.
+- [x] Diagnose why desktop, iPad, and mobile retain overly similar centered sizes despite responsive breakpoints.
+- [x] Define visibly distinct mobile, tablet, and desktop layout tokens for frame width, typography scale, spacing, image height, and card columns.
+- [x] Update Home, Studio, Measurements, History, Product Manager, and result preview to use the corrected breakpoint tokens.
+- [x] Verify 390px mobile, 820px iPad, and 1440px web views visibly differ; test, checkpoint, and publish the fix.

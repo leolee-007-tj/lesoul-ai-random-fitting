@@ -27,6 +27,6 @@ export default function ResultPreview() {
     setBusy(false);
   };
   return <MobileScreen>
-    <div className="px-4 pt-2"><LookResultPanel imageUrl={image} previousImageUrl={previous} lookCode="LOOK #SAFE" products={products} measurements={{ height: 163, shoulderWidth: 42, gender: "female", unit: "cm" }} isRegenerating={busy} onRegenerate={regenerate} onChangePose={() => undefined} onChangeOutfit={() => undefined} shareUrl={`${window.location.origin}/result-preview`} initialEditorOpen={editorOpen} /></div>
+    <div className="lesoul-mobile-frame lesoul-result-preview px-4 pt-2"><LookResultPanel imageUrl={image} previousImageUrl={previous} lookCode="LOOK #SAFE" products={products} measurements={{ height: 163, shoulderWidth: 42, gender: "female", unit: "cm" }} isRegenerating={busy} onRegenerate={regenerate} onChangePose={() => undefined} onChangeOutfit={() => undefined} shareUrl={`${window.location.origin}/result-preview`} initialEditorOpen={editorOpen} /></div>
   </MobileScreen>;
 }
