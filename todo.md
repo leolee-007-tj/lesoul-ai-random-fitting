@@ -135,3 +135,6 @@
 - [x] Confirm Manus GPT Image 2 remains the default customer-facing composition provider and document the public capability in the Studio UI.
 - [x] Improve customer-facing generation progress and result-status messaging without exposing provider credentials.
 - [x] Verify the demo-to-generation path and saved result behavior, then test, checkpoint, and publish.
+- [x] Add a visible retry action for a sample/fallback result that returns the customer to a ready-to-generate state.
+- [x] Add concise blog-ready sharing copy that includes the look code, pose, style, and selected product names.
+- [x] Add a customer-photo quality-check checklist and verify the public result/share flow before publishing.
