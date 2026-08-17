@@ -11,15 +11,25 @@ const productInput = z.object({
   status: z.enum(["in_stock", "sold_out"]),
   price: z.number().int().positive(),
   imageUrl: z.string().min(1),
+  images: z.array(z.string().min(1)).max(5).optional(),
   description: z.string().min(2),
+  fabric: z.string().max(160).nullable().optional(),
+  texture: z.string().max(120).nullable().optional(),
+  fit: z.string().max(120).nullable().optional(),
+  length: z.string().max(120).nullable().optional(),
+  width: z.string().max(120).nullable().optional(),
+  details: z.string().max(2000).nullable().optional(),
+  neckline: z.string().max(120).nullable().optional(),
+  sleeve: z.string().max(120).nullable().optional(),
   purchaseUrl: z.string().url().nullable().optional(),
+  purchasePlatform: z.string().max(120).nullable().optional(),
 });
 
 export const adminRouter = router({
   products: publicProcedure.query(async () => (await getCatalog()).products),
   stats: publicProcedure.query(getAdminStats),
   createProduct: publicProcedure.input(productInput).mutation(async ({ input }) => {
-    await createAdminProduct({ ...input, purchaseUrl: input.purchaseUrl ?? null });
+    await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null });
     return { success: true };
   }),
   updateProduct: publicProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {

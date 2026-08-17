@@ -32,7 +32,10 @@ export async function ensureCatalog() {
   if (!db) return false;
   await Promise.all(demoProducts.map((item) => db.insert(products).values(item).onDuplicateKeyUpdate({ set: {
     category: item.category, season: item.season, color: item.color, style: item.style, status: item.status,
-    price: item.price, imageUrl: item.imageUrl, description: item.description, purchaseUrl: item.purchaseUrl,
+    price: item.price, imageUrl: item.imageUrl, images: item.images, description: item.description,
+    fabric: item.fabric, texture: item.texture, fit: item.fit, length: item.length, width: item.width,
+    details: item.details, neckline: item.neckline, sleeve: item.sleeve,
+    purchaseUrl: item.purchaseUrl, purchasePlatform: item.purchasePlatform,
   } })));
   await Promise.all(demoPoses.map((item) => db.insert(poses).values(item).onDuplicateKeyUpdate({ set: {
     promptKeyword: item.promptKeyword, imageUrl: item.imageUrl,

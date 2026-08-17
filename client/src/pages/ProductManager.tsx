@@ -1,128 +1,56 @@
 import AppHeader from "@/components/AppHeader";
 import { trpc } from "@/lib/trpc";
-import { AlertCircle, CheckCircle2, ImagePlus, Link, LoaderCircle, Pencil, Plus, Trash2, UploadCloud, X } from "lucide-react";
-import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import { AlertCircle, ArrowDown, ArrowUp, CheckCircle2, FileSpreadsheet, GripVertical, ImagePlus, Link, LoaderCircle, Pencil, Plus, Trash2, UploadCloud, X } from "lucide-react";
+import { ChangeEvent, DragEvent, FormEvent, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
+type Category = "top" | "bottom" | "outer" | "dress" | "shoes" | "bag";
 type ProductForm = {
-  name: string;
-  category: "top" | "bottom" | "outer" | "dress" | "shoes" | "bag";
-  season: string;
-  color: string;
-  style: string;
-  status: "in_stock" | "sold_out";
-  price: number;
-  imageUrl: string;
-  description: string;
-  purchaseUrl: string;
+  name: string; category: Category; season: string; color: string; style: string; status: "in_stock" | "sold_out"; price: number;
+  imageUrl: string; images: string[]; description: string; fabric: string; texture: string; fit: string; length: string; width: string;
+  details: string; neckline: string; sleeve: string; purchaseUrl: string; purchasePlatform: string;
 };
+type CsvPreviewRow = { row: number; form: ProductForm; errors: string[] };
+const placeholderImage = "/manus-storage/editorial-cafe_f970ce23.jpg";
+const blank: ProductForm = { name: "", category: "top", season: "Spring, Fall", color: "Ivory", style: "MINIMAL", status: "in_stock", price: 99000, imageUrl: placeholderImage, images: [placeholderImage], description: "A new LESOUL piece.", fabric: "Cotton", texture: "Smooth", fit: "Regular", length: "Standard", width: "Standard", details: "", neckline: "Crew", sleeve: "Long", purchaseUrl: "", purchasePlatform: "LESOUL Store" };
+const textureOptions = ["Smooth", "Ribbed", "Textured", "Matte", "Glossy", "Brushed", "Soft", "Crisp", "Flowy", "Structured"];
+const fitOptions = ["Slim", "Regular", "Oversized", "Relaxed", "Fitted", "Boxy"];
+const lengthOptions = ["Cropped", "Standard", "Long", "Ankle", "Mini", "Midi", "Maxi", "Full"];
+const widthOptions = ["Narrow", "Standard", "Wide", "Flared", "Straight", "Tapered"];
+const necklineOptions = ["V-neck", "Crew", "Turtleneck", "Square", "Off-shoulder", "Collared", "Scoop", "Boat", "Halter", "Sweetheart"];
+const sleeveOptions = ["Sleeveless", "Short", "3/4", "Long", "Puff", "Bell", "Bishop"];
 
-const blank: ProductForm = {
-  name: "", category: "top", season: "Spring, Fall", color: "Ivory", style: "MINIMAL", status: "in_stock", price: 99000,
-  imageUrl: "/manus-storage/minimalist-lookbook_87fea9ec.jpg", description: "A new LESOUL piece.", purchaseUrl: "",
-};
-
-function readFileData(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Unable to read this image."));
-    reader.onload = () => resolve(String(reader.result));
-    reader.readAsDataURL(file);
-  });
-}
+function readFileData(file: File) { return new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(new Error("Unable to read this image.")); reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(file); }); }
+function parseCsvLine(line: string) { const values: string[] = []; let current = ""; let quoted = false; for (let i = 0; i < line.length; i += 1) { const char = line[i]; if (char === '"') { if (quoted && line[i + 1] === '"') { current += '"'; i += 1; } else quoted = !quoted; } else if (char === "," && !quoted) { values.push(current.trim()); current = ""; } else current += char; } values.push(current.trim()); return values; }
 
 export default function ProductManager() {
-  const [form, setForm] = useState<ProductForm | null>(null);
-  const [editing, setEditing] = useState<number | null>(null);
-  const [localPreview, setLocalPreview] = useState<string | null>(null);
-  const [imageError, setImageError] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const catalog = trpc.admin.products.useQuery();
-  const utils = trpc.useUtils();
-  const refresh = () => utils.admin.products.invalidate();
+  const { t } = useTranslation();
+  const [form, setForm] = useState<ProductForm | null>(null); const [editing, setEditing] = useState<number | null>(null); const [imageError, setImageError] = useState(""); const [dragIndex, setDragIndex] = useState<number | null>(null); const [csvPreview, setCsvPreview] = useState<CsvPreviewRow[] | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null); const csvInputRef = useRef<HTMLInputElement>(null);
+  const catalog = trpc.admin.products.useQuery(); const utils = trpc.useUtils(); const refresh = () => utils.admin.products.invalidate();
   const uploadImage = trpc.uploads.productImage.useMutation();
-  const create = trpc.admin.createProduct.useMutation({ onSuccess: () => { refresh(); closeEditor(); } });
-  const update = trpc.admin.updateProduct.useMutation({ onSuccess: () => { refresh(); closeEditor(); } });
-  const remove = trpc.admin.deleteProduct.useMutation({ onSuccess: refresh });
+  const create = trpc.admin.createProduct.useMutation({ onSuccess: () => { refresh(); closeEditor(); } }); const update = trpc.admin.updateProduct.useMutation({ onSuccess: () => { refresh(); closeEditor(); } }); const remove = trpc.admin.deleteProduct.useMutation({ onSuccess: refresh });
+  const updateForm = (updates: Partial<ProductForm>) => setForm((current) => current ? { ...current, ...updates } : current);
+  const setImages = (images: string[]) => updateForm({ images, imageUrl: images[0] ?? placeholderImage });
+  function closeEditor() { setForm(null); setEditing(null); setImageError(""); setDragIndex(null); }
+  function openNewProduct() { setEditing(null); setImageError(""); setForm(blank); }
+  function openEditProduct(item: Omit<ProductForm, "images" | "purchaseUrl" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform"> & { id: number; images?: string[] | null; purchaseUrl?: string | null; fabric?: string | null; texture?: string | null; fit?: string | null; length?: string | null; width?: string | null; details?: string | null; neckline?: string | null; sleeve?: string | null; purchasePlatform?: string | null }) { const images = item.images?.length ? item.images : [item.imageUrl]; setEditing(item.id); setImageError(""); setForm({ ...blank, ...item, purchaseUrl: item.purchaseUrl ?? "", images, imageUrl: images[0] ?? item.imageUrl, fabric: item.fabric ?? "", texture: item.texture ?? "", fit: item.fit ?? "", length: item.length ?? "", width: item.width ?? "", details: item.details ?? "", neckline: item.neckline ?? "", sleeve: item.sleeve ?? "", purchasePlatform: item.purchasePlatform ?? "LESOUL Store" }); }
 
-  function closeEditor() {
-    setForm(null); setEditing(null); setLocalPreview(null); setImageError("");
-  }
+  async function onImageFiles(event: ChangeEvent<HTMLInputElement>) { const files = Array.from(event.target.files ?? []); if (!files.length || !form) return; setImageError(""); const remaining = 5 - form.images.length; if (remaining <= 0) { setImageError("A product can have one main image and up to four detail images."); return; } const accepted = files.slice(0, remaining); for (const file of accepted) { if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) { setImageError("Choose JPG, PNG, or WEBP images."); return; } if (file.size > 8 * 1024 * 1024) { setImageError("Each image must be 8MB or smaller."); return; } } try { const uploads: string[] = []; for (const file of accepted) { const dataUrl = await readFileData(file); const { url } = await uploadImage.mutateAsync({ dataUrl }); uploads.push(url); } setImages([...form.images, ...uploads]); } catch (cause) { setImageError(cause instanceof Error ? cause.message : "Unable to upload image. Please try again."); } finally { event.target.value = ""; } }
+  function moveImage(from: number, to: number) { if (!form || to < 0 || to >= form.images.length) return; const next = [...form.images]; const [moved] = next.splice(from, 1); next.splice(to, 0, moved); setImages(next); }
+  function removeImage(index: number) { if (!form || form.images.length <= 1) return setImageError("Keep one main product image."); setImages(form.images.filter((_, itemIndex) => itemIndex !== index)); }
+  function submit(event: FormEvent) { event.preventDefault(); if (!form || uploadImage.isPending) return; const payload = { ...form, images: form.images, purchaseUrl: form.purchaseUrl || null, purchasePlatform: form.purchasePlatform || null, fabric: form.fabric || null, texture: form.texture || null, fit: form.fit || null, length: form.length || null, width: form.width || null, details: form.details || null, neckline: form.neckline || null, sleeve: form.sleeve || null }; if (editing) update.mutate({ id: editing, ...payload }); else create.mutate(payload); }
+  function onCsvFile(event: ChangeEvent<HTMLInputElement>) { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { const lines = String(reader.result).split(/\r?\n/).filter(Boolean); if (lines.length < 2) return setCsvPreview([]); const headers = parseCsvLine(lines[0]).map((item) => item.trim()); const preview = lines.slice(1).map((line, index) => { const data = parseCsvLine(line); const row = Object.fromEntries(headers.map((header, headerIndex) => [header, data[headerIndex] ?? ""])); const category = (row.category || "top").toLowerCase() as Category; const price = Number(row.price); const errors = [!row.name ? "name is required" : "", !["top", "bottom", "outer", "dress", "shoes", "bag"].includes(category) ? "invalid category" : "", !Number.isFinite(price) || price <= 0 ? "invalid price" : ""].filter(Boolean); const imageUrl = row.imageUrl || placeholderImage; return { row: index + 2, errors, form: { ...blank, name: row.name || "", category: errors.includes("invalid category") ? "top" : category, season: row.season || blank.season, color: row.color || blank.color, style: row.style || blank.style, price: Number.isFinite(price) && price > 0 ? price : blank.price, imageUrl, images: [imageUrl], description: row.description || "Imported LESOUL product.", fabric: row.fabric || "", texture: row.texture || "", fit: row.fit || "", length: row.length || "", width: row.width || "", details: row.details || "", neckline: row.neckline || "", sleeve: row.sleeve || "", purchaseUrl: row.purchaseUrl || "", purchasePlatform: row.purchasePlatform || "LESOUL Store" } }; }); setCsvPreview(preview); }; reader.readAsText(file); event.target.value = ""; }
+  async function importCsvRows() { if (!csvPreview) return; for (const row of csvPreview.filter((item) => !item.errors.length)) { await create.mutateAsync({ ...row.form, purchaseUrl: row.form.purchaseUrl || null, purchasePlatform: row.form.purchasePlatform || null, fabric: row.form.fabric || null, texture: row.form.texture || null, fit: row.form.fit || null, length: row.form.length || null, width: row.form.width || null, details: row.form.details || null, neckline: row.form.neckline || null, sleeve: row.form.sleeve || null }); } await refresh(); setCsvPreview(null); }
 
-  function openNewProduct() {
-    setEditing(null); setLocalPreview(null); setImageError(""); setForm(blank);
-  }
-
-  function openEditProduct(item: Omit<ProductForm, "purchaseUrl"> & { id: number; purchaseUrl: string | null }) {
-    setEditing(item.id); setLocalPreview(null); setImageError("");
-    setForm({
-      name: item.name, category: item.category, season: item.season, color: item.color, style: item.style, status: item.status,
-      price: item.price, imageUrl: item.imageUrl, description: item.description, purchaseUrl: item.purchaseUrl ?? "",
-    });
-  }
-
-  async function onImageFile(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !form) return;
-    setImageError("");
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setImageError("Choose a JPG, PNG, or WEBP image."); return;
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      setImageError("Image size must be 8MB or smaller."); return;
-    }
-    try {
-      const dataUrl = await readFileData(file);
-      setLocalPreview(dataUrl);
-      const { url } = await uploadImage.mutateAsync({ dataUrl });
-      setForm((current) => current ? { ...current, imageUrl: url } : current);
-      setLocalPreview(null);
-    } catch (cause) {
-      setImageError(cause instanceof Error ? cause.message : "Unable to upload image. Please try again.");
-      setLocalPreview(null);
-    } finally {
-      event.target.value = "";
-    }
-  }
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!form || uploadImage.isPending) return;
-    const payload = { ...form, purchaseUrl: form.purchaseUrl || null };
-    if (editing) update.mutate({ id: editing, ...payload }); else create.mutate(payload);
-  }
-
-  return <div className="min-h-screen bg-[#f8f7f4] text-[#171717]">
-    <AppHeader />
-    <main className="mx-auto max-w-6xl px-5 pb-14 pt-8 sm:px-8">
-      <p className="text-xs font-bold tracking-[.2em] text-[#777]">PRIVATE PRODUCT ARCHIVE</p>
-      <div className="mt-2 flex items-center justify-between gap-4">
-        <div><h1 className="font-serif text-4xl sm:text-5xl">Product Manager</h1><p className="mt-2 text-sm text-[#666]">Upload real LESOUL product images and build your private lookbook.</p></div>
-        <button onClick={openNewProduct} className="inline-flex shrink-0 items-center gap-2 rounded-full bg-black px-4 py-3 text-xs font-semibold text-white"><Plus size={15} /> Add Product</button>
-      </div>
-      <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {catalog.isLoading ? <div className="col-span-full grid min-h-52 place-items-center"><LoaderCircle className="animate-spin" /></div> : catalog.data?.map((item) => <article key={item.id} className="overflow-hidden rounded-2xl border border-[#dedbd4] bg-white">
-          <img src={item.imageUrl} alt={item.name} className="aspect-[1.25] w-full object-cover" />
-          <div className="p-4"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-sm font-semibold">{item.name}</p><p className="mt-1 text-[11px] font-bold tracking-[.12em] text-[#777]">{item.category.toUpperCase()} · {item.status === "in_stock" ? "ACTIVE" : "INACTIVE"}</p></div><div className="flex gap-1"><button onClick={() => openEditProduct(item)} className="grid size-8 place-items-center rounded-full bg-[#eeebe5]" aria-label={`Edit ${item.name}`}><Pencil size={14} /></button><button onClick={() => { if (confirm("Delete this product?")) remove.mutate({ id: item.id }); }} className="grid size-8 place-items-center rounded-full bg-[#f5e4df] text-[#9b4d3f]" aria-label={`Delete ${item.name}`}><Trash2 size={14} /></button></div></div></div>
-        </article>)}
-      </section>
-      {form && <div className="fixed inset-0 z-40 overflow-y-auto bg-black/30 p-4 backdrop-blur-sm">
-        <form onSubmit={submit} className="mx-auto my-6 max-w-xl rounded-[1.7rem] bg-white p-6 shadow-2xl">
-          <div className="flex items-center justify-between"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">LESOUL CATALOG</p><h2 className="mt-1 font-serif text-2xl">{editing ? "Edit Product" : "Add Product"}</h2></div><button type="button" onClick={closeEditor} aria-label="Close product editor"><X size={20} /></button></div>
-          <section className="mt-5 overflow-hidden rounded-2xl border border-[#dedbd4] bg-[#f8f7f4]">
-            <div className="relative aspect-[1.65] bg-[#e9e6df]"><img src={localPreview ?? form.imageUrl} alt="Selected product preview" className={`h-full w-full object-cover ${uploadImage.isPending ? "opacity-55" : ""}`} />{uploadImage.isPending && <div className="absolute inset-0 grid place-items-center bg-black/25 text-center text-white"><LoaderCircle className="mx-auto animate-spin" /><p className="mt-2 text-xs font-semibold">Uploading product image…</p></div>}</div>
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3"><div className="min-w-0"><p className="text-xs font-semibold">Product Image</p><p className="mt-0.5 text-[11px] text-[#777]">JPG, PNG or WEBP · up to 8MB</p></div><button type="button" disabled={uploadImage.isPending} onClick={() => fileInputRef.current?.click()} className="inline-flex items-center gap-2 rounded-full bg-black px-3.5 py-2 text-xs font-semibold text-white disabled:opacity-50"><ImagePlus size={15} /> {editing ? "Replace Image" : "Upload Image"}</button></div>
-            <input ref={fileInputRef} onChange={onImageFile} className="hidden" type="file" accept="image/jpeg,image/png,image/webp" />
-          </section>
-          {imageError && <p className="mt-2 flex items-center gap-1.5 text-xs text-red-700"><AlertCircle size={14} />{imageError}</p>}
-          {!uploadImage.isPending && form.imageUrl.startsWith("/manus-storage/lesoul/catalog/products/") && <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700"><CheckCircle2 size={14} />Product image is safely stored in the LESOUL catalog.</p>}
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {([['name','Product Name'],['season','Season'],['color','Color'],['style','Style'],['price','Price'],['description','Description'],['purchaseUrl','Purchase URL']] as const).map(([key,label]) => <label key={key} className={key === 'description' || key === 'purchaseUrl' ? 'sm:col-span-2' : ''}><span className="text-xs font-semibold text-[#666]">{label}</span><input required={key !== 'purchaseUrl'} type={key === 'price' ? 'number' : 'text'} value={form[key]} onChange={(event) => setForm({ ...form, [key]: key === 'price' ? Number(event.target.value) : event.target.value })} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm" /></label>)}
-          </div>
-          <label className="mt-3 block"><span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#666]"><Link size={13} />Or use an existing image URL</span><input type="url" value={form.imageUrl} onChange={(event) => { setLocalPreview(null); setForm({ ...form, imageUrl: event.target.value }); }} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm" /></label>
-          <div className="mt-3 grid grid-cols-2 gap-3"><label><span className="text-xs font-semibold text-[#666]">Category</span><select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value as ProductForm['category'] })} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm">{["top","bottom","outer","dress","shoes","bag"].map((item) => <option key={item} value={item}>{item.toUpperCase()}</option>)}</select></label><label><span className="text-xs font-semibold text-[#666]">Status</span><select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ProductForm['status'] })} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm"><option value="in_stock">ACTIVE</option><option value="sold_out">INACTIVE</option></select></label></div>
-          <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-black py-3.5 text-sm font-semibold text-white disabled:opacity-50" disabled={create.isPending || update.isPending || uploadImage.isPending}>{create.isPending || update.isPending ? <LoaderCircle className="animate-spin" size={16} /> : <UploadCloud size={16} />} Save Product</button>
-        </form>
-      </div>}
-    </main>
-  </div>;
+  return <div className="min-h-screen bg-[#f8f7f4] text-[#171717]"><AppHeader /><main className="mx-auto max-w-6xl px-5 pb-14 pt-8 sm:px-8"><p className="text-xs font-bold tracking-[.2em] text-[#777]">{t("products.eyebrow")}</p><div className="mt-2 flex flex-wrap items-center justify-between gap-4"><div><h1 className="font-serif text-4xl sm:text-5xl">{t("products.title")}</h1><p className="mt-2 text-sm text-[#666]">{t("products.body")}</p></div><div className="flex gap-2"><button onClick={() => csvInputRef.current?.click()} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#d4d0c8] bg-white px-4 py-3 text-xs font-semibold"><FileSpreadsheet size={15} /> {t("products.csv")}</button><button onClick={openNewProduct} className="inline-flex shrink-0 items-center gap-2 rounded-full bg-black px-4 py-3 text-xs font-semibold text-white"><Plus size={15} /> {t("products.add")}</button></div></div><input ref={csvInputRef} onChange={onCsvFile} className="hidden" type="file" accept=".csv,text/csv" />
+    <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{catalog.isLoading ? <div className="col-span-full grid min-h-52 place-items-center"><LoaderCircle className="animate-spin" /></div> : catalog.data?.map((item) => <article key={item.id} className="overflow-hidden rounded-2xl border border-[#dedbd4] bg-white"><div className="relative bg-[#e6e0d6]"><img src={item.imageUrl} loading="eager" decoding="sync" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = placeholderImage; }} alt={item.name} className="aspect-[1.25] w-full object-cover" />{item.images && item.images.length > 1 && <span className="absolute right-3 top-3 rounded-full bg-black/70 px-2 py-1 text-[10px] font-bold text-white">+{item.images.length - 1}</span>}</div><div className="p-4"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-sm font-semibold">{item.name}</p><p className="mt-1 text-[11px] font-bold tracking-[.12em] text-[#777]">{t(`categories.${item.category}`)} · {item.status === "in_stock" ? t("products.active") : t("products.inactive")}</p><p className="mt-2 text-xs text-[#666]">{item.fabric ?? "—"} · {item.fit ?? "—"}</p></div><div className="flex gap-1"><button onClick={() => openEditProduct(item)} className="grid size-8 place-items-center rounded-full bg-[#eeebe5]" aria-label={`Edit ${item.name}`}><Pencil size={14} /></button><button onClick={() => { if (confirm("Delete this product?")) remove.mutate({ id: item.id }); }} className="grid size-8 place-items-center rounded-full bg-[#f5e4df] text-[#9b4d3f]" aria-label={`Delete ${item.name}`}><Trash2 size={14} /></button></div></div></div></article>)}</section>
+    {csvPreview && <section className="fixed inset-0 z-40 overflow-y-auto bg-black/30 p-4 backdrop-blur-sm"><div className="mx-auto my-8 max-w-3xl rounded-[1.7rem] bg-white p-6 shadow-2xl"><div className="flex items-start justify-between"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">CSV IMPORT</p><h2 className="mt-1 font-serif text-2xl">Review imported products</h2></div><button onClick={() => setCsvPreview(null)}><X size={20} /></button></div><p className="mt-3 text-sm text-[#666]">Use columns: name, category, color, season, style, fabric, texture, fit, length, width, details, neckline, sleeve, price, purchaseUrl, purchasePlatform.</p><div className="mt-5 max-h-80 overflow-auto rounded-xl border border-[#e1ddd5]"><table className="w-full text-left text-xs"><thead className="sticky top-0 bg-[#f7f5f1] text-[#666]"><tr><th className="p-3">Row</th><th className="p-3">Product</th><th className="p-3">Category</th><th className="p-3">Status</th></tr></thead><tbody>{csvPreview.map((row) => <tr key={row.row} className="border-t border-[#eeeae3]"><td className="p-3">{row.row}</td><td className="p-3">{row.form.name || "—"}</td><td className="p-3">{row.form.category}</td><td className={`p-3 ${row.errors.length ? "text-red-700" : "text-emerald-700"}`}>{row.errors.length ? row.errors.join(", ") : "Ready"}</td></tr>)}</tbody></table></div><div className="mt-5 flex justify-end gap-2"><button onClick={() => setCsvPreview(null)} className="rounded-full border border-[#d7d1c8] px-4 py-2.5 text-sm">Cancel</button><button disabled={create.isPending || !csvPreview.some((row) => !row.errors.length)} onClick={importCsvRows} className="rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Import valid rows</button></div></div></section>}
+    {form && <div className="fixed inset-0 z-40 overflow-y-auto bg-black/30 p-4 backdrop-blur-sm"><form onSubmit={submit} className="mx-auto my-6 max-w-3xl rounded-[1.7rem] bg-white p-6 shadow-2xl"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">LESOUL CATALOG</p><h2 className="mt-1 font-serif text-2xl">{editing ? t("products.edit") : t("products.add")}</h2></div><button type="button" onClick={closeEditor}><X size={20} /></button></div>
+      <section className="mt-5 rounded-2xl border border-[#dedbd4] bg-[#f8f7f4] p-3"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold">{t("products.image")}</p><p className="mt-0.5 text-[11px] text-[#777]">Main image required · up to 4 detail images</p></div><button type="button" disabled={uploadImage.isPending || form.images.length >= 5} onClick={() => imageInputRef.current?.click()} className="inline-flex items-center gap-2 rounded-full bg-black px-3.5 py-2 text-xs font-semibold text-white disabled:opacity-50"><ImagePlus size={15} /> {t("products.upload")}</button></div><input ref={imageInputRef} onChange={onImageFiles} className="hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple />
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">{form.images.map((image, index) => <div key={`${image}-${index}`} draggable onDragStart={() => setDragIndex(index)} onDragOver={(event) => event.preventDefault()} onDrop={(event: DragEvent) => { event.preventDefault(); if (dragIndex !== null) moveImage(dragIndex, index); setDragIndex(null); }} className="group relative overflow-hidden rounded-xl border border-[#d8d3ca] bg-white"><img src={image} alt={`Product ${index + 1}`} className="aspect-square w-full object-cover" /><span className="absolute left-1 top-1 flex items-center gap-1 rounded-full bg-black/75 px-2 py-1 text-[9px] font-bold text-white"><GripVertical size={11} />{index === 0 ? "MAIN" : `DETAIL ${index}`}</span><div className="absolute inset-x-1 bottom-1 flex justify-between opacity-0 transition group-hover:opacity-100"><button type="button" disabled={index === 0} onClick={() => moveImage(index, index - 1)} className="rounded-full bg-white p-1 text-black disabled:opacity-40"><ArrowUp size={13} /></button><button type="button" disabled={index === form.images.length - 1} onClick={() => moveImage(index, index + 1)} className="rounded-full bg-white p-1 text-black disabled:opacity-40"><ArrowDown size={13} /></button><button type="button" disabled={form.images.length <= 1} onClick={() => removeImage(index)} className="rounded-full bg-[#f8ddd7] p-1 text-red-700 disabled:opacity-40"><Trash2 size={13} /></button></div></div>)}</div>{uploadImage.isPending && <p className="mt-3 flex items-center gap-2 text-xs text-[#555]"><LoaderCircle size={14} className="animate-spin" />Uploading product images…</p>}</section>
+      {imageError && <p className="mt-2 flex items-center gap-1.5 text-xs text-red-700"><AlertCircle size={14} />{imageError}</p>}{form.imageUrl.startsWith("/manus-storage/lesoul/catalog/products/") && <p className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700"><CheckCircle2 size={14} />Catalog image is safely stored.</p>}
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">{([['name','name'],['season','season'],['color','color'],['style','style'],['price','price'],['fabric','fabric'],['texture','texture'],['fit','fit'],['length','length'],['width','width'],['neckline','neckline'],['sleeve','sleeve'],['purchasePlatform','platform'],['purchaseUrl','url']] as const).map(([key,label]) => <label key={key} className={key === 'purchaseUrl' ? 'sm:col-span-3' : ''}><span className="text-xs font-semibold text-[#666]">{t(`products.${label}`)}</span>{["texture", "fit", "length", "width", "neckline", "sleeve"].includes(key) ? <select value={form[key]} onChange={(event) => updateForm({ [key]: event.target.value })} className="mt-1 w-full rounded-xl border border-[#dedbd4] bg-white px-3 py-2.5 text-sm"><option value="">—</option>{(key === "texture" ? textureOptions : key === "fit" ? fitOptions : key === "length" ? lengthOptions : key === "width" ? widthOptions : key === "neckline" ? necklineOptions : sleeveOptions).map((option) => <option key={option} value={option}>{option}</option>)}</select> : <input required={!["purchaseUrl", "fabric", "purchasePlatform"].includes(key)} type={key === 'price' ? 'number' : key === 'purchaseUrl' ? 'url' : 'text'} value={form[key]} onChange={(event) => updateForm({ [key]: key === 'price' ? Number(event.target.value) : event.target.value })} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm" />}</label>)}</div>
+      <label className="mt-3 block"><span className="text-xs font-semibold text-[#666]">{t("products.details")}</span><textarea value={form.details} onChange={(event) => updateForm({ details: event.target.value })} placeholder="Buttons, pleats, seams, collar construction, hardware…" className="mt-1 min-h-24 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm" /></label><div className="mt-3 grid grid-cols-2 gap-3"><label><span className="text-xs font-semibold text-[#666]">{t("products.category")}</span><select value={form.category} onChange={(event) => updateForm({ category: event.target.value as Category })} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm">{(["top","bottom","outer","dress","shoes","bag"] as Category[]).map((item) => <option key={item} value={item}>{t(`categories.${item}`)}</option>)}</select></label><label><span className="text-xs font-semibold text-[#666]">Status</span><select value={form.status} onChange={(event) => updateForm({ status: event.target.value as ProductForm['status'] })} className="mt-1 w-full rounded-xl border border-[#dedbd4] px-3 py-2.5 text-sm"><option value="in_stock">{t("products.active")}</option><option value="sold_out">{t("products.inactive")}</option></select></label></div><button className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-black py-3.5 text-sm font-semibold text-white disabled:opacity-50" disabled={create.isPending || update.isPending || uploadImage.isPending}>{create.isPending || update.isPending ? <LoaderCircle className="animate-spin" size={16} /> : <UploadCloud size={16} />}{t("products.save")}</button></form></div>}
+  </main></div>;
 }

@@ -6,7 +6,10 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = [
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform">;
+type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
+
+const rawDemoProducts: SeedProductBase[] = [
   { name: "LESOUL 시그니처 실크 셔츠", category: "top", season: "봄,가을", color: "아이보리", style: "출근,데이트,고급", status: "in_stock", price: 129000, imageUrl: imageSet[0], description: "매끈한 결감과 여유로운 실루엣의 아이보리 셔츠", purchaseUrl: "https://example.com/lesoul/silk-shirt" },
   { name: "LESOUL 릴랙스 캐시미어 니트", category: "top", season: "가을,겨울", color: "베이지", style: "캐주얼,출근,고급", status: "in_stock", price: 159000, imageUrl: imageSet[1], description: "부드럽게 떨어지는 캐시미어 블렌드 니트", purchaseUrl: "https://example.com/lesoul/cashmere-knit" },
   { name: "LESOUL 모던 리브 탑", category: "top", season: "봄,여름", color: "블랙", style: "캐주얼,데이트", status: "in_stock", price: 69000, imageUrl: imageSet[2], description: "단독 또는 재킷 이너로 좋은 슬림 리브 탑", purchaseUrl: "https://example.com/lesoul/rib-top" },
@@ -28,6 +31,40 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = [
   { name: "LESOUL Soft Leather Mary Jane", category: "shoes", season: "봄,가을", color: "블랙", style: "DAILY,CHIC,MINIMAL", status: "in_stock", price: 189000, imageUrl: imageSet[0], description: "A refined low-profile Mary Jane for a polished daily look.", purchaseUrl: "https://example.com/lesoul/mary-jane" },
   { name: "LESOUL Mini Frame Bag", category: "bag", season: "봄,여름,가을,겨울", color: "브라운", style: "ELEGANT,CHIC,MINIMAL", status: "in_stock", price: 219000, imageUrl: imageSet[2], description: "A structured mini bag with an understated quiet-luxury finish.", purchaseUrl: "https://example.com/lesoul/frame-bag" },
 ];
+
+const categorySpecifications: Record<Product["category"], GarmentSpecifications> = {
+  top: { fabric: "Cotton Blend", texture: "Smooth", fit: "Regular", length: "Standard", width: "Standard", details: "Clean construction with carefully finished seams", neckline: "Crew", sleeve: "Long" },
+  bottom: { fabric: "Wool Blend", texture: "Matte", fit: "Regular", length: "Full", width: "Straight", details: "Tailored waistband and refined hem", neckline: null, sleeve: null },
+  outer: { fabric: "Wool Blend", texture: "Structured", fit: "Regular", length: "Long", width: "Straight", details: "Defined shoulder line and finished front closure", neckline: "Collared", sleeve: "Long" },
+  dress: { fabric: "Silk Blend", texture: "Flowy", fit: "Relaxed", length: "Midi", width: "Standard", details: "Carefully constructed silhouette with finished seams", neckline: "V-neck", sleeve: "Long" },
+  shoes: { fabric: "Soft Leather", texture: "Smooth", fit: "Fitted", length: "Standard", width: "Standard", details: "Low-profile sole with rounded toe and refined strap", neckline: null, sleeve: null },
+  bag: { fabric: "Grained Leather", texture: "Structured", fit: "Regular", length: "Mini", width: "Standard", details: "Structured frame, top handle, and polished hardware", neckline: null, sleeve: null },
+};
+
+function garmentSpecifications(product: SeedProductBase): GarmentSpecifications {
+  const base = categorySpecifications[product.category];
+  const name = product.name.toLowerCase();
+  if (name.includes("실크") || name.includes("satin")) return { ...base, fabric: name.includes("satin") ? "Satin" : "Silk", texture: "Glossy", fit: "Relaxed", details: name.includes("드레스") ? "Bias-cut drape with delicate straps" : "Soft drape with refined hidden placket", neckline: name.includes("드레스") ? "Scoop" : "V-neck" };
+  if (name.includes("캐시미어") || name.includes("모헤어")) return { ...base, fabric: name.includes("모헤어") ? "Mohair Blend" : "Cashmere Blend", texture: "Soft", fit: "Relaxed", details: "Soft knit construction with naturally brushed surface", neckline: "Crew" };
+  if (name.includes("리브")) return { ...base, fabric: "Wool Blend", texture: "Ribbed", fit: "Slim", details: "Fine vertical ribbing with form-following construction", neckline: "Crew" };
+  if (name.includes("데님")) return { ...base, fabric: "Denim", texture: "Textured", fit: "Relaxed", length: "Full", width: "Straight", details: "Classic straight leg, controlled wash, full finished hem" };
+  if (name.includes("플리츠")) return { ...base, fabric: "Polyester Blend", texture: "Textured", fit: "Regular", length: "Midi", width: "Flared", details: "Precisely pressed pleats with fluid movement" };
+  if (name.includes("스커트")) return { ...base, fabric: "Linen Blend", texture: "Flowy", fit: "Regular", length: "Midi", width: "Flared", details: "A-line silhouette with clean waistband" };
+  if (name.includes("트위드")) return { ...base, fabric: "Tweed", texture: "Textured", fit: "Fitted", length: "Cropped", width: "Standard", details: "Textured weave with a cropped tailored hem", neckline: "Collared" };
+  if (name.includes("레더")) return { ...base, fabric: "Leather", texture: "Matte", fit: "Oversized", details: "Supple leather panels, defined collar, finished edge details", neckline: "Collared" };
+  if (name.includes("리넨")) return { ...base, fabric: "Linen", texture: "Crisp", fit: "Relaxed", details: "Wrap construction with natural linen drape", neckline: "V-neck" };
+  if (name.includes("셔츠 드레스")) return { ...base, fabric: "Cotton Blend", texture: "Smooth", fit: "Regular", length: "Midi", details: "Button front, pointed collar, adjustable belt", neckline: "Collared" };
+  if (name.includes("블레이저")) return { ...base, fabric: "Wool Blend", texture: "Structured", fit: "Regular", details: "Double-breasted front and balanced structured shoulders", neckline: "Collared" };
+  if (name.includes("트렌치")) return { ...base, fabric: "Cotton Gabardine", texture: "Crisp", fit: "Regular", length: "Long", details: "Storm flap, belt, and classic tailored collar", neckline: "Collared" };
+  return base;
+}
+
+export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = rawDemoProducts.map((product) => ({
+  ...product,
+  ...garmentSpecifications(product),
+  images: [product.imageUrl],
+  purchasePlatform: "LESOUL Store",
+}));
 
 export const demoPoses: Omit<Pose, "id" | "createdAt">[] = [
   { name: "Natural Standing", promptKeyword: "standing naturally, relaxed confidence, full body", imageUrl: null },

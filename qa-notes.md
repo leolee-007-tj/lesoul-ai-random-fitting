@@ -19,3 +19,7 @@ Mobile captures confirmed the new English LESOUL AI LOOK homepage and no-auth pr
 ## 2026-08-17 product image management
 
 Mobile and desktop Product Manager captures confirmed the responsive catalog-management shell and prominent Add Product action. The catalog request completes successfully with no network error; it takes approximately 2.5 seconds because the server initializes and reads the full catalog, so the temporary loading indicator in the automated capture is expected rather than a failed request.
+
+## 2026-08-17 LESOUL AI LOOK v2 mobile review
+
+At 390px, the global language control exposes EN, KO, and 中文 without wrapping after the mobile header was condensed. The brand lockup, language switcher, compact create button, and menu icon fit on one line. The home hero and studio upload surface remain readable and retain their editorial hierarchy; the studio progress row scrolls horizontally by design to preserve the full five-step sequence on narrow screens.

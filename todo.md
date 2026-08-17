@@ -32,3 +32,12 @@
 - [x] Add Product Manager file selection, upload progress, local preview, replacement, and image-URL fallback controls.
 - [x] Persist the uploaded product image URL with new and edited product records, then verify responsive Product Manager behavior.
 - [x] Add upload validation tests, save a checkpoint, and publish the revised product-image management experience.
+- [x] Add English, Korean, and Chinese i18n infrastructure with a persistent header language switcher and locale-aware history migration.
+- [x] Extend product records with fabric, texture, fit, length, width, details, neckline, sleeve, purchase platform, and ordered image-gallery metadata.
+- [x] Backfill product seed records with material and construction details required for faithful AI clothing descriptions.
+- [x] Extend Product Manager with garment-detail inputs, purchase fields, main/detail image ordering, individual image removal, and CSV preview/import validation.
+- [x] Add strict clothing-preservation prompt rules and detailed garment prompt construction to the provider abstraction.
+- [x] Add a multilingual result experience with adjustment controls, old/new comparison, regeneration state, and saved adjustment history.
+- [x] Add Shop This Look purchase links, mobile Web Share, copy/share actions, download, result OG share-card generation, and share metadata.
+- [x] Test all locales, product migrations, visual flows, production build, checkpoint, and updated deployment.
+- [x] Save the verified LESOUL AI LOOK v2 checkpoint and publish the updated experience.

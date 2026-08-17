@@ -1,20 +1,84 @@
+import { generateImage } from "./_core/imageGeneration";
+
+export const CLOTHING_PRESERVATION_RULES = {
+  mustPreserve: ["length", "width", "neckline", "sleeve", "color", "pattern", "fabric", "details"],
+  canAdapt: ["pose_fit", "drape_on_body", "lighting_effect"],
+  strictMode: true,
+} as const;
+
+export const CLOTHING_NEGATIVE_PROMPT = "Do not change clothing design, length, width, silhouette, neckline, sleeve length, fabric, color, pattern, buttons, seams, pleats, or any listed detail. Do not add or remove elements. Do not generate abstract, distorted, fictional, or substituted clothing.";
+
+export type AdjustmentParams = {
+  overallFit?: "looser" | "as_is" | "tighter";
+  proportion?: "shorter_torso" | "as_is" | "longer_legs";
+  lighting?: "darker" | "as_is" | "brighter";
+  items?: Record<number, { length?: "shorter" | "as_is" | "longer"; width?: "narrower" | "as_is" | "wider"; color?: "muted" | "as_is" | "vibrant"; details?: "simpler" | "as_is" | "detailed" }>;
+};
+
+export type FashionGarment = {
+  id: number;
+  name: string;
+  category: string;
+  imageUrl: string;
+  images?: string[] | null;
+  description: string;
+  color?: string | null;
+  fabric?: string | null;
+  texture?: string | null;
+  fit?: string | null;
+  length?: string | null;
+  width?: string | null;
+  details?: string | null;
+  neckline?: string | null;
+  sleeve?: string | null;
+};
+
 export type FashionLookRequest = {
   userImage: string;
   pose: { id: number; name: string; promptKeyword: string };
-  clothing: Array<{ id: number; name: string; category: string; imageUrl: string; description: string }>;
+  clothing: FashionGarment[];
   background: { id: number; name: string; promptKeyword: string };
   style: "RANDOM" | "DAILY" | "ELEGANT" | "CHIC" | "CASUAL" | "MINIMAL";
+  adjustments?: AdjustmentParams;
 };
 
 export type FashionLookResponse = {
   generatedImage: string;
   generationStatus: "completed" | "processing" | "failed";
   provider: "mock" | "external";
-  metadata: { pose: string; background: string; style: string; clothingCount: number; generatedAt: string };
+  metadata: { pose: string; background: string; style: string; clothingCount: number; generatedAt: string; preservationPrompt: string; negativePrompt: string };
 };
+
+export function describeGarmentForGeneration(garment: FashionGarment) {
+  const attributes = [
+    garment.fabric ? `${garment.fabric} fabric` : null,
+    garment.texture ? `${garment.texture} texture` : null,
+    garment.fit ? `${garment.fit} fit` : null,
+    garment.length ? `${garment.length} length` : null,
+    garment.width ? `${garment.width} width silhouette` : null,
+  ].filter(Boolean).join(", ");
+  const construction = [garment.details, garment.neckline ? `${garment.neckline} neckline` : null, garment.sleeve ? `${garment.sleeve} sleeves` : null].filter(Boolean).join(". ");
+  return `Wearing ${garment.name}${garment.color ? ` in ${garment.color}` : ""}: ${attributes || garment.description}. Features ${construction || garment.description}. Reference clothing image: ${(garment.images?.[0] ?? garment.imageUrl)}.`;
+}
+
+export function buildClothingPreservationPrompt(request: FashionLookRequest) {
+  const garmentDescriptions = request.clothing.map(describeGarmentForGeneration).join("\n");
+  const adjustmentNote = request.adjustments ? `Permitted refinement request: ${JSON.stringify(request.adjustments)}. Preserve all identity-defining garment specifications unless this request explicitly changes a visual rendering nuance.` : "";
+  return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
+}
 
 export interface FashionProvider {
   generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse>;
+}
+
+function imageReference(source: string) {
+  const match = source.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+  if (match) return { b64Json: match[2], mimeType: match[1] };
+  return { url: source, mimeType: source.endsWith(".png") ? "image/png" : "image/jpeg" };
+}
+
+function responseMetadata(request: FashionLookRequest, preservationPrompt: string) {
+  return { pose: request.pose.name, background: request.background.name, style: request.style, clothingCount: request.clothing.length, generatedAt: new Date().toISOString(), preservationPrompt, negativePrompt: CLOTHING_NEGATIVE_PROMPT };
 }
 
 /**
@@ -23,22 +87,34 @@ export interface FashionProvider {
  */
 export class MockFashionProvider implements FashionProvider {
   async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
+    const preservationPrompt = buildClothingPreservationPrompt(request);
     return {
       generatedImage: request.userImage,
       generationStatus: "completed",
       provider: "mock",
-      metadata: {
-        pose: request.pose.name,
-        background: request.background.name,
-        style: request.style,
-        clothingCount: request.clothing.length,
-        generatedAt: new Date().toISOString(),
-      },
+      metadata: responseMetadata(request, preservationPrompt),
     };
   }
 }
 
-let provider: FashionProvider = new MockFashionProvider();
+export class InternalImageFashionProvider implements FashionProvider {
+  constructor(private readonly fallback = new MockFashionProvider()) {}
+
+  async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
+    const preservationPrompt = buildClothingPreservationPrompt(request);
+    const originalImages = [imageReference(request.userImage), ...request.clothing.flatMap((garment) => [garment.images?.[0] ?? garment.imageUrl].filter(Boolean).map(imageReference))];
+    try {
+      const generated = await generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" });
+      if (!generated.url) throw new Error("Image service returned no generated image URL.");
+      return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
+    } catch (error) {
+      console.warn("[FashionProvider] Image generation failed; using reference-image fallback.", error);
+      return this.fallback.generateFashionLook(request);
+    }
+  }
+}
+
+let provider: FashionProvider = new InternalImageFashionProvider();
 
 export function setFashionProvider(nextProvider: FashionProvider) {
   provider = nextProvider;

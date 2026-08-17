@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /** Core identity record populated by Manus OAuth. */
 export const users = mysqlTable("users", {
@@ -23,8 +23,18 @@ export const products = mysqlTable("products", {
   status: mysqlEnum("status", ["in_stock", "sold_out"]).default("in_stock").notNull(),
   price: int("price").notNull(),
   imageUrl: text("imageUrl").notNull(),
+  images: json("images").$type<string[]>(),
   description: text("description").notNull(),
+  fabric: varchar("fabric", { length: 160 }),
+  texture: varchar("texture", { length: 120 }),
+  fit: varchar("fit", { length: 120 }),
+  length: varchar("length", { length: 120 }),
+  width: varchar("width", { length: 120 }),
+  details: varchar("details", { length: 2000 }),
+  neckline: varchar("neckline", { length: 120 }),
+  sleeve: varchar("sleeve", { length: 120 }),
   purchaseUrl: text("purchaseUrl"),
+  purchasePlatform: varchar("purchasePlatform", { length: 120 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
