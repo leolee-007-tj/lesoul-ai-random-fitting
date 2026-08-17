@@ -23,3 +23,13 @@ Mobile and desktop Product Manager captures confirmed the responsive catalog-man
 ## 2026-08-17 LESOUL AI LOOK v2 mobile review
 
 At 390px, the global language control exposes EN, KO, and 中文 without wrapping after the mobile header was condensed. The brand lockup, language switcher, compact create button, and menu icon fit on one line. The home hero and studio upload surface remain readable and retain their editorial hierarchy; the studio progress row scrolls horizontally by design to preserve the full five-step sequence on narrow screens.
+
+## 2026-08-17 mobile-first responsive release
+
+At 390×844, Home keeps the brand, circular START CTA, feature summary, and bottom navigation inside the opening viewport. Studio preserves a square upload zone, visible photo guidance, and Back/Continue actions above the navigation. Measurements exposes required inputs before optional scrolling while its Skip and Continue controls remain persistent. The Product Manager add-product editor retains its product-view and studio-cut controls above the mobile navigation.
+
+At 744×1133, the personal journey remains centered with expanded breathing room. Studio and Measurements preserve their mobile interaction order while using wider framed content; History remains intentionally narrow and readable; Product Manager exposes a 3-column product-view row and two independent detail slots without clipping above the centered action/navigation area.
+
+At 375×667, the Home CTA stays centered and all four navigation destinations remain visible. The compact Studio upload preview yields space to the persistent action dock, and Measurements retains accessible defaults/continue actions. At 430×932, the additional vertical space expands naturally without changing the CTA, upload, or history visual hierarchy.
+
+At 440×956, the same mobile hierarchy remains stable and the Product Manager editor exposes its studio-cut controls without action overlap. At 820×1180, 834×1194, and 1024×1366, Studio and Measurements stay intentionally centered while Product Manager expands its front/back/side and two-detail image controls into tablet-appropriate multi-column layouts. The desktop-style header replaces the mobile bottom navigation at these widths.

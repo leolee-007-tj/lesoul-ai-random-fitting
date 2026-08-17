@@ -64,3 +64,13 @@
 - [x] Capture post-update responsive QA evidence for Detail 1 and Detail 2 upload, regenerate, and remove controls.
 - [x] Open the Product Manager editor and record explicit Detail 1·2 control QA evidence before final publishing.
 - [x] Add the missing localized Product Manager price label and rerun locale checks.
+- [x] Add safe-area-aware app shells, fixed mobile headers, and fixed bottom action bars that preserve the primary action above device insets.
+- [x] Rework Home, Upload, Measurements, Pose, Outfit, Background, and Generate screens for a 390×844 iPhone-first visual hierarchy with scrollable content and persistent actions.
+- [x] Add a mobile bottom navigation pattern for primary Home, History, Create, and Product Manager destinations without conflicting with task actions.
+- [x] Optimize photo, pose, outfit, background, result, history, and product cards for 375–440px device widths and touch targets.
+- [x] Add tablet breakpoints for centered 744–1024px layouts, constrained content widths, and two-/three-column cards where appropriate.
+- [x] Test iPhone SE, iPhone 14, iPhone Pro Max, iPad Mini, iPad Air, and iPad Pro breakpoints; save a checkpoint and publish the responsive release.
+- [x] Save a new checkpoint containing the verified iPhone and iPad responsive-layout changes.
+- [ ] Verify the auto-published responsive release at the live LESOUL AI LOOK domain.
+- [ ] Save the final responsive-layout checkpoint after all iPhone and iPad QA changes.
+- [ ] Confirm the new checkpoint is available and reflected by the live LESOUL AI LOOK domain.
