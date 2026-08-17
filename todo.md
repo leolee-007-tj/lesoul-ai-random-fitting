@@ -114,3 +114,6 @@
 - [x] Place measurement-page Back and Skip controls at the left and right without overlap, with Continue as a centered form CTA.
 - [x] Center-align measurement-page heading, guidance, and input content while preserving accessible control labels.
 - [x] Verify mobile and tablet measurement layouts, run checks, checkpoint, and publish.
+- [x] Create a compact measurements layout that fits the primary controls and fields into one 390×844 mobile viewport without eliminating required inputs.
+- [x] Add a modest top inset while reducing guide artwork, card padding, field heights, and vertical spacing.
+- [x] Verify compact mobile measurements rendering, run checks, checkpoint, and publish.

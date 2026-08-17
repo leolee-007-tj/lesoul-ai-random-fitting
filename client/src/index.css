@@ -158,6 +158,24 @@ html[data-keyboard-open="true"] .lesoul-safe-modal { padding-bottom: calc(var(--
   .lesoul-mobile-content { font-size: .94rem; }
 }
 
+@media (max-width: 640px) {
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) { padding-top: 1.1rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.bg-\[\#171717\] { margin-top: .7rem; border-radius: 1.25rem; padding: .85rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.bg-\[\#171717\] .text-3xl { font-size: 1.65rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.bg-\[\#171717\] .text-sm { font-size: .75rem; line-height: 1.15rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.bg-\[\#171717\] .h-28 { height: 4rem; width: 4rem; margin-top: .55rem; border-radius: 1rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.bg-\[\#171717\] .h-28 svg { width: 36px; height: 36px; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.bg-\[\#171717\] > p:last-child { margin-top: .65rem; font-size: 9px; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 { margin-top: .55rem; border-radius: 1.15rem; padding: .7rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 .mt-3.grid { margin-top: .45rem; gap: .45rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 .text-xs { font-size: .64rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 .h-11 { height: 2.15rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 .mt-5 { margin-top: .7rem; padding-top: .65rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 .mt-4 { margin-top: .7rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 .h-10 { height: 2.15rem; }
+  .lesoul-mobile-frame:has(> section.bg-\[\#171717\]) > section.mt-4 button.mx-auto { margin-top: .7rem; height: 2.2rem; }
+}
+
 @media (max-height: 700px) and (max-width: 430px) {
   .lesoul-mobile-content > .lesoul-mobile-frame > section.mt-5:first-of-type .aspect-square { max-height: 40svh; }
   .lesoul-mobile-content > .lesoul-mobile-frame > section.mt-5:first-of-type .grid.grid-cols-3 { margin-top: .5rem; }
