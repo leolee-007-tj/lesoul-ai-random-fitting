@@ -84,7 +84,7 @@
 - [x] Confirm Android gesture-bar and iPad Split View Safe Area test cases are present in the test file.
 - [x] Execute the Safe Area test suite with the Android and Split View scenarios before final release.
 - [x] Run the full type-check, test suite, and production build after the Safe Area helper verification.
-- [ ] Verify Safe Area behavior across the requested device dimensions, save a checkpoint, and publish the release.
+- [x] Verify Safe Area behavior across the requested device dimensions, save a checkpoint, and publish the release.
 - [x] Refine compact landscape action docks so fixed actions consume less vertical space while preserving reachable scroll content.
 - [x] Confirm compact-landscape Safe Area CSS is present in the global stylesheet.
 - [x] Run type-check, tests, and production build after the compact-landscape dock change.
@@ -97,5 +97,5 @@
 - [x] Capture portrait and landscape keyboard-open adjustment modal views and document lower action spacing.
 - [x] Reconfirm and record the keyboard-open result adjustment modal QA evidence for portrait and landscape layouts.
 - [x] Rerun final checks after result-panel QA and save the Safe Area release checkpoint.
-- [ ] Save a checkpoint containing the verified Safe Area and result-preview changes.
+- [x] Save a checkpoint containing the verified Safe Area and result-preview changes.
 - [ ] Confirm the auto-published live build exposes the Safe Area result-preview route.
