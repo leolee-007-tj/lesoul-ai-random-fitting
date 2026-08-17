@@ -111,3 +111,6 @@
 - [x] Exercise the public look.generate tRPC procedure with a controlled payload and confirm it returns the real AI compositor response.
 - [x] Remove the remaining fixed Studio action dock and retain compact inline Back/Continue controls.
 - [x] Verify the new upload-card action layout at mobile and tablet widths, then test, checkpoint, and publish.
+- [x] Place measurement-page Back and Skip controls at the left and right without overlap, with Continue as a centered form CTA.
+- [x] Center-align measurement-page heading, guidance, and input content while preserving accessible control labels.
+- [x] Verify mobile and tablet measurement layouts, run checks, checkpoint, and publish.
