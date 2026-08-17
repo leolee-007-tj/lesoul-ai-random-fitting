@@ -71,6 +71,6 @@
 - [x] Add tablet breakpoints for centered 744–1024px layouts, constrained content widths, and two-/three-column cards where appropriate.
 - [x] Test iPhone SE, iPhone 14, iPhone Pro Max, iPad Mini, iPad Air, and iPad Pro breakpoints; save a checkpoint and publish the responsive release.
 - [x] Save a new checkpoint containing the verified iPhone and iPad responsive-layout changes.
-- [ ] Verify the auto-published responsive release at the live LESOUL AI LOOK domain.
-- [ ] Save the final responsive-layout checkpoint after all iPhone and iPad QA changes.
-- [ ] Confirm the new checkpoint is available and reflected by the live LESOUL AI LOOK domain.
+- [x] Verify the auto-published responsive release at the live LESOUL AI LOOK domain.
+- [x] Save the final responsive-layout checkpoint after all iPhone and iPad QA changes.
+- [x] Confirm the new checkpoint is available and reflected by the live LESOUL AI LOOK domain.

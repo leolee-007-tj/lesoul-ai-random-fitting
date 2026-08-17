@@ -33,3 +33,7 @@ At 744×1133, the personal journey remains centered with expanded breathing room
 At 375×667, the Home CTA stays centered and all four navigation destinations remain visible. The compact Studio upload preview yields space to the persistent action dock, and Measurements retains accessible defaults/continue actions. At 430×932, the additional vertical space expands naturally without changing the CTA, upload, or history visual hierarchy.
 
 At 440×956, the same mobile hierarchy remains stable and the Product Manager editor exposes its studio-cut controls without action overlap. At 820×1180, 834×1194, and 1024×1366, Studio and Measurements stay intentionally centered while Product Manager expands its front/back/side and two-detail image controls into tablet-appropriate multi-column layouts. The desktop-style header replaces the mobile bottom navigation at these widths.
+
+## Responsive release verification
+
+The auto-published release at https://lesoulai-xabhv8qd.manus.space returned the LESOUL AI LOOK home document with the brand, language switcher, top navigation, Create Your AI Fashion Look headline, and primary flow copy. Direct browser navigation encountered a local TLS protocol error, so the public response was confirmed through a fresh text extraction instead. The live `/products?editor=new` response also contains the current Product Manager’s Product Views panel, Detail 1/Detail 2 controls, per-view studio-cut controls, and mobile Home/History/Create Look/Products navigation, confirming the published responsive build includes the newest feature set.
