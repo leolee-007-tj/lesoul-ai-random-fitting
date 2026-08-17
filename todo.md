@@ -123,3 +123,5 @@
 - [x] Reduce the upload-step dotted full-body guide and position it beside the Upload and Camera controls.
 - [x] Raise and compact the upload action block while retaining the preview state and touch targets.
 - [x] Verify the revised upload card at mobile and tablet widths, run checks, checkpoint, and publish.
+- [x] Confirm the configured real image-editing model and the public look.generate composition route are ready for a user photo test.
+- [x] Confirm the visible loading and fallback messaging guides the user through a real-composite test safely.
