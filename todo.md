@@ -117,3 +117,6 @@
 - [x] Create a compact measurements layout that fits the primary controls and fields into one 390×844 mobile viewport without eliminating required inputs.
 - [x] Add a modest top inset while reducing guide artwork, card padding, field heights, and vertical spacing.
 - [x] Verify compact mobile measurements rendering, run checks, checkpoint, and publish.
+- [x] Remove the Studio horizontal Upload/Pose/Outfit/Background progress row.
+- [x] Move Studio content upward into the reclaimed top space without reducing upload-card reachability.
+- [x] Verify mobile and tablet Studio layouts, run checks, checkpoint, and publish.
