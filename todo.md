@@ -18,3 +18,13 @@
 - [x] Add Vitest coverage for randomization rules, API contracts, and key result/generation behavior.
 - [x] Verify desktop and mobile rendering, TypeScript checks, and test suite; mark completed items accurately.
 - [x] Save a completion checkpoint and provide the project preview and publishing instructions.
+- [x] Rebrand all public-facing screens as LESOUL AI LOOK with the exact English hero copy: Create Your AI Fashion Look.
+- [x] Remove the required-auth dependency from the MVP journey and store personal-session state locally.
+- [x] Expand product management and catalog data to TOP, BOTTOM, DRESS, OUTER, SHOES, and BAG with active/inactive status and English style presets.
+- [x] Add a direct SELECT MY LOOK experience alongside the curated RANDOM LOOK workflow.
+- [x] Add style and background selection steps with random and preset choices before generation.
+- [x] Replace the slot-machine journey with a simpler Upload → Pose → Outfit → Background → Generate flow.
+- [x] Implement provider-agnostic fashion generation contracts and a usable mock provider mode without client-side secret exposure.
+- [x] Rework result and history to use English labels and local-first generated-look records without login.
+- [x] Simplify the product manager to a personal MVP workspace without role-gated admin access.
+- [x] Retest the revised mobile MVP, save a new checkpoint, and deliver the updated preview.

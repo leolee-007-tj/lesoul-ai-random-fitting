@@ -25,17 +25,17 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = [
   { name: "LESOUL 윈터 모헤어 니트", category: "top", season: "겨울", color: "핑크", style: "캐주얼,데이트", status: "sold_out", price: 139000, imageUrl: imageSet[0], description: "품절 처리된 모헤어 니트", purchaseUrl: "https://example.com/lesoul/mohair" },
   { name: "LESOUL 코코아 플리츠 스커트", category: "bottom", season: "가을,겨울", color: "브라운", style: "데이트,고급", status: "in_stock", price: 119000, imageUrl: imageSet[1], description: "고운 주름이 살아있는 코코아 플리츠 스커트", purchaseUrl: "https://example.com/lesoul/pleats" },
   { name: "LESOUL 오버사이즈 레더 재킷", category: "outer", season: "가을", color: "블랙", style: "캐주얼,데이트", status: "sold_out", price: 299000, imageUrl: imageSet[2], description: "품절 처리된 레더 아우터", purchaseUrl: "https://example.com/lesoul/leather" },
+  { name: "LESOUL Soft Leather Mary Jane", category: "shoes", season: "봄,가을", color: "블랙", style: "DAILY,CHIC,MINIMAL", status: "in_stock", price: 189000, imageUrl: imageSet[0], description: "A refined low-profile Mary Jane for a polished daily look.", purchaseUrl: "https://example.com/lesoul/mary-jane" },
+  { name: "LESOUL Mini Frame Bag", category: "bag", season: "봄,여름,가을,겨울", color: "브라운", style: "ELEGANT,CHIC,MINIMAL", status: "in_stock", price: 219000, imageUrl: imageSet[2], description: "A structured mini bag with an understated quiet-luxury finish.", purchaseUrl: "https://example.com/lesoul/frame-bag" },
 ];
 
 export const demoPoses: Omit<Pose, "id" | "createdAt">[] = [
-  { name: "정면", promptKeyword: "standing front view, confident, full body", imageUrl: null },
-  { name: "살짝 옆으로", promptKeyword: "slight side angle, relaxed, full body", imageUrl: null },
-  { name: "걷는 포즈", promptKeyword: "walking naturally, candid movement, full body", imageUrl: null },
-  { name: "한 손 주머니", promptKeyword: "one hand in pocket, relaxed editorial stance", imageUrl: null },
-  { name: "앉은 포즈", promptKeyword: "sitting elegantly, fashion editorial", imageUrl: null },
-  { name: "모델 포즈", promptKeyword: "high fashion model stance, editorial, full body", imageUrl: null },
-  { name: "뒤돌아보기", promptKeyword: "looking back over shoulder, full body", imageUrl: null },
-  { name: "팔짱", promptKeyword: "arms crossed, sophisticated editorial posture", imageUrl: null },
+  { name: "Natural Standing", promptKeyword: "standing naturally, relaxed confidence, full body", imageUrl: null },
+  { name: "Front Model Pose", promptKeyword: "front model pose, poised and confident, full body", imageUrl: null },
+  { name: "Side Pose", promptKeyword: "slight side angle, relaxed editorial pose, full body", imageUrl: null },
+  { name: "Walking", promptKeyword: "walking naturally, candid movement, full body", imageUrl: null },
+  { name: "Hand in Pocket", promptKeyword: "one hand in pocket, relaxed editorial stance", imageUrl: null },
+  { name: "Elegant Fashion Pose", promptKeyword: "elegant high-fashion stance, editorial, full body", imageUrl: null },
 ];
 
 export const demoBackgrounds: Omit<Background, "id" | "createdAt">[] = [

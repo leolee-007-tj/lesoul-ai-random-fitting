@@ -68,8 +68,3 @@
 @layer utilities {
   .font-serif { font-family: "Playfair Display", "Noto Sans KR", serif; }
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .reel-motion { animation: reel 0.34s linear infinite; }
-  @keyframes reel { from { transform: translateY(0); } to { transform: translateY(-46px); } }
-}
