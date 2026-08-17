@@ -103,3 +103,9 @@
 - [x] Define visibly distinct mobile, tablet, and desktop layout tokens for frame width, typography scale, spacing, image height, and card columns.
 - [x] Update Home, Studio, Measurements, History, Product Manager, and result preview to use the corrected breakpoint tokens.
 - [x] Verify 390px mobile, 820px iPad, and 1440px web views visibly differ; test, checkpoint, and publish the fix.
+- [x] Move the Studio fixed Back/Continue dock lower with sufficient scroll clearance so it never obscures Upload or Camera controls.
+- [x] Replace the default mock-generation path with an internal real AI image-editing attempt that preserves user-photo and garment inputs, with an explicit sample fallback only on service failure.
+- [x] Verify the upload controls and real-generation route, then run type checks, tests, build, checkpoint, and publish.
+- [x] Display an explicit sample-result notice when the real AI compositor falls back to the uploaded image.
+- [x] Exercise the public look-generation procedure with a controlled request and confirm a successful real response or visible fallback handling.
+- [x] Exercise the public look.generate tRPC procedure with a controlled payload and confirm it returns the real AI compositor response.

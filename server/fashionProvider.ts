@@ -1,4 +1,5 @@
 import { generateImage } from "./_core/imageGeneration";
+import { storageGetSignedUrl } from "./storage";
 import type { BodyMeasurements, ProductImageViews } from "../shared/bodyMeasurements";
 
 export const CLOTHING_PRESERVATION_RULES = {
@@ -77,10 +78,19 @@ export interface FashionProvider {
   generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse>;
 }
 
-function imageReference(source: string) {
+function referenceMimeType(source: string) {
+  if (source.startsWith("data:image/png") || /\.png(?:\?|$)/i.test(source)) return "image/png";
+  if (source.startsWith("data:image/webp") || /\.webp(?:\?|$)/i.test(source)) return "image/webp";
+  return "image/jpeg";
+}
+
+async function imageReference(source: string) {
   const match = source.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
   if (match) return { b64Json: match[2], mimeType: match[1] };
-  return { url: source, mimeType: source.endsWith(".png") ? "image/png" : "image/jpeg" };
+  if (source.startsWith("/manus-storage/")) {
+    return { url: await storageGetSignedUrl(source.slice("/manus-storage/".length)), mimeType: referenceMimeType(source) };
+  }
+  return { url: source, mimeType: referenceMimeType(source) };
 }
 
 function responseMetadata(request: FashionLookRequest, preservationPrompt: string) {
@@ -108,9 +118,10 @@ export class InternalImageFashionProvider implements FashionProvider {
 
   async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
     const preservationPrompt = buildClothingPreservationPrompt(request);
-    const productReferenceUrls = request.clothing.flatMap((garment) => [garment.imageViews?.front?.studioCut, garment.imageViews?.back?.studioCut, garment.imageViews?.side?.studioCut, ...(garment.imageViews?.detail?.map((detail) => detail.studioCut) ?? []), garment.images?.[0] ?? garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0);
-    const originalImages = [imageReference(request.userImage), ...productReferenceUrls.map(imageReference)];
     try {
+      const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.studioCut, garment.imageViews?.back?.studioCut, garment.imageViews?.side?.studioCut, ...(garment.imageViews?.detail?.map((detail) => detail.studioCut) ?? []), garment.images?.[0] ?? garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 3);
+      const productReferences = await Promise.all(productReferenceUrls.map(imageReference));
+      const originalImages = [await imageReference(request.userImage), ...productReferences];
       const generated = await generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" });
       if (!generated.url) throw new Error("Image service returned no generated image URL.");
       return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };

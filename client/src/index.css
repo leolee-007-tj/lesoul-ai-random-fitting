@@ -117,6 +117,10 @@ html[data-keyboard-open="true"] .lesoul-safe-modal { padding-bottom: calc(var(--
   body:has(.lesoul-bottom-nav) > #root > div > header + main > section.mt-8.grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+@media (min-width: 768px) {
+  .lesoul-action-dock { bottom: max(.5rem, var(--safe-area-bottom)); }
+}
+
 @media (min-width: 1024px) {
   .lesoul-mobile-content { max-width: 1200px; padding-left: 3rem; padding-right: 3rem; }
   .lesoul-mobile-frame { max-width: 1080px; }
