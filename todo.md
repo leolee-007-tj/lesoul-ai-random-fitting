@@ -98,4 +98,4 @@
 - [x] Reconfirm and record the keyboard-open result adjustment modal QA evidence for portrait and landscape layouts.
 - [x] Rerun final checks after result-panel QA and save the Safe Area release checkpoint.
 - [x] Save a checkpoint containing the verified Safe Area and result-preview changes.
-- [ ] Confirm the auto-published live build exposes the Safe Area result-preview route.
+- [x] Confirm the auto-published live build exposes the Safe Area result-preview route.
