@@ -109,3 +109,5 @@
 - [x] Display an explicit sample-result notice when the real AI compositor falls back to the uploaded image.
 - [x] Exercise the public look-generation procedure with a controlled request and confirm a successful real response or visible fallback handling.
 - [x] Exercise the public look.generate tRPC procedure with a controlled payload and confirm it returns the real AI compositor response.
+- [x] Remove the remaining fixed Studio action dock and retain compact inline Back/Continue controls.
+- [x] Verify the new upload-card action layout at mobile and tablet widths, then test, checkpoint, and publish.
