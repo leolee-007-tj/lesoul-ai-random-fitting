@@ -186,3 +186,11 @@
 - [x] Upload and persist all six product reference images with slot-specific validation and responsive Product Manager controls.
 - [x] Pass front, back, and detail references into the AI composite adapter with clear garment-preservation instructions.
 - [x] Verify multi-view upload, stored payloads, AI generation input, mobile/tablet UI, tests, build, checkpoint, and publish.
+
+- [x] Add a product purchase QR image field and upload/replace control alongside the six garment reference images.
+- [x] Show detailed outfit composition in My Looks, including each selected product's localized name, description, reference/detail images, and purchase action.
+- [x] Show the product's uploaded purchase QR image when the user selects Buy, with a clear empty state when no QR is configured.
+- [x] Require the existing Manus OAuth login before sharing or copying a look link; keep the existing private-browser My Looks storage for the current device.
+- [ ] Persist generated looks to the signed-in user's account for cross-device access.
+- [ ] Evaluate WeChat OAuth as an optional provider; do not enable or request credentials until official app credentials, redirect URI, and China-domain requirements are confirmed.
+- [ ] Add tests, verify mobile/tablet sharing and QR flows, save a checkpoint, and publish.

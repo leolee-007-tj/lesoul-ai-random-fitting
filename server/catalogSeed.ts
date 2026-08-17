@@ -6,7 +6,7 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
 
 const rawDemoProducts: SeedProductBase[] = [
@@ -59,7 +59,7 @@ function garmentSpecifications(product: SeedProductBase): GarmentSpecifications 
   return base;
 }
 
-export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt">[] = rawDemoProducts.map((product) => {
+export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "purchaseQrUrl">[] = rawDemoProducts.map((product) => {
   const specifications = garmentSpecifications(product);
   return {
     ...product,

@@ -51,6 +51,7 @@ export const products = mysqlTable("products", {
   sleeve: varchar("sleeve", { length: 120 }),
   purchaseUrl: text("purchaseUrl"),
   purchasePlatform: varchar("purchasePlatform", { length: 120 }),
+  purchaseQrUrl: text("purchaseQrUrl"),
   stylistMetadata: json("stylistMetadata").$type<StylistProductMetadata>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
