@@ -28,3 +28,7 @@
 - [x] Rework result and history to use English labels and local-first generated-look records without login.
 - [x] Simplify the product manager to a personal MVP workspace without role-gated admin access.
 - [x] Retest the revised mobile MVP, save a new checkpoint, and deliver the updated preview.
+- [x] Add a public product-image upload endpoint that validates image type and size, then stores product media under a dedicated catalog path.
+- [x] Add Product Manager file selection, upload progress, local preview, replacement, and image-URL fallback controls.
+- [x] Persist the uploaded product image URL with new and edited product records, then verify responsive Product Manager behavior.
+- [x] Add upload validation tests, save a checkpoint, and publish the revised product-image management experience.

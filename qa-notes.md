@@ -15,3 +15,7 @@ After inspecting the authenticated mobile routes for upload, gallery, and admini
 ## 2026-08-17 revised LESOUL AI LOOK MVP
 
 Mobile captures confirmed the new English LESOUL AI LOOK homepage and no-auth private look-session entry render correctly at 390px. The revised flow begins directly with full-body upload and visibly provides camera and file-upload actions. The final review removed residual MVP terminology from user-facing upload copy while preserving the explicit private-browser-session data handling message.
+
+## 2026-08-17 product image management
+
+Mobile and desktop Product Manager captures confirmed the responsive catalog-management shell and prominent Add Product action. The catalog request completes successfully with no network error; it takes approximately 2.5 seconds because the server initializes and reads the full catalog, so the temporary loading indicator in the automated capture is expected rather than a failed request.

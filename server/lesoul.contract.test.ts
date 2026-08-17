@@ -19,7 +19,7 @@ describe("LESOUL experience API contract", () => {
     const procedures = Object.keys(appRouter._def.procedures);
     expect(procedures).toEqual(expect.arrayContaining([
       "catalog.bootstrap", "catalog.products", "catalog.poses", "catalog.backgrounds",
-      "uploads.photo", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
+      "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
       "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct",
       "look.generate",
     ]));
