@@ -34,6 +34,11 @@ export async function ensureCatalog() {
   await Promise.all(demoProducts.map((item) => db.insert(products).values(item).onDuplicateKeyUpdate({ set: {
     category: item.category, season: item.season, color: item.color, style: item.style, status: item.status,
     price: item.price, imageUrl: item.imageUrl, images: item.images, imageViews: item.imageViews, description: item.description,
+    nameEn: item.nameEn, nameKo: item.nameKo, nameZh: item.nameZh,
+    descriptionEn: item.descriptionEn, descriptionKo: item.descriptionKo, descriptionZh: item.descriptionZh,
+    discountSeasonEnabled: item.discountSeasonEnabled, discountOnePercent: item.discountOnePercent, discountTwoPercent: item.discountTwoPercent,
+    discountThreePercent: item.discountThreePercent, discountFourPlusPercent: item.discountFourPlusPercent,
+    momentCouponEnabled: item.momentCouponEnabled, momentCouponCode: item.momentCouponCode, momentCouponPercent: item.momentCouponPercent,
     fabric: item.fabric, texture: item.texture, fit: item.fit, length: item.length, width: item.width,
     details: item.details, neckline: item.neckline, sleeve: item.sleeve,
     purchaseUrl: item.purchaseUrl, purchasePlatform: item.purchasePlatform, stylistMetadata: item.stylistMetadata,

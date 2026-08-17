@@ -161,3 +161,19 @@
 - [x] Simplify body measurements to a women-only fit profile and remove gender selection from the flow and saved data presentation.
 - [x] Translate Product Manager and Studio Cut labels through EN/KO/ZH resources, standardize all prices to CNY, and remove side/detail/preview studio-cut controls while preserving the primary product image.
 - [x] Verify localizations, women-only measurements, CNY formatting, and simplified Product Manager cuts on mobile and tablet; run checks, checkpoint, and publish.
+
+- [x] Add EN/KO/ZH product name and description columns with legacy-field fallbacks.
+- [x] Add source-language selection, one-click translation, and save-time completion for missing localized product fields.
+- [x] Add discount-season quantity tiers for 1, 2, 3, and 4+ items with a CNY price preview.
+- [x] Add optional Moment coupon code and additional discount calculation after quantity discount.
+- [x] Display localized product content in Product Manager, AI Stylist, Studio selection, result cards, and saved look names.
+- [x] Verify 28 Vitest tests, TypeScript check, production build, and responsive Product Manager route.
+- [x] Save and publish the localized product commerce release checkpoint.
+
+## Product commerce operating notes
+
+- Enter the canonical product name and description in the selected source language (EN, KO, or ZH), then use Auto-translate to populate the other two fields. All fields remain editable before saving.
+- Discount Season is configured per product. The four quantity thresholds are 1, 2, 3, and 4+ items; the default seed values are 20%, 25%, 30%, and 35% respectively.
+- Moment Coupon is optional and applies an additional percentage after the quantity tier. The code is case-insensitive in the shared calculation helper; the manager normalizes entered codes to uppercase.
+- The current release provides management-side calculation and price preview. A customer cart or checkout redemption flow can consume the same shared calculation helper later without changing the product schema.
+- The screenshot route was checked at 390px; the Product Manager editor requires an authenticated admin session to load the full catalog data.

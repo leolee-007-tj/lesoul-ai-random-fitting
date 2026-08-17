@@ -50,6 +50,13 @@
       "when": 1786980274978,
       "tag": "0006_optimal_katie_power",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1786984882150,
+      "tag": "0007_stiff_molly_hayes",
+      "breakpoints": true
     }
   ]
 }
