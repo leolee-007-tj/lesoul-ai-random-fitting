@@ -132,3 +132,6 @@
 - [x] Add a one-click Start Test Composite action that loads the test AI model, a titled pose, a ready-made test outfit, and a background before opening the REAL AI COMPOSITE screen.
 - [x] Verify the Start Test Composite flow and generate-ready screen at mobile and tablet widths, then checkpoint and publish.
 - [x] Research China-mainland-accessible image composition APIs and recommend a replacement priority for the LESOUL provider adapter.
+- [x] Confirm Manus GPT Image 2 remains the default customer-facing composition provider and document the public capability in the Studio UI.
+- [x] Improve customer-facing generation progress and result-status messaging without exposing provider credentials.
+- [x] Verify the demo-to-generation path and saved result behavior, then test, checkpoint, and publish.
