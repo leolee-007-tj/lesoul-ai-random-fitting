@@ -43,6 +43,13 @@
       "when": 1786978278199,
       "tag": "0005_broad_piledriver",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1786980274978,
+      "tag": "0006_optimal_katie_power",
+      "breakpoints": true
     }
   ]
 }

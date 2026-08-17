@@ -100,6 +100,32 @@ export const stylistFeedback = mysqlTable("stylistFeedback", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const generationLogs = mysqlTable("generationLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  requestId: varchar("requestId", { length: 96 }).notNull().unique(),
+  retryOfRequestId: varchar("retryOfRequestId", { length: 96 }),
+  retryCount: int("retryCount").default(0).notNull(),
+  userImageUrl: text("userImageUrl").notNull(),
+  poseId: int("poseId").notNull(),
+  style: varchar("style", { length: 80 }).notNull(),
+  productIds: json("productIds").$type<number[]>().notNull(),
+  backgroundId: int("backgroundId").notNull(),
+  provider: varchar("provider", { length: 80 }).notNull(),
+  status: mysqlEnum("status", ["preparing", "generating", "completed", "fallback", "failed"]).default("preparing").notNull(),
+  resultImageUrl: text("resultImageUrl"),
+  errorMessage: text("errorMessage"),
+  durationMs: int("durationMs"),
+  validationStatus: mysqlEnum("validationStatus", ["not_enabled", "pending", "passed", "acceptable", "retry_recommended", "failed"]).default("not_enabled").notNull(),
+  garmentPreservationScore: int("garmentPreservationScore"),
+  identityPreservationScore: int("identityPreservationScore"),
+  overallQualityScore: int("overallQualityScore"),
+  validationDetails: json("validationDetails").$type<Record<string, unknown> | null>(),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Product = typeof products.$inferSelect;
@@ -108,3 +134,4 @@ export type Background = typeof backgrounds.$inferSelect;
 export type Generation = typeof generations.$inferSelect;
 export type StylePreset = typeof stylePresets.$inferSelect;
 export type StylistFeedback = typeof stylistFeedback.$inferSelect;
+export type GenerationLog = typeof generationLogs.$inferSelect;

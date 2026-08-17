@@ -151,3 +151,9 @@
 - [x] Add unit and integration tests for active-inventory validation, fixed-product retention, score ordering, feedback persistence, and try-on handoff.
 - [x] Verify real catalog recommendations on mobile and tablet, then run checks, checkpoint, and publish.
 - [x] Compile and deliver a current LESOUL AI LOOK implementation, deployment, verification, and roadmap summary.
+- [x] Analyze the latest attached requirements and implement the maximum compatible scope without regressing current Try-On, AI Stylist, catalog, or responsive flows.
+- [x] Add a quiet-luxury workflow-stage generation progress screen with localized EN/KO/ZH copy and an honest visual-progress cap before provider completion.
+- [x] Persist request-deduplicated generation logs with input references, provider, duration, error, retry, result, and validation-ready status fields.
+- [x] Add generation status and average-duration interfaces plus non-duplicating retry guards for the existing Virtual Try-On contract.
+- [x] Add a future Vision validation interface for garment and identity preservation without generating fake quality scores.
+- [x] Verify progress behavior, timeout messaging, logs, validation-ready state, existing Try-On/Stylist compatibility, tests, build, checkpoint, and publish.

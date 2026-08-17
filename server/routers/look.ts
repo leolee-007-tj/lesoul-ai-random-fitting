@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { generateFashionLook } from "../fashionProvider";
 import { publicProcedure, router } from "../_core/trpc";
+import { completeGenerationLog, createGenerationLog, getGenerationLog, getGenerationPerformance, markGenerationLogGenerating } from "../db";
+import { validateGeneratedLook, validationNotEnabled } from "../../shared/generationValidation";
 
 const lookRequest = z.object({
   userImage: z.string().min(1),
@@ -10,8 +12,34 @@ const lookRequest = z.object({
   style: z.string().min(1).max(64),
   adjustments: z.object({ overallFit: z.enum(["looser", "as_is", "tighter"]).optional(), proportion: z.enum(["shorter_torso", "as_is", "longer_legs"]).optional(), lighting: z.enum(["darker", "as_is", "brighter"]).optional(), items: z.record(z.string(), z.object({ length: z.enum(["shorter", "as_is", "longer"]).optional(), width: z.enum(["narrower", "as_is", "wider"]).optional(), color: z.enum(["muted", "as_is", "vibrant"]).optional(), details: z.enum(["simpler", "as_is", "detailed"]).optional() })).optional() }).optional(),
   bodyMeasurements: z.object({ height: z.number().min(140).max(200), shoulderWidth: z.number().min(30).max(55), chest: z.number().min(70).max(130).nullable().optional(), waist: z.number().min(55).max(110).nullable().optional(), hip: z.number().min(75).max(130).nullable().optional(), armLength: z.number().min(45).max(75).nullable().optional(), inseam: z.number().min(60).max(90).nullable().optional(), thigh: z.number().min(40).max(70).nullable().optional(), gender: z.enum(["female", "male", "other"]), unit: z.literal("cm") }).optional(),
+  generationId: z.string().uuid(),
+  retryOfGenerationId: z.string().uuid().nullable().optional(),
 });
 
 export const lookRouter = router({
-  generate: publicProcedure.input(lookRequest).mutation(async ({ input }) => generateFashionLook(input)),
+  generate: publicProcedure.input(lookRequest).mutation(async ({ input }) => {
+    const existing = await getGenerationLog(input.generationId);
+    if (existing?.resultImageUrl && (existing.status === "completed" || existing.status === "fallback")) {
+      return { generatedImage: existing.resultImageUrl, generationStatus: "completed" as const, provider: existing.status === "completed" ? "external" as const : "mock" as const, metadata: { pose: input.pose.name, background: input.background.name, style: input.style, clothingCount: input.clothing.length, generatedAt: existing.completedAt?.toISOString() ?? existing.updatedAt.toISOString(), preservationPrompt: "Reused completed generation", negativePrompt: "Reused completed generation" }, generationId: input.generationId, validation: validationNotEnabled(), reused: true };
+    }
+    if (existing && (existing.status === "preparing" || existing.status === "generating")) throw new Error("This generation is already in progress.");
+    const retryParent = input.retryOfGenerationId ? await getGenerationLog(input.retryOfGenerationId) : undefined;
+    const retryCount = (retryParent?.retryCount ?? -1) + 1;
+    const { created } = await createGenerationLog({ requestId: input.generationId, retryOfRequestId: input.retryOfGenerationId ?? null, retryCount: Math.max(0, retryCount), userImageUrl: input.userImage, poseId: input.pose.id, style: input.style, productIds: input.clothing.map((item) => item.id), backgroundId: input.background.id, provider: "manus_gpt_image_2" });
+    if (!created) throw new Error("Unable to reserve a unique generation request.");
+    const startedAt = Date.now();
+    try {
+      await markGenerationLogGenerating(input.generationId);
+      const response = await generateFashionLook(input);
+      const validation = await validateGeneratedLook({ resultImageUrl: response.generatedImage, userImageUrl: input.userImage, productIds: input.clothing.map((item) => item.id), poseId: input.pose.id, backgroundId: input.background.id });
+      await completeGenerationLog({ requestId: input.generationId, status: response.provider === "external" ? "completed" : "fallback", resultImageUrl: response.generatedImage, durationMs: Date.now() - startedAt, validation });
+      return { ...response, generationId: input.generationId, validation, reused: false };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Generation failed.";
+      await completeGenerationLog({ requestId: input.generationId, status: "failed", errorMessage: message, durationMs: Date.now() - startedAt, validation: validationNotEnabled() });
+      throw error;
+    }
+  }),
+  status: publicProcedure.input(z.object({ generationId: z.string().uuid() })).query(async ({ input }) => getGenerationLog(input.generationId)),
+  performance: publicProcedure.query(getGenerationPerformance),
 });

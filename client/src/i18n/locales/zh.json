@@ -10,5 +10,6 @@
   "measurements": { "eyebrow": "PERSONAL FIT PROFILE", "title": "身体尺寸", "subtitle": "请输入尺寸以获得更精准的合身效果。", "privacy": "仅保存在当前浏览器中的个人版型资料。", "height": "身高", "shoulderWidth": "肩宽", "chest": "胸围", "waist": "腰围", "hip": "臀围", "armLength": "臂长", "inseam": "内缝长", "thigh": "大腿围", "gender": "性别", "female": "女", "male": "男", "other": "其他", "optional": "可选", "skip": "跳过（使用默认值）", "continue": "继续", "back": "返回", "error": "请检查标记的尺寸范围。" },
   "photoValidation": { "required": "请先上传全身照。", "full_body": "已确认全身照。", "too_wide": "请上传全身照。请使用竖长照片，并稍微后退一点拍摄。", "too_narrow": "照片比例不正确。请上传正常比例的全身照。" },
   "resultInfo": { "recommendedSize": "推荐尺码" },
-  "styles": { "RANDOM": "随机", "DAILY": "日常", "ELEGANT": "优雅", "CHIC": "时尚", "CASUAL": "休闲", "MINIMAL": "极简" }
+  "styles": { "RANDOM": "随机", "DAILY": "日常", "ELEGANT": "优雅", "CHIC": "时尚", "CASUAL": "休闲", "MINIMAL": "极简" },
+  "generationProgress": { "titleLine1": "正在创建你的", "titleLine2": "LESOUL 造型", "workflow": "生成进度", "moment": "AI 正在创建你的造型，请稍候。", "average": "通常约需 {{seconds}} 秒。", "long": "生成时间比预计更长，请求仍在安全处理中。", "retry": "重试", "checking": "正在检查请求…", "stillWorking": "原始请求仍在处理中，未创建重复生成。", "retrying": "之前的请求未返回结果，正在创建新的重试。", "note": "正在用心准备你选择的 LESOUL 造型。", "stages": { "photo": "正在准备你的照片...", "products": "正在加载选中的 LESOUL 商品...", "styling": "正在准备造型信息...", "scene": "正在准备姿势和背景...", "sending": "正在将造型发送给 AI...", "creating": "正在创建你的时尚造型...", "checking": "正在检查结果...", "finalizing": "正在准备最终图片...", "ready": "你的 LESOUL 造型已准备完成" } }
 }

@@ -1,6 +1,6 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, generations, InsertUser, poses, products, stylePresets, stylistFeedback, users } from "../drizzle/schema";
+import { backgrounds, generationLogs, generations, InsertUser, poses, products, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -76,6 +76,46 @@ export async function saveStylistFeedback(input: { visitorId: string; stylePrese
   const db = await getDb();
   if (!db) throw new Error("The feedback service is temporarily unavailable.");
   await db.insert(stylistFeedback).values({ ...input, anchorProductId: input.anchorProductId ?? null });
+}
+
+type GenerationLogInput = { requestId: string; retryOfRequestId?: string | null; retryCount?: number; userImageUrl: string; poseId: number; style: string; productIds: number[]; backgroundId: number; provider: string; };
+
+export async function getGenerationLog(requestId: string) {
+  const db = await getDb();
+  if (!db) throw new Error("The generation log service is temporarily unavailable.");
+  return (await db.select().from(generationLogs).where(eq(generationLogs.requestId, requestId)).limit(1))[0];
+}
+
+export async function createGenerationLog(input: GenerationLogInput) {
+  const db = await getDb();
+  if (!db) throw new Error("The generation log service is temporarily unavailable.");
+  const existing = await getGenerationLog(input.requestId);
+  if (existing) return { log: existing, created: false };
+  await db.insert(generationLogs).values({ ...input, retryOfRequestId: input.retryOfRequestId ?? null, retryCount: input.retryCount ?? 0, status: "preparing" });
+  const log = await getGenerationLog(input.requestId);
+  if (!log) throw new Error("Unable to create a generation log.");
+  return { log, created: true };
+}
+
+export async function markGenerationLogGenerating(requestId: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(generationLogs).set({ status: "generating" }).where(eq(generationLogs.requestId, requestId));
+}
+
+export async function completeGenerationLog(input: { requestId: string; status: "completed" | "fallback" | "failed"; resultImageUrl?: string | null; errorMessage?: string | null; durationMs: number; validation: import("../shared/generationValidation").GenerationValidationResult }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(generationLogs).set({ status: input.status, resultImageUrl: input.resultImageUrl ?? null, errorMessage: input.errorMessage ?? null, durationMs: input.durationMs, validationStatus: input.validation.status, garmentPreservationScore: input.validation.garmentPreservationScore, identityPreservationScore: input.validation.identityPreservationScore, overallQualityScore: input.validation.overallQualityScore, validationDetails: input.validation.details, completedAt: new Date() }).where(eq(generationLogs.requestId, input.requestId));
+}
+
+export async function getGenerationPerformance() {
+  const db = await getDb();
+  if (!db) return { completedCount: 0, averageDurationMs: null as number | null, failureCount: 0 };
+  const rows = await db.select({ status: generationLogs.status, durationMs: generationLogs.durationMs }).from(generationLogs);
+  const completed = rows.filter((row) => (row.status === "completed" || row.status === "fallback") && row.durationMs !== null);
+  const averageDurationMs = completed.length ? Math.round(completed.reduce((sum, row) => sum + (row.durationMs ?? 0), 0) / completed.length) : null;
+  return { completedCount: completed.length, averageDurationMs, failureCount: rows.filter((row) => row.status === "failed").length };
 }
 
 export async function createGeneration(input: { userId: number; userPhotoUrl: string; poseId: number; backgroundId: number; topProductId?: number | null; bottomProductId?: number | null; outerProductId?: number | null; dressProductId?: number | null; lookCode: string; }) {
