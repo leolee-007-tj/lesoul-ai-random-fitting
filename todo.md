@@ -138,3 +138,8 @@
 - [x] Add a visible retry action for a sample/fallback result that returns the customer to a ready-to-generate state.
 - [x] Add concise blog-ready sharing copy that includes the look code, pose, style, and selected product names.
 - [x] Add a customer-photo quality-check checklist and verify the public result/share flow before publishing.
+- [x] Create clearly distinct in-app 2D illustrations for every named background scene in the catalog.
+- [x] Create clearly distinct in-app 2D pose illustrations for every selectable pose, preserving a consistent editorial art direction.
+- [x] Connect the 2D background and pose assets to the Studio cards and verify the visual distinction on mobile and tablet.
+- [x] Run checks, checkpoint, and publish the 2D catalog update.
+- [x] Replace unavailable generated placeholder assets with reliable in-app SVG 2D pose and background illustrations.
