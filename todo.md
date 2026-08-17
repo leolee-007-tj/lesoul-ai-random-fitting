@@ -177,3 +177,7 @@
 - Moment Coupon is optional and applies an additional percentage after the quantity tier. The code is case-insensitive in the shared calculation helper; the manager normalizes entered codes to uppercase.
 - The current release provides management-side calculation and price preview. A customer cart or checkout redemption flow can consume the same shared calculation helper later without changing the product schema.
 - The screenshot route was checked at 390px; the Product Manager editor requires an authenticated admin session to load the full catalog data.
+
+- [x] Diagnose why the pose-related entry button or pose-selection controls are no longer visible after the localized product commerce release.
+- [x] Restore the existing pose-selection entry point and controls without changing the established pose data or localization flow.
+- [x] Verify pose controls on 390px mobile and 820px tablet, run tests/build, save a checkpoint, and publish the fix.
