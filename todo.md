@@ -125,3 +125,10 @@
 - [x] Verify the revised upload card at mobile and tablet widths, run checks, checkpoint, and publish.
 - [x] Confirm the configured real image-editing model and the public look.generate composition route are ready for a user photo test.
 - [x] Confirm the visible loading and fallback messaging guides the user through a real-composite test safely.
+- [x] Add a clearly labeled AI test model with a consistent full-body image to the Studio upload step.
+- [x] Present test pose titles and short descriptions so a reviewer can select a predictable composition.
+- [x] Add a one-click test outfit selection from the existing catalog and guide the reviewer to the real-composite action.
+- [x] Verify the complete demo path on mobile and tablet, then run checks, checkpoint, and publish.
+- [x] Add a one-click Start Test Composite action that loads the test AI model, a titled pose, a ready-made test outfit, and a background before opening the REAL AI COMPOSITE screen.
+- [x] Verify the Start Test Composite flow and generate-ready screen at mobile and tablet widths, then checkpoint and publish.
+- [x] Research China-mainland-accessible image composition APIs and recommend a replacement priority for the LESOUL provider adapter.
