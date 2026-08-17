@@ -8,6 +8,7 @@ import History from "./pages/History";
 import Home from "./pages/Home";
 import Measurements from "./pages/Measurements";
 import ProductManager from "./pages/ProductManager";
+import ResultPreview from "./pages/ResultPreview";
 import Studio from "./pages/Studio";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/measurements"} component={Measurements} />
       <Route path={"/history"} component={History} />
       <Route path={"/products"} component={ProductManager} />
+      <Route path={"/result-preview"} component={ResultPreview} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

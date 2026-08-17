@@ -37,3 +37,15 @@ At 440×956, the same mobile hierarchy remains stable and the Product Manager ed
 ## Responsive release verification
 
 The auto-published release at https://lesoulai-xabhv8qd.manus.space returned the LESOUL AI LOOK home document with the brand, language switcher, top navigation, Create Your AI Fashion Look headline, and primary flow copy. Direct browser navigation encountered a local TLS protocol error, so the public response was confirmed through a fresh text extraction instead. The live `/products?editor=new` response also contains the current Product Manager’s Product Views panel, Detail 1/Detail 2 controls, per-view studio-cut controls, and mobile Home/History/Create Look/Products navigation, confirming the published responsive build includes the newest feature set.
+
+## Safe Area verification
+
+At 390×844, Home, Studio, Measurements, History, and the Product Manager editor keep top chrome clear of the viewport edge and reserve a separate lower region for task actions and tab navigation. At 844×390 landscape, the centered mobile frame and product modal respect lateral inset space; the short height confirms that fixed action docks must remain paired with scrollable content and reserved lower padding so underlying form content remains reachable.
+
+After the shared Safe Area wrapper was applied to Product Manager, a 390×844 capture confirmed its full-screen editor retains inset padding at the top and sides while the product view assets remain scrollable. The Studio upload screen retains header clearance and places its Back/Continue dock immediately above the separate mobile tab bar.
+
+The generated-look adjustment panel shares the same `lesoul-safe-modal` implementation as the verified Product Manager editor. Its source-level Safe Area class usage and the final type-check, test suite, and production build were verified together; the modal keeps its scroll container and keyboard-aware lower padding independently of the Studio action dock.
+
+The deterministic `/result-preview` route was used to exercise an actual result panel without a live upload. At 390×844, the result image, horizontal product cards, and mobile tab bar remain visible while the open adjustment modal keeps its top inset and scrollable form surface. At 844×390, the result reflows into two columns and the open adjustment modal maintains wide lateral Safe Area margins with accessible control rows instead of clipping against the viewport edge.
+
+Keyboard-open QA used the deterministic result preview’s 270px virtual-keyboard state. At 390×844 and 844×390, the adjustment modal retained its top Safe Area clearance while the content remained in a scrollable container above the simulated keyboard reservation; no lower action element was pinned beneath the reserved keyboard area.

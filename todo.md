@@ -74,3 +74,28 @@
 - [x] Verify the auto-published responsive release at the live LESOUL AI LOOK domain.
 - [x] Save the final responsive-layout checkpoint after all iPhone and iPad QA changes.
 - [x] Confirm the new checkpoint is available and reflected by the live LESOUL AI LOOK domain.
+- [x] Add an app-level SafeArea layout that uses dynamic viewport units and all four safe-area inset variables without double-padding fixed chrome.
+- [x] Update viewport/PWA metadata for viewport-fit cover, interactive keyboard resize behavior, and iOS standalone mode.
+- [x] Add keyboard-visible detection so form action docks avoid covering active inputs on mobile devices.
+- [x] Apply Safe Area scroll, fixed action, bottom-navigation, and landscape constraints across Home, Studio, Measurements, History, Product Manager, and results.
+- [x] Add a device helper and responsive tests covering notch/home indicator, Android gesture bars, iPad split-like widths, and landscape tablet layouts.
+- [x] Confirm the device viewport helper files are present in the project and reapply them if needed.
+- [x] Verify Safe Area viewport calculations for notch/home indicator, Android gesture bars, iPad split widths, and landscape tablets with automated tests.
+- [x] Confirm Android gesture-bar and iPad Split View Safe Area test cases are present in the test file.
+- [x] Execute the Safe Area test suite with the Android and Split View scenarios before final release.
+- [x] Run the full type-check, test suite, and production build after the Safe Area helper verification.
+- [ ] Verify Safe Area behavior across the requested device dimensions, save a checkpoint, and publish the release.
+- [x] Refine compact landscape action docks so fixed actions consume less vertical space while preserving reachable scroll content.
+- [x] Confirm compact-landscape Safe Area CSS is present in the global stylesheet.
+- [x] Run type-check, tests, and production build after the compact-landscape dock change.
+- [x] Capture a short landscape mobile view to verify dock height and reachable scroll content.
+- [x] Explicitly apply the common Safe Area page shell to Product Manager and verify its mobile spacing in code.
+- [x] Capture and verify the result panel’s portrait and landscape Safe Area behavior, including its adjustment modal.
+- [x] Provide a deterministic generated-result preview route for Safe Area QA without requiring a live image upload.
+- [x] Capture portrait and landscape result screens plus open adjustment modal, then record visual Safe Area and keyboard-spacing evidence.
+- [x] Add a deterministic keyboard-open Safe Area QA mode for the result adjustment modal.
+- [x] Capture portrait and landscape keyboard-open adjustment modal views and document lower action spacing.
+- [x] Reconfirm and record the keyboard-open result adjustment modal QA evidence for portrait and landscape layouts.
+- [x] Rerun final checks after result-panel QA and save the Safe Area release checkpoint.
+- [ ] Save a checkpoint containing the verified Safe Area and result-preview changes.
+- [ ] Confirm the auto-published live build exposes the Safe Area result-preview route.
