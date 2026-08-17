@@ -181,3 +181,8 @@
 - [x] Diagnose why the pose-related entry button or pose-selection controls are no longer visible after the localized product commerce release.
 - [x] Restore the existing pose-selection entry point and controls without changing the established pose data or localization flow.
 - [x] Verify pose controls on 390px mobile and 820px tablet, run tests/build, save a checkpoint, and publish the fix.
+
+- [x] Add explicit new-product image slots for 1 front, 1 back, and 4 important detail images while preserving legacy product image data.
+- [x] Upload and persist all six product reference images with slot-specific validation and responsive Product Manager controls.
+- [x] Pass front, back, and detail references into the AI composite adapter with clear garment-preservation instructions.
+- [x] Verify multi-view upload, stored payloads, AI generation input, mobile/tablet UI, tests, build, checkpoint, and publish.
