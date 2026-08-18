@@ -99,6 +99,7 @@ export interface FashionProvider {
 }
 
 export const IMAGE_PROVIDER_TIMEOUT_MS = 45_000;
+export const QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS = 90_000;
 
 async function withImageProviderTimeout<T>(operation: Promise<T>, timeoutMs = IMAGE_PROVIDER_TIMEOUT_MS): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -125,6 +126,26 @@ async function imageReference(source: string) {
     return { url: await storageGetSignedUrl(source.slice("/manus-storage/".length)), mimeType: referenceMimeType(source) };
   }
   return { url: source, mimeType: referenceMimeType(source) };
+}
+
+async function embeddedImageReference(source: string) {
+  const match = source.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+  if (match) return { b64Json: match[2], mimeType: match[1] };
+  const url = source.startsWith("/manus-storage/")
+    ? await storageGetSignedUrl(source.slice("/manus-storage/".length))
+    : source;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`QUICK_FIT_REFERENCE_FETCH_FAILED:${response.status}`);
+  const mimeType = response.headers.get("content-type")?.split(";", 1)[0] ?? referenceMimeType(source);
+  if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error(`QUICK_FIT_REFERENCE_INVALID_MIME:${mimeType}`);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024) throw new Error("QUICK_FIT_REFERENCE_INVALID_SIZE");
+  return { b64Json: bytes.toString("base64"), mimeType };
+}
+
+/** Product-only editorials use one valid, embedded front view per selected item. This avoids remote URL fetch failures and limits the number of references sent to the image provider. */
+export function selectQuickFitReferenceUrls(clothing: FashionGarment[]) {
+  return Array.from(new Set(clothing.map((garment) => garment.imageViews?.front?.original || garment.imageUrl).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 4);
 }
 
 function responseMetadata(request: FashionLookRequest, preservationPrompt: string) {
@@ -168,9 +189,10 @@ export class InternalImageFashionProvider implements FashionProvider {
 export async function generateQuickFitEditorial(request: FashionLookRequest): Promise<FashionLookResponse> {
   const preservationPrompt = buildQuickFitPreservationPrompt(request);
   try {
-    const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.original, garment.imageViews?.back?.original, ...(garment.imageViews?.detail ?? []).map((asset) => asset.original), ...(garment.images ?? []), garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 24);
-    const originalImages = await Promise.all(productReferenceUrls.map(imageReference));
-    const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" }));
+    const productReferenceUrls = selectQuickFitReferenceUrls(request.clothing);
+    if (!productReferenceUrls.length) throw new Error("QUICK_FIT_REFERENCE_MISSING");
+    const originalImages = await Promise.all(productReferenceUrls.map(embeddedImageReference));
+    const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "medium" }), QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS);
     if (!generated.url) throw new Error("Image service returned no generated image URL.");
     return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
   } catch (error) {

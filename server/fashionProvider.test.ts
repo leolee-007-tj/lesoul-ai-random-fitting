@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider } from "./fashionProvider";
+import { buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider, QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS, selectQuickFitReferenceUrls } from "./fashionProvider";
 import { defaultBodyMeasurements } from "../shared/bodyMeasurements";
 
 describe("MockFashionProvider", () => {
@@ -81,11 +81,21 @@ describe("QUICK FIT product editorial prompt", () => {
     expect(prompt).toContain("Ivory Knit");
     expect(prompt).toContain(CLOTHING_NEGATIVE_PROMPT);
   });
+
+  it("selects one deterministic front reference per product instead of an oversized multi-view URL payload", () => {
+    const references = selectQuickFitReferenceUrls([
+      { id: 1, name: "Top", category: "top", imageUrl: "top-fallback.jpg", description: "Top", imageViews: { front: { original: "top-front.png", studioCut: "top-front.png", thumbnail: "top-front.png" }, back: { original: "top-back.png", studioCut: "top-back.png", thumbnail: "top-back.png" }, detail: [{ original: "top-detail.jpg", studioCut: "top-detail.jpg", thumbnail: "top-detail.jpg" }] } },
+      { id: 2, name: "Bottom", category: "bottom", imageUrl: "bottom-fallback.jpg", description: "Bottom", imageViews: { front: { original: "bottom-front.png", studioCut: "bottom-front.png", thumbnail: "bottom-front.png" }, detail: [{ original: "bottom-detail.jpg", studioCut: "bottom-detail.jpg", thumbnail: "bottom-detail.jpg" }] } },
+    ]);
+    expect(references).toEqual(["top-front.png", "bottom-front.png"]);
+  });
 });
 
 describe("image provider safeguards", () => {
   it("bounds a stalled provider request so the customer flow can use an explicit fallback", () => {
     expect(IMAGE_PROVIDER_TIMEOUT_MS).toBeGreaterThanOrEqual(30_000);
     expect(IMAGE_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(60_000);
+    expect(QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS).toBeGreaterThan(IMAGE_PROVIDER_TIMEOUT_MS);
+    expect(QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(120_000);
   });
 });

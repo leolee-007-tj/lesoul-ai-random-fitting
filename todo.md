@@ -389,3 +389,9 @@
 - [x] Add multi-select product deletion with a localized count-aware confirmation and safe selection reset.
 - [x] Add an administrator-only delete-all-products action with a destructive confirmation phrase and localized outcome states.
 - [x] Add regression coverage for authorization, individual deletion, selected deletion, delete-all confirmation, and empty-catalog handling; verify responsive UI, checkpoint, and publish.
+
+## QUICK FIT generation failure recovery
+- [x] Inspect the latest QUICK FIT request logs, provider response details, product-reference payload, and client error state to identify the actual failure reason.
+- [x] Fix the specific failure path without presenting an unverified product reference as a generated QUICK FIT editorial.
+- [x] Add localized cause-aware error and retry handling for QUICK FIT, including a copyable original error for support.
+- [x] Add regression coverage, verify a real request path and responsive error state, then checkpoint and publish.
