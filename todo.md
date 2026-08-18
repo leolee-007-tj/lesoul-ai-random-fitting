@@ -347,3 +347,10 @@
 
 - [x] Remove the automatic visible 0 from the new-product price input while retaining a required non-negative CNY price validation on save.
 - [x] Verify blank price entry, custom price entry, mobile form rendering, tests, checkpoint, and publish.
+
+## Product localized-name display recovery
+
+- [x] Trace product registration from source-language input through EN/KO/ZH fields, automatic translation, product API output, and locale display helpers.
+- [x] Ensure a Chinese, Korean, or English source name and description completes all three localized fields before product save, with an explicit save error if translation cannot complete.
+- [x] Use the current system language for product cards, AI Stylist, Quick Fit, result cards, Purchase Card, and My Looks while retaining a safe source-language fallback.
+- [x] Add regression coverage for Chinese registration followed by Korean and English display, run checks, checkpoint, and publish.

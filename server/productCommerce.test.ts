@@ -28,6 +28,23 @@ describe("product commerce helpers", () => {
     expect(localizedProductName({ ...product, nameKo: null }, "ko")).toBe("Legacy name");
   });
 
+  it("shows the current system-language name after a Chinese-source product is localized", () => {
+    const chineseSourceProduct = {
+      ...product,
+      name: "羊毛风衣",
+      nameZh: "羊毛风衣",
+      nameKo: "울 트렌치코트",
+      nameEn: "Wool Trench Coat",
+      description: "双排扣羊毛风衣。",
+      descriptionZh: "双排扣羊毛风衣。",
+      descriptionKo: "더블브레스트 울 트렌치코트입니다.",
+      descriptionEn: "A double-breasted wool trench coat.",
+    };
+    expect(localizedProductName(chineseSourceProduct, "ko")).toBe("울 트렌치코트");
+    expect(localizedProductName(chineseSourceProduct, "en")).toBe("Wool Trench Coat");
+    expect(localizedProductDescription(chineseSourceProduct, "ko")).toBe("더블브레스트 울 트렌치코트입니다.");
+  });
+
   it("applies the configured quantity discount ladder", () => {
     expect([1, 2, 3, 4].map((quantity) => getQuantityDiscountPercent(product, quantity))).toEqual([20, 25, 30, 35]);
     expect(calculateDiscountedPrice(product, 1)).toMatchObject({ baseTotal: 1000, tierPercent: 20, total: 800 });
