@@ -361,3 +361,17 @@
 - [x] Replace the combined required-field sentence with field-level EN/KO/ZH validation messages and visible input error states.
 - [x] Avoid blocking save for optional season, color, style, or description metadata when the required product identity, category, price, and image fields are complete.
 - [x] Verify save validation on mobile, tests, checkpoint, and publish.
+
+## Admin login and redeem reliability
+
+- [ ] Audit current session identity, administrator menu gating, Release Control permissions, redeem code issuance, redemption, entitlement persistence, and allowance application.
+- [ ] Ensure the configured workspace owner can access administrator Release Control and issue standard or VIP-unlimited redeem codes while signed in.
+- [ ] Ensure a signed-in user can redeem a valid code exactly once per code rules and immediately see the granted allowance or VIP status in the UI.
+- [ ] Keep invalid, expired, exhausted, and unauthorized cases safely rejected with localized messages and a copyable original error code.
+- [ ] Add regression coverage for login-bound admin issuance and standard/VIP redemption; verify end-to-end flows, checkpoint, and publish.
+
+## Product input recognition recovery
+
+- [x] Trace why a visibly filled product name or price can still trigger a required-field error on save.
+- [x] Normalize text and numeric input at change and save time, clear field errors immediately after valid entry, and avoid stale draft closure validation.
+- [x] Verify filled and one-character EN/KO/ZH product names plus a CNY price proceed past client and server validation; run checks, checkpoint, and publish.

@@ -7,7 +7,7 @@ import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
 
 const productInput = z.object({
-  name: z.string().min(2).max(160),
+  name: z.string().min(1).max(160),
   nameEn: z.string().max(160).nullable().optional(),
   nameKo: z.string().max(160).nullable().optional(),
   nameZh: z.string().max(160).nullable().optional(),
@@ -20,7 +20,7 @@ const productInput = z.object({
   imageUrl: z.string().min(1),
   images: z.array(z.string().min(1)).max(6).optional(),
   imageViews: z.object({ front: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), back: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), side: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), detail: z.array(z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() })).max(4).optional() }).optional(),
-  description: z.string().min(2),
+  description: z.string().min(1),
   descriptionEn: z.string().max(4000).nullable().optional(),
   descriptionKo: z.string().max(4000).nullable().optional(),
   descriptionZh: z.string().max(4000).nullable().optional(),
