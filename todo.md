@@ -243,3 +243,8 @@
 
 - [x] Add a concise EN/KO/ZH AI Body Model creation note explaining that a user-provided full-body photo can produce a more familiar visual likeness while photo-free model creation remains available.
 - [x] Verify the realism note on mobile, run checks, save a checkpoint, and publish.
+
+## AI Body Model starting weight
+
+- [x] Change the initial AI Body Model weight value and its empty-input fallback from 55kg to 40kg.
+- [x] Verify the 40kg default on mobile, run checks, save a checkpoint, and publish.
