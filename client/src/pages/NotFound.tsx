@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, Home } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
+  const { i18n } = useTranslation();
+  const copy = i18n.language.startsWith("ko") ? { title: "페이지를 찾을 수 없습니다", body: "죄송합니다. 찾으시는 페이지가 존재하지 않습니다.", detail: "페이지가 이동되었거나 삭제되었을 수 있습니다.", home: "홈으로 이동" } : i18n.language.startsWith("zh") ? { title: "找不到页面", body: "抱歉，您查找的页面不存在。", detail: "页面可能已被移动或删除。", home: "返回首页" } : { title: "Page Not Found", body: "Sorry, the page you are looking for doesn't exist.", detail: "It may have been moved or deleted.", home: "Go Home" };
 
   const handleGoHome = () => {
     setLocation("/");
@@ -23,14 +26,12 @@ export default function NotFound() {
 
           <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
 
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
+          <h2 className="text-xl font-semibold text-slate-700 mb-4">{copy.title}</h2>
 
           <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
+            {copy.body}
             <br />
-            It may have been moved or deleted.
+            {copy.detail}
           </p>
 
           <div
@@ -41,8 +42,8 @@ export default function NotFound() {
               onClick={handleGoHome}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
+              <Home className="w-4 h-4 mr-2" aria-hidden="true" />
+              {copy.home}
             </Button>
           </div>
         </CardContent>

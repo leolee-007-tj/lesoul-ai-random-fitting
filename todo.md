@@ -305,3 +305,11 @@
 - [x] Reuse existing selectedProductIds, result product cards, QR Purchase Card, alternative LOOK cards, access limits, generation logging, and VIP entitlements without creating a parallel catalog or pricing system.
 - [x] Support Private/Admin unrestricted testing through existing Release Mode policy while retaining the existing Beta 3-use and VIP unlimited policy for QUICK FIT.
 - [x] Verify EN/KO/ZH Home entry, product-only prompt, display styles, alternative look regeneration, QR purchase flow, 390px/820px UI, tests, checkpoint, and publish.
+
+## Complete customer UI localization audit
+
+- [x] Inventory every customer-facing hardcoded string, icon label, accessibility label, status, error, empty state, toast, and browser-language check across Home, Header, Studio, Quick Fit, Stylist, Results, Purchase, History, and fixed-model selection.
+- [x] Replace customer-facing hardcoded EN/KO/ZH content with current system-language EN/KO/ZH resources or centralized translation helpers while preserving stable internal IDs and AI prompt keywords.
+- [x] Translate all visible icon labels, image alt text, loading and fallback states, navigation labels, purchase actions, save/copy/download actions, and no-data messages for EN/KO/ZH.
+- [x] Add regression coverage for locale completeness and eliminate customer UI dependence on `navigator.language`.
+- [x] Verify the full customer journey in EN, KO, and ZH at mobile/tablet widths, run checks, save a checkpoint, and publish.
