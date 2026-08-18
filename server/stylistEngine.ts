@@ -82,10 +82,13 @@ function scoreOutfit(products: Product[], preset: ActiveStylePreset, body?: FitB
   return { score, raw };
 }
 
-function createReason(products: Product[], score: number, preset: ActiveStylePreset) {
-  const names = products.map((product) => product.name).slice(0, 3).join(" + ");
-  const palette = Array.from(new Set(products.map((product) => product.color).filter(Boolean))).join(" and ");
-  return `${names} pairs ${palette || "balanced"} tones with aligned proportions for a ${preset.name.toLowerCase()} look (${score}/100).`;
+type OutputLocale = "en" | "ko" | "zh";
+
+function createReason(preset: ActiveStylePreset, locale: OutputLocale) {
+  const name = preset.name.toUpperCase();
+  if (locale === "ko") return `차분한 톤과 자연스러운 실루엣을 조합한 ${name} LESOUL 룩입니다.`;
+  if (locale === "zh") return `以平衡色调和自然轮廓打造的 ${name} LESOUL 造型。`;
+  return `A ${name} LESOUL look with balanced tones and an effortless silhouette.`;
 }
 
 export function validateRecommendedProductIds(productIds: number[], activeProducts: Product[]) {
@@ -106,7 +109,7 @@ function outfitCandidates(activeProducts: Product[], anchorProductId?: number | 
   return anchorProductId ? candidates.filter((outfit) => outfit.some((product) => product.id === anchorProductId)) : candidates;
 }
 
-export function recommendTopLooks(input: { activeProducts: Product[]; preset: ActiveStylePreset; anchorProductId?: number | null; limit?: number; body?: FitBody | null }) {
+export function recommendTopLooks(input: { activeProducts: Product[]; preset: ActiveStylePreset; anchorProductId?: number | null; limit?: number; body?: FitBody | null; locale?: OutputLocale }) {
   const active = input.activeProducts.filter((product) => product.status === "in_stock");
   if (!active.length) throw new Error("No active inventory is available for AI Stylist recommendations.");
   if (input.anchorProductId && !active.some((product) => product.id === input.anchorProductId)) throw new Error("The selected item is not active inventory.");
@@ -118,5 +121,5 @@ export function recommendTopLooks(input: { activeProducts: Product[]; preset: Ac
     const { score, raw } = scoreOutfit(products, input.preset, input.body);
     return [{ products, productIds, score, raw }];
   });
-  return candidates.sort((first, second) => second.score - first.score || first.productIds.join("-").localeCompare(second.productIds.join("-"))).slice(0, input.limit ?? 3).map((candidate, index) => ({ lookId: `LOOK_${String(index + 1).padStart(2, "0")}`, productIds: candidate.productIds, score: candidate.score, scoreBreakdown: candidate.raw, reason: createReason(candidate.products, candidate.score, input.preset), styleKey: presetKey(input.preset.key), anchorProductId: input.anchorProductId ?? null } satisfies StylistRecommendation));
+  return candidates.sort((first, second) => second.score - first.score || first.productIds.join("-").localeCompare(second.productIds.join("-"))).slice(0, input.limit ?? 3).map((candidate, index) => ({ lookId: `LOOK_${String(index + 1).padStart(2, "0")}`, productIds: candidate.productIds, score: candidate.score, scoreBreakdown: candidate.raw, reason: createReason(input.preset, input.locale ?? "en"), styleKey: presetKey(input.preset.key), anchorProductId: input.anchorProductId ?? null } satisfies StylistRecommendation));
 }

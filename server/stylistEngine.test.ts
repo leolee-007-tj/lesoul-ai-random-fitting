@@ -30,4 +30,10 @@ describe("AI Stylist compatibility recommendations", () => {
     expect(() => recommendTopLooks({ activeProducts, preset: quietLuxury, anchorProductId: inactive.id })).toThrow(/not active inventory/i);
     expect(() => validateRecommendedProductIds([999999], activeProducts)).toThrow(/existing active product IDs/i);
   });
+
+  it("locks customer-facing recommendation reasons to the requested locale", () => {
+    expect(recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "ko" })[0]?.reason).toContain("LESOUL 룩");
+    expect(recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "zh" })[0]?.reason).toContain("LESOUL 造型");
+    expect(recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "en" })[0]?.reason).toMatch(/^A /);
+  });
 });

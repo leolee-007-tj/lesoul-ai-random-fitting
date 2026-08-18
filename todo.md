@@ -409,11 +409,11 @@
 - [x] Run checks, checkpoint, and publish the status-query recovery.
 
 ## Customer UX cleanup and product-first redesign
-- [ ] Save a rollback-safe baseline checkpoint and audit Home, Studio, fixed model, Stylist, Quick Fit, Result, Purchase, header, and bottom navigation against the attached public UX requirements.
-- [ ] Keep Home's two primary entries while reducing or weakening secondary feature boxes so AI Fitting and Quick Fit remain the clear calls to action.
-- [ ] Make Create My AI Model the preferred AI Fitting choice, retain HANA/MIRA/SEO as Quick Model choices, remove repeated model descriptions, and hide test shortcuts outside PRIVATE/admin contexts.
-- [ ] Default pose to Natural Standing and background to Minimal Studio, expose only four core poses initially, and make full pose/background choice an optional customization path.
-- [ ] Simplify customer AI Stylist cards to product-led Top 3 LOOK choices, hide detailed AI Match calculations, and lock generated explanations to the active EN/KO/ZH locale.
-- [ ] Keep AI Fitting and Quick Fit results product-first: generated LOOK, immediate editorial/selected-product horizontal cards, existing QR BUY flow, one save action, and only the two unselected Stylist alternatives.
-- [ ] Hide provider, prompt, IDs, internal validation, sample/testing, and development controls from public and beta customer screens while preserving private/admin access and existing usage/redeem behavior.
-- [ ] Verify language consistency, successful/failing generation allowance behavior, fixed identity retention, QR purchase cards, alternative LOOK reuse, and 390px mobile CTA/navigation behavior; run tests, checkpoint, publish, and report the required before/after UX changes.
+- [x] Save a rollback-safe baseline checkpoint and audit Home, Studio, fixed model, Stylist, Quick Fit, Result, Purchase, header, and bottom navigation against the attached public UX requirements.
+- [x] Keep Home's two primary entries while reducing or weakening secondary feature boxes so AI Fitting and Quick Fit remain the clear calls to action.
+- [x] Make Create My AI Model the preferred AI Fitting choice, retain HANA/MIRA/SEO as Quick Model choices, remove repeated model descriptions, and hide test shortcuts outside PRIVATE/admin contexts.
+- [x] Default pose to Natural Standing and background to Minimal Studio, expose only four core poses initially, and make full pose/background choice an optional customization path.
+- [x] Simplify customer AI Stylist cards to product-led Top 3 LOOK choices, hide detailed AI Match calculations, and lock generated explanations to the active EN/KO/ZH locale.
+- [x] Keep AI Fitting and Quick Fit results product-first: generated LOOK, immediate editorial/selected-product horizontal cards, existing QR BUY flow, one save action, and only the two unselected Stylist alternatives.
+- [x] Hide provider, prompt, IDs, internal validation, sample/testing, and development controls from public and beta customer screens while preserving private/admin access and existing usage/redeem behavior.
+- [x] Verify language consistency, successful/failing generation allowance behavior, fixed identity retention, QR purchase cards, alternative LOOK reuse, and 390px mobile CTA/navigation behavior; run tests, checkpoint, publish, and report the required before/after UX changes.

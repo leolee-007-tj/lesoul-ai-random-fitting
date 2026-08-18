@@ -61,3 +61,46 @@ describe("Studio generation-status contract", () => {
     expect(lookSource).not.toContain("query(async ({ input }) => getGenerationLog(input.generationId))");
   });
 });
+
+describe("customer-facing UX cleanup contract", () => {
+  it("keeps Home focused on two primary entries and prioritizes personal model creation", () => {
+    const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
+    const bodyModel = readFileSync(new URL("../client/src/pages/BodyModel.tsx", import.meta.url), "utf8");
+    expect(home).toContain('navigate("/body-model")');
+    expect(home).toContain('navigate("/quick-fit")');
+    expect(home).not.toContain('features: [');
+    expect(bodyModel).toContain("CREATE MY AI MODEL");
+    expect(bodyModel).toContain("USE QUICK MODEL");
+    expect(bodyModel).toContain("trpc.bodyModel.create.useMutation");
+  });
+
+  it("uses default pose/background with optional customisation and hides public test controls", () => {
+    const studio = readFileSync(new URL("../client/src/pages/Studio.tsx", import.meta.url), "utf8");
+    expect(studio).toContain('item.name === "Natural Standing"');
+    expect(studio).toContain('item.name === "미니멀 스튜디오"');
+    expect(studio).toContain('setStep(step === 2 ? 4 : step + 1)');
+    expect(studio).toContain("ui.changePose");
+    expect(studio).toContain("ui.changeBackground");
+    expect(studio).not.toContain('>{t("catalogUi.testLook")}</button>');
+  });
+
+  it("keeps public stylist and result cards product-first without score breakdown or provider copy", () => {
+    const stylist = readFileSync(new URL("../client/src/components/StylistPanel.tsx", import.meta.url), "utf8");
+    const result = readFileSync(new URL("../client/src/components/LookResultPanel.tsx", import.meta.url), "utf8");
+    const progress = readFileSync(new URL("../client/src/components/GenerationProgress.tsx", import.meta.url), "utf8");
+    expect(stylist).toContain("locale, body: fitBody");
+    expect(stylist).not.toContain("recommendation.scoreBreakdown.style");
+    expect(result).not.toContain("copyLink");
+    expect(result).toContain("overflow-x-auto");
+    expect(progress).not.toContain("LESOUL AI COMPOSITE");
+    expect(progress).not.toContain("<span>{progress}%</span>");
+  });
+
+  it("gates management navigation to administrators while retaining customer Quick Fit navigation", () => {
+    const header = readFileSync(new URL("../client/src/components/AppHeader.tsx", import.meta.url), "utf8");
+    const bottomNav = readFileSync(new URL("../client/src/components/MobileBottomNav.tsx", import.meta.url), "utf8");
+    expect(header).toContain('const showManage = user?.role === "admin"');
+    expect(bottomNav).toContain('href: "/quick-fit"');
+    expect(bottomNav).not.toContain('href: "/products"');
+  });
+});

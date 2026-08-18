@@ -8,11 +8,11 @@ const styleKey = z.enum(STYLE_PRESET_KEYS);
 
 export const stylistRouter = router({
   presets: publicProcedure.query(getActiveStylePresets),
-  recommend: publicProcedure.input(z.object({ styleKey, anchorProductId: z.number().int().positive().nullable().optional(), body: z.object({ bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), shoulderCm: z.number().nullable().optional() }).nullable().optional() })).query(async ({ input }) => {
+  recommend: publicProcedure.input(z.object({ styleKey, anchorProductId: z.number().int().positive().nullable().optional(), locale: z.enum(["en", "ko", "zh"]).default("en"), body: z.object({ bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), shoulderCm: z.number().nullable().optional() }).nullable().optional() })).query(async ({ input }) => {
     const [activeProducts, presets] = await Promise.all([getActiveStylistProducts(), getActiveStylePresets()]);
     const preset = presets.find((item) => item.key === input.styleKey);
     if (!preset) throw new Error("The requested style preset is not active.");
-    return recommendTopLooks({ activeProducts, preset, anchorProductId: input.anchorProductId ?? null, body: input.body, limit: 3 });
+    return recommendTopLooks({ activeProducts, preset, anchorProductId: input.anchorProductId ?? null, body: input.body, locale: input.locale, limit: 3 });
   }),
   feedback: publicProcedure.input(z.object({ visitorId: z.string().min(8).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), productIds: z.array(z.number().int().positive()).min(1).max(5), score: z.number().int().min(0).max(100), feedback: z.enum(["good", "bad"]) })).mutation(async ({ input }) => {
     const [activeProducts, presets] = await Promise.all([getActiveStylistProducts(), getActiveStylePresets()]);
