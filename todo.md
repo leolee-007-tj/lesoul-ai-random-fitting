@@ -274,3 +274,15 @@
 - [x] Present a dedicated, current-language Purchase Card with only the product photo, localized name, CNY price, original payment QR, editable notice, and no redirect action.
 - [x] Add Screenshot / Save Card, Back, and Home actions to the purchase card; preserve manual customer payment after saving and do not automate payment or WeChat/Moments posting.
 - [x] Verify external-link removal, editable notices, language switching, screenshot card layout, mobile Back/Home navigation, tests, checkpoint, and publish.
+
+## Result page product-first redesign, alternative looks, and access policy
+
+- [x] Audit the existing result panel, Studio recommendation handoff, saved look data, Release Mode policy, and entitlements against the product-first result page specification.
+- [x] Reorder and simplify the result page to show only the generated LESOUL LOOK, one Editorial Preview, one horizontal actual-worn-product purchase section, minimal save actions, and one alternative-looks section.
+- [x] Remove duplicate product, technical provider, generation-status, internal validation, prompt, debug, and repeated AI Match presentation from the customer result experience.
+- [x] Persist the initially recommended Top 3 look candidates and selected look context so the two unselected alternatives can be rendered on the result page.
+- [x] Let a customer choose an alternative LOOK and regenerate with the same selected fixed model, pose, background, and measurements while changing only the actual product IDs.
+- [x] Replace Beta Public daily allowance behavior with a total 3-generation visitor allowance while retaining administrator-configurable global daily and monthly protection.
+- [x] Add an administrator-issued VIP unlimited entitlement that bypasses the visitor allowance but remains subject to the global generation safety limits.
+- [x] Add complete EN/KO/ZH copy for the shopping CTA, product cards, save actions, alternative looks, allowance messages, and VIP states.
+- [x] Verify actual-worn product IDs only, horizontal product cards, alternative-look handoff, 3-use/VIP policy, purchase QR flow, mobile/tablet layouts, tests, checkpoint, and publish.

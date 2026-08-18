@@ -17,7 +17,7 @@ export type StylistProduct = {
   status: string;
 };
 
-type Recommendation = {
+export type StylistRecommendation = {
   lookId: string;
   productIds: number[];
   score: number;
@@ -44,7 +44,7 @@ function getVisitorId() {
 
 export default function StylistPanel({ products, onUseLook, onError }: {
   products: StylistProduct[];
-  onUseLook: (selection: { products: StylistProduct[]; styleName: string }) => void;
+  onUseLook: (selection: { products: StylistProduct[]; styleName: string; selectedLookId: string; recommendations: StylistRecommendation[] }) => void;
   onError: (message: string) => void;
 }) {
   const { i18n } = useTranslation();
@@ -58,16 +58,16 @@ export default function StylistPanel({ products, onUseLook, onError }: {
   const activeProducts = products.filter((product) => product.status === "in_stock");
   const activePreset = presets.data?.find((preset) => preset.key === styleKey);
 
-  function useRecommendation(recommendation: Recommendation) {
+  function useRecommendation(recommendation: StylistRecommendation) {
     const selected = recommendation.productIds
       .map((id) => activeProducts.find((product) => product.id === id))
       .filter(Boolean) as StylistProduct[];
     if (!selected.length) return onError("The recommended products are no longer active. Please refresh your recommendations.");
     setChosenLookId(recommendation.lookId);
-    onUseLook({ products: selected, styleName: activePreset?.name ?? styleKey.toUpperCase() });
+    onUseLook({ products: selected, styleName: activePreset?.name ?? styleKey.toUpperCase(), selectedLookId: recommendation.lookId, recommendations: (recommendations.data ?? []) as StylistRecommendation[] });
   }
 
-  async function submitFeedback(recommendation: Recommendation, value: "good" | "bad") {
+  async function submitFeedback(recommendation: StylistRecommendation, value: "good" | "bad") {
     try {
       await feedback.mutateAsync({
         visitorId: getVisitorId(), styleKey, anchorProductId,
@@ -110,7 +110,7 @@ export default function StylistPanel({ products, onUseLook, onError }: {
 
     <div className="mt-4 grid gap-3">
       {recommendations.isLoading && <div className="grid min-h-32 place-items-center rounded-xl border border-dashed border-[#d8d1c7]"><LoaderCircle className="animate-spin" size={20} /></div>}
-      {(recommendations.data as Recommendation[] | undefined)?.map((recommendation) => {
+      {(recommendations.data as StylistRecommendation[] | undefined)?.map((recommendation) => {
         const lookProducts = recommendation.productIds.map((id) => activeProducts.find((product) => product.id === id)).filter(Boolean) as StylistProduct[];
         return <article key={recommendation.lookId} className={`rounded-[1.2rem] border p-3 ${chosenLookId === recommendation.lookId ? "border-black ring-1 ring-black" : "border-[#dedbd4] bg-white"}`}>
           <div className="flex items-start justify-between gap-2">
