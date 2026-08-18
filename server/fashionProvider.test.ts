@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider, QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS, selectQuickFitReferenceUrls } from "./fashionProvider";
+import { AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS, buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider, QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS, selectPrimaryProductReferenceUrls, selectQuickFitReferenceUrls } from "./fashionProvider";
 import { defaultBodyMeasurements } from "../shared/bodyMeasurements";
 
 describe("MockFashionProvider", () => {
@@ -88,6 +88,7 @@ describe("QUICK FIT product editorial prompt", () => {
       { id: 2, name: "Bottom", category: "bottom", imageUrl: "bottom-fallback.jpg", description: "Bottom", imageViews: { front: { original: "bottom-front.png", studioCut: "bottom-front.png", thumbnail: "bottom-front.png" }, detail: [{ original: "bottom-detail.jpg", studioCut: "bottom-detail.jpg", thumbnail: "bottom-detail.jpg" }] } },
     ]);
     expect(references).toEqual(["top-front.png", "bottom-front.png"]);
+    expect(selectPrimaryProductReferenceUrls([{ id: 3, name: "Fallback", category: "bag", imageUrl: "bag-main.jpg", description: "Bag" }])).toEqual(["bag-main.jpg"]);
   });
 });
 
@@ -97,5 +98,7 @@ describe("image provider safeguards", () => {
     expect(IMAGE_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(60_000);
     expect(QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS).toBeGreaterThan(IMAGE_PROVIDER_TIMEOUT_MS);
     expect(QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(120_000);
+    expect(AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS).toBeGreaterThan(QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS);
+    expect(AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(180_000);
   });
 });

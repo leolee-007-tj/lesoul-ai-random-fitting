@@ -395,3 +395,9 @@
 - [x] Fix the specific failure path without presenting an unverified product reference as a generated QUICK FIT editorial.
 - [x] Add localized cause-aware error and retry handling for QUICK FIT, including a copyable original error for support.
 - [x] Add regression coverage, verify a real request path and responsive error state, then checkpoint and publish.
+
+## AI FITTING preservation-verification recovery
+- [x] Inspect the latest AI FITTING provider failures, request payloads, image references, and preservation-verification error mapping.
+- [x] Fix the failing AI FITTING reference or provider path while retaining selected garment, fixed model, pose, and background locks.
+- [x] Improve the localized failure guidance and retry path without displaying any unverified composition as a completed LOOK.
+- [x] Add regression coverage, verify a real AI FITTING request, then checkpoint and publish.

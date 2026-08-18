@@ -100,6 +100,7 @@ export interface FashionProvider {
 
 export const IMAGE_PROVIDER_TIMEOUT_MS = 45_000;
 export const QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS = 90_000;
+export const AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS = 150_000;
 
 async function withImageProviderTimeout<T>(operation: Promise<T>, timeoutMs = IMAGE_PROVIDER_TIMEOUT_MS): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -135,18 +136,20 @@ async function embeddedImageReference(source: string) {
     ? await storageGetSignedUrl(source.slice("/manus-storage/".length))
     : source;
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`QUICK_FIT_REFERENCE_FETCH_FAILED:${response.status}`);
+  if (!response.ok) throw new Error(`IMAGE_REFERENCE_FETCH_FAILED:${response.status}`);
   const mimeType = response.headers.get("content-type")?.split(";", 1)[0] ?? referenceMimeType(source);
-  if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error(`QUICK_FIT_REFERENCE_INVALID_MIME:${mimeType}`);
+  if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error(`IMAGE_REFERENCE_INVALID_MIME:${mimeType}`);
   const bytes = Buffer.from(await response.arrayBuffer());
-  if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024) throw new Error("QUICK_FIT_REFERENCE_INVALID_SIZE");
+  if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024) throw new Error("IMAGE_REFERENCE_INVALID_SIZE");
   return { b64Json: bytes.toString("base64"), mimeType };
 }
 
-/** Product-only editorials use one valid, embedded front view per selected item. This avoids remote URL fetch failures and limits the number of references sent to the image provider. */
-export function selectQuickFitReferenceUrls(clothing: FashionGarment[]) {
+/** One valid front view per selected item avoids remote URL-fetch failures and keeps the provider request below multi-view reference limits. */
+export function selectPrimaryProductReferenceUrls(clothing: FashionGarment[]) {
   return Array.from(new Set(clothing.map((garment) => garment.imageViews?.front?.original || garment.imageUrl).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 4);
 }
+
+export const selectQuickFitReferenceUrls = selectPrimaryProductReferenceUrls;
 
 function responseMetadata(request: FashionLookRequest, preservationPrompt: string) {
   return { pose: request.pose.name, background: request.background.name, style: request.style, clothingCount: request.clothing.length, generatedAt: new Date().toISOString(), preservationPrompt, negativePrompt: CLOTHING_NEGATIVE_PROMPT };
@@ -172,10 +175,13 @@ export class InternalImageFashionProvider implements FashionProvider {
   async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
     const preservationPrompt = buildClothingPreservationPrompt(request);
     try {
-      const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.original, garment.imageViews?.back?.original, ...(garment.imageViews?.detail ?? []).map((asset) => asset.original), ...(garment.images ?? []), garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 24);
-      const productReferences = await Promise.all(productReferenceUrls.map(imageReference));
-      const originalImages = [await imageReference(request.modelReference?.imageUrl ?? request.userImage), ...productReferences];
-      const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" }));
+      const modelReferenceUrl = request.modelReference?.imageUrl ?? request.userImage;
+      if (!modelReferenceUrl) throw new Error("IMAGE_REFERENCE_MISSING_MODEL");
+      const productReferenceUrls = selectPrimaryProductReferenceUrls(request.clothing);
+      if (!productReferenceUrls.length) throw new Error("IMAGE_REFERENCE_MISSING_PRODUCT");
+      const productReferences = await Promise.all(productReferenceUrls.map(embeddedImageReference));
+      const originalImages = [await embeddedImageReference(modelReferenceUrl), ...productReferences];
+      const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "medium" }), AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS);
       if (!generated.url) throw new Error("Image service returned no generated image URL.");
       return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
     } catch (error) {
