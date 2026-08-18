@@ -56,9 +56,10 @@ export const adminRouter = router({
   products: adminProcedure.query(async () => (await getCatalog()).products),
   stats: adminProcedure.query(getAdminStats),
   releaseConfig: adminProcedure.query(getReleaseSettings),
-  updateReleaseConfig: adminProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), globalDailyGenerationLimit: z.number().int().min(0).max(100000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseQrEnabled: z.number().int().min(0).max(1).optional() })).mutation(async ({ input }) => {
+  updateReleaseConfig: adminProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("Release settings are temporarily unavailable.");
-    const update = input.purchaseQrEnabled === undefined ? { ...input, purchaseQrEnabled: 1 } : input;
+    const current = await getReleaseSettings();
+    const update = { ...input, purchaseQrEnabled: input.purchaseQrEnabled ?? current.purchaseQrEnabled, purchaseNoticeEn: input.purchaseNoticeEn ?? current.purchaseNoticeEn, purchaseNoticeKo: input.purchaseNoticeKo ?? current.purchaseNoticeKo, purchaseNoticeZh: input.purchaseNoticeZh ?? current.purchaseNoticeZh };
     await db.insert(releaseSettings).values({ id: 1, ...update }).onDuplicateKeyUpdate({ set: update });
     return getReleaseSettings();
   }),

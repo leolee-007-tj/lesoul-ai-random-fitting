@@ -20,12 +20,13 @@ export const catalogRouter = router({
   bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    return { ...catalog, products: selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit), access: { releaseMode: settings.releaseMode, catalogTier: tier, betaCatalogLimit: settings.betaCatalogLimit, generationEnabled: Boolean(settings.generationEnabled) } };
+    const customerProducts = selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
+    return { ...catalog, products: customerProducts, access: { releaseMode: settings.releaseMode, catalogTier: tier, betaCatalogLimit: settings.betaCatalogLimit, generationEnabled: Boolean(settings.generationEnabled) } };
   }),
   products: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit);
+    return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
   }),
   poses: publicProcedure.query(async () => (await getCatalog()).poses),
   backgrounds: publicProcedure.query(async () => (await getCatalog()).backgrounds),
@@ -33,9 +34,10 @@ export const catalogRouter = router({
     const [catalog, settings] = await Promise.all([getCatalog(), getReleaseSettings()]);
     const product = catalog.products.find((item) => item.id === input.productId);
     const status = getPurchaseAvailability({ exists: Boolean(product), enabled: Boolean(settings.purchaseQrEnabled), status: product?.status, purchaseQrUrl: product?.purchaseQrUrl });
-    if (!product || status === "not_found" || status === "feature_off" || status === "sold_out") return { status, product: null };
-    if (status === "consult") return { status, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price } };
-    return { status: "available" as const, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, purchaseQrUrl: product.purchaseQrUrl, purchaseQrUpdatedAt: product.purchaseQrUpdatedAt } };
+    const notices = { purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
+    if (!product || status === "not_found" || status === "feature_off" || status === "sold_out") return { status, product: null, ...notices };
+    if (status === "consult") return { status, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price }, ...notices };
+    return { status: "available" as const, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, purchaseQrUrl: product.purchaseQrUrl, purchaseQrUpdatedAt: product.purchaseQrUpdatedAt }, ...notices };
   }),
 });
 

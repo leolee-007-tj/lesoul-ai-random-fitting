@@ -109,6 +109,9 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
   generationEnabled: int("generationEnabled").default(1).notNull(),
   purchaseQrEnabled: int("purchaseQrEnabled").default(1).notNull(),
+  purchaseNoticeEn: text("purchaseNoticeEn"),
+  purchaseNoticeKo: text("purchaseNoticeKo"),
+  purchaseNoticeZh: text("purchaseNoticeZh"),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

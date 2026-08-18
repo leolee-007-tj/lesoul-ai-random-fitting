@@ -266,3 +266,11 @@
 - [x] Build a mobile-first, screenshot-ready Purchase Screen and Purchase Card containing LESOUL, product image, localized name, CNY price, original-size payment QR, and Chinese payment instruction.
 - [x] Add Save Purchase Card, Save QR, and Copy Message helpers for manual WeChat personal-chat sharing; do not add Moments automation or a fake direct WeChat share button.
 - [x] Verify QR replacement, stale product states, no-QR consultation, 390px purchase card UI, mobile download behavior, tests, checkpoint, and publish.
+
+## Screenshot-first purchase card refinement
+
+- [x] Remove all customer-facing external purchase URL opening, including legacy demo `example.com` links.
+- [x] Add administrator-editable EN/KO/ZH purchase notice fields with a clear default caution that payment is final and return or exchange is unavailable unless otherwise confirmed.
+- [x] Present a dedicated, current-language Purchase Card with only the product photo, localized name, CNY price, original payment QR, editable notice, and no redirect action.
+- [x] Add Screenshot / Save Card, Back, and Home actions to the purchase card; preserve manual customer payment after saving and do not automate payment or WeChat/Moments posting.
+- [x] Verify external-link removal, editable notices, language switching, screenshot card layout, mobile Back/Home navigation, tests, checkpoint, and publish.
