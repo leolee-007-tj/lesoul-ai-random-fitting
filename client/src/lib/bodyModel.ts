@@ -1,4 +1,4 @@
-export type StoredBodyModel = { id: number; imageUrl: string; profileId: number; heightCm: number; bustCm: number | null; waistCm: number | null; hipCm: number | null };
+export type StoredBodyModel = { id: number; imageUrl: string; profileId: number; modelKey: string; version: number; approved: boolean; heightCm: number; weightKg: number; bustCm: number | null; waistCm: number | null; hipCm: number | null; hairLength: "short" | "medium" | "long"; hairStyle: "straight" | "natural_wave" | "bob"; hairColor: "black" | "dark_brown" | "brown" | "light_brown"; skinTone: "light" | "light_medium" | "medium" | "medium_deep" | "deep" };
 const KEY = "lesoul-ai-body-model";
 export const saveBodyModel = (model: StoredBodyModel) => sessionStorage.setItem(KEY, JSON.stringify(model));
 export const readBodyModel = (): StoredBodyModel | null => { try { const raw = sessionStorage.getItem(KEY); return raw ? JSON.parse(raw) as StoredBodyModel : null; } catch { return null; } };

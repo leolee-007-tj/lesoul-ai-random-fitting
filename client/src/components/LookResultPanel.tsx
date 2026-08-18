@@ -12,7 +12,7 @@ import { Check, Clipboard, Download, ExternalLink, LoaderCircle, Share2, Sliders
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export type ResultProduct = { id: number; name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; description?: string; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null; category: string; imageUrl: string; price: number; fabric?: string | null; fit?: string | null; length?: string | null; width?: string | null; details?: string | null; purchaseUrl?: string | null; purchasePlatform?: string | null };
+export type ResultProduct = { id: number; name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; description?: string; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null; category: string; imageUrl: string; price: number; fabric?: string | null; fit?: string | null; length?: string | null; width?: string | null; details?: string | null; garmentMeasurements?: import("@shared/fitEngine").GarmentMeasurements | null; stretchLevel?: import("@shared/fitEngine").StretchLevel; purchaseUrl?: string | null; purchasePlatform?: string | null };
 type Choice = { value: string; label: string };
 const itemChoices: Record<"length" | "width" | "color" | "details", Choice[]> = {
   length: [{ value: "shorter", label: "−" }, { value: "as_is", label: "=" }, { value: "longer", label: "+" }],

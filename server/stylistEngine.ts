@@ -1,7 +1,8 @@
 import type { Product } from "../drizzle/schema";
 import type { CompatibilityWeights, StylePresetKey, StylistProductMetadata } from "../shared/stylist";
+import { assessFit, type FitBody } from "../shared/fitEngine";
 
-export type ScoreBreakdown = { style: number; color: number; silhouette: number; season: number; material: number; formality: number };
+export type ScoreBreakdown = { style: number; color: number; silhouette: number; season: number; material: number; formality: number; fit: number };
 export type StylistRecommendation = { lookId: string; productIds: number[]; score: number; scoreBreakdown: ScoreBreakdown; reason: string; styleKey: StylePresetKey; anchorProductId: number | null };
 export type ActiveStylePreset = { key: string; name: string; matchingTags: string[]; weights: CompatibilityWeights };
 
@@ -67,10 +68,17 @@ function formalityScore(products: Product[]) {
   return spread === 0 ? 100 : spread === 1 ? 88 : spread === 2 ? 66 : 35;
 }
 
-function scoreOutfit(products: Product[], preset: ActiveStylePreset) {
-  const raw: ScoreBreakdown = { style: styleScore(products, preset), color: colorScore(products), silhouette: silhouetteScore(products), season: seasonScore(products), material: materialScore(products), formality: formalityScore(products) };
+function fitScore(products: Product[], body?: FitBody | null) {
+  if (!body) return 75;
+  const results = products.map((product) => assessFit(body, product.garmentMeasurements, product.category, product.stretchLevel ?? "low", product.fit ?? "regular"));
+  return Math.min(...results.map((result) => result.score));
+}
+
+function scoreOutfit(products: Product[], preset: ActiveStylePreset, body?: FitBody | null) {
+  const raw: ScoreBreakdown = { style: styleScore(products, preset), color: colorScore(products), silhouette: silhouetteScore(products), season: seasonScore(products), material: materialScore(products), formality: formalityScore(products), fit: fitScore(products, body) };
   const weights = preset.weights;
-  const score = Math.round((raw.style * weights.style + raw.color * weights.color + raw.silhouette * weights.silhouette + raw.season * weights.season + raw.material * weights.material + raw.formality * weights.formality) / 100);
+  const base = (raw.style * weights.style + raw.color * weights.color + raw.silhouette * weights.silhouette + raw.season * weights.season + raw.material * weights.material + raw.formality * weights.formality) / 100;
+  const score = Math.round(base * 0.8 + raw.fit * 0.2);
   return { score, raw };
 }
 
@@ -98,7 +106,7 @@ function outfitCandidates(activeProducts: Product[], anchorProductId?: number | 
   return anchorProductId ? candidates.filter((outfit) => outfit.some((product) => product.id === anchorProductId)) : candidates;
 }
 
-export function recommendTopLooks(input: { activeProducts: Product[]; preset: ActiveStylePreset; anchorProductId?: number | null; limit?: number }) {
+export function recommendTopLooks(input: { activeProducts: Product[]; preset: ActiveStylePreset; anchorProductId?: number | null; limit?: number; body?: FitBody | null }) {
   const active = input.activeProducts.filter((product) => product.status === "in_stock");
   if (!active.length) throw new Error("No active inventory is available for AI Stylist recommendations.");
   if (input.anchorProductId && !active.some((product) => product.id === input.anchorProductId)) throw new Error("The selected item is not active inventory.");
@@ -107,7 +115,7 @@ export function recommendTopLooks(input: { activeProducts: Product[]; preset: Ac
     const productIds = products.map((product) => product.id); const identity = [...productIds].sort((first, second) => first - second).join("-");
     if (seen.has(identity)) return []; seen.add(identity);
     validateRecommendedProductIds(productIds, active);
-    const { score, raw } = scoreOutfit(products, input.preset);
+    const { score, raw } = scoreOutfit(products, input.preset, input.body);
     return [{ products, productIds, score, raw }];
   });
   return candidates.sort((first, second) => second.score - first.score || first.productIds.join("-").localeCompare(second.productIds.join("-"))).slice(0, input.limit ?? 3).map((candidate, index) => ({ lookId: `LOOK_${String(index + 1).padStart(2, "0")}`, productIds: candidate.productIds, score: candidate.score, scoreBreakdown: candidate.raw, reason: createReason(candidate.products, candidate.score, input.preset), styleKey: presetKey(input.preset.key), anchorProductId: input.anchorProductId ?? null } satisfies StylistRecommendation));

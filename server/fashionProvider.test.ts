@@ -54,4 +54,15 @@ describe("clothing preservation prompt", () => {
     expect(prompt).toContain("Important detail reference 1: detail-cuff.jpg");
     expect(prompt).toContain("Important detail reference 2: detail-button.jpg");
   });
+
+  it("locks the approved base model identity and respects a Fit Engine warning", () => {
+    const prompt = buildClothingPreservationPrompt({
+      userImage: "temporary-user-image.jpg", modelReference: { imageUrl: "model-v1.jpg", modelKey: "MODEL-001", version: 1, appearance: { hairLength: "long", hairStyle: "straight", hairColor: "dark brown", skinTone: "light-medium" } },
+      pose: { id: 1, name: "Walking", promptKeyword: "walking" }, clothing: [{ id: 1, name: "Small Jacket", category: "outer", imageUrl: "jacket.jpg", description: "Small jacket", garmentMeasurements: { bustCm: 92 }, stretchLevel: "none" }],
+      background: { id: 1, name: "Studio", promptKeyword: "studio" }, style: "MINIMAL", bodyMeasurements: { ...defaultBodyMeasurements, chest: 104 },
+    });
+    expect(prompt).toContain("MODEL-001 v1");
+    expect(prompt).toContain("same generated woman");
+    expect(prompt).toContain("Do not shrink or reshape the body");
+  });
 });

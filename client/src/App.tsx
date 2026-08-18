@@ -12,6 +12,7 @@ import ResultPreview from "./pages/ResultPreview";
 import Studio from "./pages/Studio";
 import BodyModel from "./pages/BodyModel";
 import ReleaseControl from "./pages/ReleaseControl";
+import ProductFitManager from "./pages/ProductFitManager";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -23,6 +24,7 @@ function Router() {
       <Route path={"/measurements"} component={Measurements} />
       <Route path={"/history"} component={History} />
       <Route path={"/products"} component={ProductManager} />
+      <Route path={"/product-fit"} component={ProductFitManager} />
       <Route path={"/release-control"} component={ReleaseControl} />
       <Route path={"/result-preview"} component={ResultPreview} />
       <Route path={"/404"} component={NotFound} />

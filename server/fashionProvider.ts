@@ -1,6 +1,7 @@
 import { generateImage } from "./_core/imageGeneration";
 import { storageGetSignedUrl } from "./storage";
 import type { BodyMeasurements, ProductImageViews } from "../shared/bodyMeasurements";
+import { assessFit, type FitAssessment, type GarmentMeasurements, type StretchLevel } from "../shared/fitEngine";
 
 export const CLOTHING_PRESERVATION_RULES = {
   mustPreserve: ["length", "width", "neckline", "sleeve", "color", "pattern", "fabric", "details"],
@@ -34,6 +35,8 @@ export type FashionGarment = {
   details?: string | null;
   neckline?: string | null;
   sleeve?: string | null;
+  garmentMeasurements?: GarmentMeasurements | null;
+  stretchLevel?: StretchLevel;
 };
 
 export type FashionLookRequest = {
@@ -44,6 +47,7 @@ export type FashionLookRequest = {
   style: string;
   adjustments?: AdjustmentParams;
   bodyMeasurements?: BodyMeasurements;
+  modelReference?: { imageUrl: string; modelKey: string; version: number; appearance?: { hairLength: string; hairStyle: string; hairColor: string; skinTone: string } } | null;
 };
 
 export type FashionLookResponse = {
@@ -74,8 +78,10 @@ export function describeGarmentForGeneration(garment: FashionGarment) {
 export function buildClothingPreservationPrompt(request: FashionLookRequest) {
   const garmentDescriptions = request.clothing.map(describeGarmentForGeneration).join("\n");
   const adjustmentNote = request.adjustments ? `Permitted refinement request: ${JSON.stringify(request.adjustments)}. Preserve all identity-defining garment specifications unless this request explicitly changes a visual rendering nuance.` : "";
-  const measurements = request.bodyMeasurements ? `Person measurements: Height ${request.bodyMeasurements.height}cm, Shoulder width ${request.bodyMeasurements.shoulderWidth}cm, Chest ${request.bodyMeasurements.chest ?? "not provided"}cm, Waist ${request.bodyMeasurements.waist ?? "not provided"}cm, Hip ${request.bodyMeasurements.hip ?? "not provided"}cm, Arm length ${request.bodyMeasurements.armLength ?? "not provided"}cm, Inseam ${request.bodyMeasurements.inseam ?? "not provided"}cm. The clothing must fit proportionally to these measurements and garment length and width must look natural on this body type.` : "";
-  return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\n${measurements}\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
+  const measurements = request.bodyMeasurements ? `Fixed body measurements: Height ${request.bodyMeasurements.height}cm, Shoulder width ${request.bodyMeasurements.shoulderWidth}cm, Chest ${request.bodyMeasurements.chest ?? "not provided"}cm, Waist ${request.bodyMeasurements.waist ?? "not provided"}cm, Hip ${request.bodyMeasurements.hip ?? "not provided"}cm. Maintain this original body volume and proportions; never slim, reshape, or shrink the body to make a garment fit.` : "";
+  const fitNotes = request.bodyMeasurements ? request.clothing.map((garment) => assessFit({ bustCm: request.bodyMeasurements!.chest, waistCm: request.bodyMeasurements!.waist, hipCm: request.bodyMeasurements!.hip, shoulderCm: request.bodyMeasurements!.shoulderWidth }, garment.garmentMeasurements, garment.category, garment.stretchLevel ?? "low", garment.fit ?? "regular")).map((fit, index) => `Garment ${index + 1} Fit Engine: ${fit.status}. ${fit.visualInstruction}`).join("\n") : "";
+  const identity = request.modelReference ? `Base model reference is supplied as the first image. Character lock: keep the same generated woman, facial geometry, ${request.modelReference.appearance?.hairLength ?? ""} ${request.modelReference.appearance?.hairStyle ?? ""} hair, ${request.modelReference.appearance?.hairColor ?? ""} hair color, ${request.modelReference.appearance?.skinTone ?? ""} skin tone, and fixed body proportions from ${request.modelReference.modelKey} v${request.modelReference.version}. Only clothing, pose, and scene may change.` : "";
+  return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\n${identity}\n${measurements}\n${fitNotes}\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
 }
 
 export interface FashionProvider {
@@ -125,7 +131,7 @@ export class InternalImageFashionProvider implements FashionProvider {
     try {
       const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.original, garment.imageViews?.back?.original, ...(garment.imageViews?.detail ?? []).map((asset) => asset.original), ...(garment.images ?? []), garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 24);
       const productReferences = await Promise.all(productReferenceUrls.map(imageReference));
-      const originalImages = [await imageReference(request.userImage), ...productReferences];
+      const originalImages = [await imageReference(request.modelReference?.imageUrl ?? request.userImage), ...productReferences];
       const generated = await generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" });
       if (!generated.url) throw new Error("Image service returned no generated image URL.");
       return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };

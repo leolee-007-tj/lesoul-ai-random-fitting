@@ -215,3 +215,13 @@
 
 - [x] Complete the interrupted signed-in My Looks cross-device synchronization before beginning the Persistent AI Female Model + Fit Engine specification attached on 2026-08-18.
 - [x] Keep the Persistent AI Female Model + Fit Engine specification deferred until the existing account-sync and Release Mode stability work is published.
+
+## Persistent AI Female Model + Fit Engine
+
+- [x] Audit the persisted AI Body Model, product schema, studio handoff, and virtual try-on prompt against the new Persistent AI Female Model specification without rebuilding existing Core flows.
+- [x] Extend the body profile with hair length, hair style, hair color, and neutral skin-tone choice plus immutable model ID and model version fields.
+- [x] Generate an adult female full-body base model from body and appearance profiles, show an honest workflow-based progress state, then require Preview confirmation or Adjust Model before Studio use.
+- [x] Persist an approved model reference and pass it to every subsequent virtual try-on so body, hair, skin tone, and facial identity are retained while pose, scene, and garments change.
+- [x] Add nullable actual garment measurements to Product Manager by category and implement a configurable Size-Aware Fit Engine with RELAXED, REGULAR, FITTED, TIGHT, VERY_TIGHT, and UNLIKELY_TO_FIT results.
+- [x] Display fit status and concise body-versus-garment reasoning in look selection and results without altering the user body to make garments appear to fit.
+- [x] Verify model reuse, identity-reference payloads, appearance choices, fit statuses, mobile/tablet/Desktop UI, tests, migrations, checkpoint, and publish.

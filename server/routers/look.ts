@@ -4,6 +4,9 @@ import { publicProcedure, router } from "../_core/trpc";
 import { completeGenerationLog, createGenerationLog, getGenerationLog, getGenerationPerformance, markGenerationLogGenerating } from "../db";
 import { validateGeneratedLook, validationNotEnabled } from "../../shared/generationValidation";
 import { canGenerate, consumeRedeemAllowance } from "../access";
+import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
+import { and, eq } from "drizzle-orm";
+import { getDb } from "../db";
 
 const lookRequest = z.object({
   visitorId: z.string().min(1).max(96),
@@ -12,7 +15,7 @@ const lookRequest = z.object({
   bodyModelId: z.number().int().positive().nullable().optional(),
   userImage: z.string().min(1),
   pose: z.object({ id: z.number().int(), name: z.string(), promptKeyword: z.string() }),
-  clothing: z.array(z.object({ id: z.number().int(), name: z.string(), category: z.string(), imageUrl: z.string(), images: z.array(z.string()).nullable().optional(), imageViews: z.object({ front: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), back: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), side: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), detail: z.array(z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() })).max(4).optional() }).nullable().optional(), description: z.string(), color: z.string().nullable().optional(), fabric: z.string().nullable().optional(), texture: z.string().nullable().optional(), fit: z.string().nullable().optional(), length: z.string().nullable().optional(), width: z.string().nullable().optional(), details: z.string().nullable().optional(), neckline: z.string().nullable().optional(), sleeve: z.string().nullable().optional() })).min(1),
+  clothing: z.array(z.object({ id: z.number().int(), name: z.string(), category: z.string(), imageUrl: z.string(), images: z.array(z.string()).nullable().optional(), imageViews: z.object({ front: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), back: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), side: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), detail: z.array(z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() })).max(4).optional() }).nullable().optional(), description: z.string(), color: z.string().nullable().optional(), fabric: z.string().nullable().optional(), texture: z.string().nullable().optional(), fit: z.string().nullable().optional(), length: z.string().nullable().optional(), width: z.string().nullable().optional(), details: z.string().nullable().optional(), neckline: z.string().nullable().optional(), sleeve: z.string().nullable().optional(), garmentMeasurements: z.object({ shoulderCm: z.number().nullable().optional(), bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), sleeveCm: z.number().nullable().optional(), totalLengthCm: z.number().nullable().optional(), riseCm: z.number().nullable().optional(), thighCm: z.number().nullable().optional(), inseamCm: z.number().nullable().optional() }).nullable().optional(), stretchLevel: z.enum(["none", "low", "medium", "high"]).optional() })).min(1),
   background: z.object({ id: z.number().int(), name: z.string(), promptKeyword: z.string() }),
   style: z.string().min(1).max(64),
   adjustments: z.object({ overallFit: z.enum(["looser", "as_is", "tighter"]).optional(), proportion: z.enum(["shorter_torso", "as_is", "longer_legs"]).optional(), lighting: z.enum(["darker", "as_is", "brighter"]).optional(), items: z.record(z.string(), z.object({ length: z.enum(["shorter", "as_is", "longer"]).optional(), width: z.enum(["narrower", "as_is", "wider"]).optional(), color: z.enum(["muted", "as_is", "vibrant"]).optional(), details: z.enum(["simpler", "as_is", "detailed"]).optional() })).optional() }).optional(),
@@ -37,7 +40,14 @@ export const lookRouter = router({
     const startedAt = Date.now();
     try {
       await markGenerationLogGenerating(input.generationId);
-      const response = await generateFashionLook(input);
+      let modelReference: { imageUrl: string; modelKey: string; version: number; appearance: { hairLength: string; hairStyle: string; hairColor: string; skinTone: string } } | null = null;
+      if (input.tryOnMode === "ai_body_model" && input.bodyModelId) {
+        const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
+        const row = (await db.select({ imageUrl: aiBodyModels.imageUrl, modelKey: aiBodyModels.modelKey, version: aiBodyModels.version, hairLength: bodyProfiles.hairLength, hairStyle: bodyProfiles.hairStyle, hairColor: bodyProfiles.hairColor, skinTone: bodyProfiles.skinTone }).from(aiBodyModels).innerJoin(bodyProfiles, eq(aiBodyModels.bodyProfileId, bodyProfiles.id)).where(and(eq(aiBodyModels.id, input.bodyModelId), eq(aiBodyModels.approved, 1), eq(bodyProfiles.visitorId, input.visitorId))).limit(1))[0];
+        if (!row?.imageUrl) throw new Error("AI_BODY_MODEL_REFERENCE_UNAVAILABLE");
+        modelReference = { imageUrl: row.imageUrl, modelKey: row.modelKey, version: row.version, appearance: { hairLength: row.hairLength, hairStyle: row.hairStyle, hairColor: row.hairColor, skinTone: row.skinTone } };
+      }
+      const response = await generateFashionLook({ ...input, modelReference });
       const validation = await validateGeneratedLook({ resultImageUrl: response.generatedImage, userImageUrl: input.userImage, productIds: input.clothing.map((item) => item.id), poseId: input.pose.id, backgroundId: input.background.id });
       await completeGenerationLog({ requestId: input.generationId, status: response.provider === "external" ? "completed" : "fallback", resultImageUrl: response.generatedImage, durationMs: Date.now() - startedAt, validation });
       if (response.provider === "external" && access.releaseMode === "REDEEM_CODE") await consumeRedeemAllowance(input.visitorId);

@@ -6,8 +6,16 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "isFeatured" | "featuredPriority" | "catalogTier">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "isFeatured" | "featuredPriority" | "catalogTier" | "garmentMeasurements" | "sizeOptions" | "stretchLevel">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
+const categoryMeasurements: Record<Product["category"], { garmentMeasurements: NonNullable<Product["garmentMeasurements"]>; stretchLevel: Product["stretchLevel"] }> = {
+  top: { garmentMeasurements: { shoulderCm: 40, bustCm: 98, sleeveCm: 58, totalLengthCm: 60 }, stretchLevel: "low" },
+  outer: { garmentMeasurements: { shoulderCm: 42, bustCm: 106, sleeveCm: 60, totalLengthCm: 72 }, stretchLevel: "none" },
+  bottom: { garmentMeasurements: { waistCm: 76, hipCm: 102, riseCm: 30, thighCm: 62, inseamCm: 72, totalLengthCm: 101 }, stretchLevel: "low" },
+  dress: { garmentMeasurements: { shoulderCm: 39, bustCm: 96, waistCm: 78, hipCm: 106, sleeveCm: 56, totalLengthCm: 118 }, stretchLevel: "low" },
+  shoes: { garmentMeasurements: {}, stretchLevel: "none" },
+  bag: { garmentMeasurements: {}, stretchLevel: "none" },
+};
 
 const rawDemoProducts: SeedProductBase[] = [
   { name: "LESOUL 시그니처 실크 셔츠", category: "top", season: "봄,가을", color: "아이보리", style: "출근,데이트,고급", status: "in_stock", price: 593, imageUrl: imageSet[0], description: "매끈한 결감과 여유로운 실루엣의 아이보리 셔츠", purchaseUrl: "https://example.com/lesoul/silk-shirt" },
@@ -61,6 +69,7 @@ function garmentSpecifications(product: SeedProductBase): GarmentSpecifications 
 
 export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "purchaseQrUrl">[] = rawDemoProducts.map((product) => {
   const specifications = garmentSpecifications(product);
+  const fitData = categoryMeasurements[product.category];
   return {
     ...product,
     nameEn: product.name,
@@ -80,6 +89,9 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "pur
     isFeatured: product.status === "in_stock" ? 1 : 0,
     featuredPriority: product.status === "in_stock" ? 100 - rawDemoProducts.indexOf(product) : 0,
     catalogTier: "full",
+    garmentMeasurements: fitData.garmentMeasurements,
+    sizeOptions: null,
+    stretchLevel: fitData.stretchLevel,
     ...specifications,
     images: [product.imageUrl],
     imageViews: { front: { original: product.imageUrl, studioCut: product.imageUrl, thumbnail: product.imageUrl } },

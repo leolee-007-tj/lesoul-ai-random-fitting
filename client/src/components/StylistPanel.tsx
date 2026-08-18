@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import type { StylePresetKey } from "@shared/stylist";
 import { localizedProductName } from "@shared/productCommerce";
 import { useTranslation } from "react-i18next";
+import { readBodyMeasurements } from "@/lib/bodyMeasurements";
 
 export type StylistProduct = {
   id: number;
@@ -28,6 +29,7 @@ type Recommendation = {
     season: number;
     material: number;
     formality: number;
+    fit: number;
   };
 };
 
@@ -49,8 +51,9 @@ export default function StylistPanel({ products, onUseLook, onError }: {
   const [styleKey, setStyleKey] = useState<StylePresetKey>("quiet_luxury");
   const [anchorProductId, setAnchorProductId] = useState<number | null>(null);
   const [chosenLookId, setChosenLookId] = useState<string | null>(null);
+  const [fitBody] = useState(() => { const measurements = readBodyMeasurements(); return { bustCm: measurements.chest, waistCm: measurements.waist, hipCm: measurements.hip, shoulderCm: measurements.shoulderWidth }; });
   const presets = trpc.stylist.presets.useQuery();
-  const recommendations = trpc.stylist.recommend.useQuery({ styleKey, anchorProductId });
+  const recommendations = trpc.stylist.recommend.useQuery({ styleKey, anchorProductId, body: fitBody });
   const feedback = trpc.stylist.feedback.useMutation();
   const activeProducts = products.filter((product) => product.status === "in_stock");
   const activePreset = presets.data?.find((preset) => preset.key === styleKey);
