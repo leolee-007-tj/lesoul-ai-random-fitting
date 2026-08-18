@@ -83,7 +83,8 @@ export function buildClothingPreservationPrompt(request: FashionLookRequest) {
   const measurements = request.bodyMeasurements ? `Fixed body measurements: Height ${request.bodyMeasurements.height}cm, Shoulder width ${request.bodyMeasurements.shoulderWidth}cm, Chest ${request.bodyMeasurements.chest ?? "not provided"}cm, Waist ${request.bodyMeasurements.waist ?? "not provided"}cm, Hip ${request.bodyMeasurements.hip ?? "not provided"}cm. Maintain this original body volume and proportions; never slim, reshape, or shrink the body to make a garment fit.` : "";
   const fitNotes = request.bodyMeasurements ? request.clothing.map((garment) => assessFit({ bustCm: request.bodyMeasurements!.chest, waistCm: request.bodyMeasurements!.waist, hipCm: request.bodyMeasurements!.hip, shoulderCm: request.bodyMeasurements!.shoulderWidth }, garment.garmentMeasurements, garment.category, garment.stretchLevel ?? "low", garment.fit ?? "regular")).map((fit, index) => `Garment ${index + 1} Fit Engine: ${fit.status}. ${fit.visualInstruction}`).join("\n") : "";
   const identity = request.modelReference ? `Base model reference is supplied as the first image. Character lock: keep the same generated woman, facial geometry, ${request.modelReference.appearance?.hairLength ?? ""} ${request.modelReference.appearance?.hairStyle ?? ""} hair, ${request.modelReference.appearance?.hairColor ?? ""} hair color, ${request.modelReference.appearance?.skinTone ?? ""} skin tone, and fixed body proportions from ${request.modelReference.modelKey} v${request.modelReference.version}. Only clothing, pose, and scene may change.` : "";
-  return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\n${identity}\n${measurements}\n${fitNotes}\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
+  const garmentLocks = request.clothing.map((garment, index) => `GARMENT LOCK ${index + 1}: ${garment.category.toUpperCase()} — ${garment.name}. This exact selected item must be visible as its correct layer; do not omit, replace, recolor, crop away, or substitute it.${garment.category === "bottom" ? " Bottom/denim lock: preserve the supplied waist, rise, leg width, inseam, wash, pockets, hem, and silhouette exactly." : ""}`).join("\n");
+  return `A photorealistic fashion editorial of a person wearing EXACTLY these selected LESOUL products:\n${garmentDescriptions}\n${garmentLocks}\nPOSE LOCK — non-negotiable: reproduce the selected pose exactly: ${request.pose.name} — ${request.pose.promptKeyword}. Do not substitute a standing pose, crop the pose, or alter the intended body orientation.\nBACKGROUND LOCK — non-negotiable: render the selected background scene: ${request.background.name} — ${request.background.promptKeyword}. Do not replace it with a studio, blank backdrop, unrelated street, or generic scene.\n${identity}\n${measurements}\n${fitNotes}\nCRITICAL REFERENCE COMPLIANCE: every selected garment must remain visually identifiable from its supplied reference images, especially the selected bottom or denim. Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
 }
 
 export function buildQuickFitPreservationPrompt(request: FashionLookRequest) {
@@ -147,8 +148,6 @@ export class MockFashionProvider implements FashionProvider {
 }
 
 export class InternalImageFashionProvider implements FashionProvider {
-  constructor(private readonly fallback = new MockFashionProvider()) {}
-
   async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
     const preservationPrompt = buildClothingPreservationPrompt(request);
     try {
@@ -159,8 +158,9 @@ export class InternalImageFashionProvider implements FashionProvider {
       if (!generated.url) throw new Error("Image service returned no generated image URL.");
       return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
     } catch (error) {
-      console.warn("[FashionProvider] Image generation failed; using reference-image fallback.", error);
-      return this.fallback.generateFashionLook(request);
+      console.warn("[FashionProvider] Image generation failed; do not present a reference image as a generated look.", error);
+      const reason = error instanceof Error ? error.message : "IMAGE_PROVIDER_UNAVAILABLE";
+      throw new Error(`GENERATED_RESULT_UNVERIFIED:${reason}`);
     }
   }
 }
@@ -174,8 +174,9 @@ export async function generateQuickFitEditorial(request: FashionLookRequest): Pr
     if (!generated.url) throw new Error("Image service returned no generated image URL.");
     return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
   } catch (error) {
-    console.warn("[QuickFit] Product editorial generation failed; using the primary product reference fallback.", error);
-    return { generatedImage: request.clothing[0]?.imageUrl ?? "", generationStatus: "completed", provider: "mock", metadata: responseMetadata(request, preservationPrompt) };
+    console.warn("[QuickFit] Product editorial generation failed; do not present a product reference as a generated editorial.", error);
+    const reason = error instanceof Error ? error.message : "IMAGE_PROVIDER_UNAVAILABLE";
+    throw new Error(`GENERATED_RESULT_UNVERIFIED:${reason}`);
   }
 }
 

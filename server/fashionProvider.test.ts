@@ -35,6 +35,9 @@ describe("clothing preservation prompt", () => {
     expect(prompt).toContain("Full length");
     expect(prompt).toContain("Wide width silhouette");
     expect(prompt).toContain("Wide leg, raw hem, high waist");
+    expect(prompt).toContain("Bottom/denim lock");
+    expect(prompt).toContain("POSE LOCK — non-negotiable");
+    expect(prompt).toContain("BACKGROUND LOCK — non-negotiable");
     expect(prompt).toContain("pants-main.jpg");
     expect(prompt).toContain(CLOTHING_NEGATIVE_PROMPT);
   });

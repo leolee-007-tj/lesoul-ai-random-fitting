@@ -31,8 +31,8 @@ const lookRequest = z.object({
 export const lookRouter = router({
   generate: publicProcedure.input(lookRequest).mutation(async ({ input }) => {
     const existing = await getGenerationLog(input.generationId);
-    if (existing?.resultImageUrl && (existing.status === "completed" || existing.status === "fallback")) {
-      return { generatedImage: existing.resultImageUrl, generationStatus: "completed" as const, provider: existing.status === "completed" ? "external" as const : "mock" as const, metadata: { pose: input.pose.name, background: input.background.name, style: input.style, clothingCount: input.clothing.length, generatedAt: existing.completedAt?.toISOString() ?? existing.updatedAt.toISOString(), preservationPrompt: "Reused completed generation", negativePrompt: "Reused completed generation" }, generationId: input.generationId, validation: validationNotEnabled(), reused: true };
+    if (existing?.resultImageUrl && existing.status === "completed") {
+      return { generatedImage: existing.resultImageUrl, generationStatus: "completed" as const, provider: "external" as const, metadata: { pose: input.pose.name, background: input.background.name, style: input.style, clothingCount: input.clothing.length, generatedAt: existing.completedAt?.toISOString() ?? existing.updatedAt.toISOString(), preservationPrompt: "Reused completed generation", negativePrompt: "Reused completed generation" }, generationId: input.generationId, validation: validationNotEnabled(), reused: true };
     }
     if (existing && (existing.status === "preparing" || existing.status === "generating")) throw new Error("This generation is already in progress.");
     const access = await canGenerate(input.visitorId);

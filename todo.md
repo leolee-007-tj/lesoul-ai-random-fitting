@@ -375,3 +375,10 @@
 - [x] Trace why a visibly filled product name or price can still trigger a required-field error on save.
 - [x] Normalize text and numeric input at change and save time, clear field errors immediately after valid entry, and avoid stale draft closure validation.
 - [x] Verify filled and one-character EN/KO/ZH product names plus a CNY price proceed past client and server validation; run checks, checkpoint, and publish.
+
+## Garment, pose, and background preservation recovery
+
+- [x] Inspect recent generation logs and the current Studio-to-provider payload to identify why selected denim, pose, or background can be lost.
+- [x] Send ordered product references with stronger category-specific preservation instructions, prioritizing selected bottoms such as denim, and include selected pose and background as non-negotiable scene constraints.
+- [x] Reject misleading fallback treatment when provider output is unavailable or unverified, clearly label the result as a sample and return the user to a retry-ready state.
+- [x] Add regression coverage for denim/product references, selected pose, selected background, and fallback messaging; verify the provider path, checkpoint, and publish.
