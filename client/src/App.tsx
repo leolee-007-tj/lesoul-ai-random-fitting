@@ -14,6 +14,7 @@ import BodyModel from "./pages/BodyModel";
 import ReleaseControl from "./pages/ReleaseControl";
 import ProductFitManager from "./pages/ProductFitManager";
 import PurchaseNoticeManager from "./pages/PurchaseNoticeManager";
+import QuickFit from "./pages/QuickFit";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -21,6 +22,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/studio"} component={Studio} />
+      <Route path={"/quick-fit"} component={QuickFit} />
       <Route path={"/body-model"} component={BodyModel} />
       <Route path={"/measurements"} component={Measurements} />
       <Route path={"/history"} component={History} />

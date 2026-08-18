@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClothingPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider } from "./fashionProvider";
+import { buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider } from "./fashionProvider";
 import { defaultBodyMeasurements } from "../shared/bodyMeasurements";
 
 describe("MockFashionProvider", () => {
@@ -64,6 +64,19 @@ describe("clothing preservation prompt", () => {
     expect(prompt).toContain("MODEL-001 v1");
     expect(prompt).toContain("same generated woman");
     expect(prompt).toContain("Do not shrink or reshape the body");
+  });
+});
+
+describe("QUICK FIT product editorial prompt", () => {
+  it("uses product references only and explicitly forbids people or redesigned garments", () => {
+    const prompt = buildQuickFitPreservationPrompt({ generationMode: "QUICK_FIT", displayStyle: "studio_flat_lay", userImage: "quick-fit://products/1-2", pose: { id: 0, name: "Product-only arrangement", promptKeyword: "no person" }, background: { id: 0, name: "studio_flat_lay", promptKeyword: "studio flat lay" }, style: "QUIET LUXURY", clothing: [{ id: 1, name: "Ivory Knit", category: "top", imageUrl: "top.jpg", description: "Ivory knit top", color: "Ivory", details: "Rib knit" }, { id: 2, name: "Black Trousers", category: "bottom", imageUrl: "bottom.jpg", description: "Black trousers", color: "Black", details: "Straight hem" }] });
+    expect(prompt).toContain("NO PERSON");
+    expect(prompt).toContain("NO FACE");
+    expect(prompt).toContain("NO HANDS");
+    expect(prompt).toContain("NO BODY");
+    expect(prompt).toContain("studio_flat_lay");
+    expect(prompt).toContain("Ivory Knit");
+    expect(prompt).toContain(CLOTHING_NEGATIVE_PROMPT);
   });
 });
 

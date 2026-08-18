@@ -293,3 +293,15 @@
 - [x] Audit all pose names, titles, descriptions, selected-pose summaries, result/saved-look labels, and generation prompts for EN/KO/ZH language consistency.
 - [x] Replace any remaining seeded or hardcoded pose text with current-language EN/KO/ZH values while preserving stable internal pose IDs and generation keywords.
 - [x] Verify a generation request, pose screens and result labels in three languages, tests, checkpoint, and publish.
+
+## QUICK FIT generation mode
+
+- [x] Audit the existing Home entry, Studio, AI Stylist, fashion provider, result screen, purchase card, generation logging, and entitlement flow against the QUICK FIT specification.
+- [x] Add a first-class QUICK_FIT generation mode that uses only active existing LESOUL product IDs and product reference images, never customer photos, fixed AI models, people, faces, hands, or bodies.
+- [x] Add a simple Home choice between AI FITTING and QUICK FIT with complete EN/KO/ZH copy while preserving the existing AI FITTING entry unchanged.
+- [x] Reuse the current Style Presets and AI Stylist Top 3 logic for QUICK FIT, with TOP + BOTTOM or DRESS foundations plus optional OUTER, BAG, and SHOES.
+- [x] Add four QUICK FIT display styles: Studio Flat Lay, Editorial Flat Lay, Hanger Display, and Ghost Fit; use Studio Flat Lay by default with product-preservation instructions.
+- [x] Generate product-only editorial images with strict preservation of garment color, pattern, fabric appearance, construction, proportions, and major details; forbid newly designed garments and human elements.
+- [x] Reuse existing selectedProductIds, result product cards, QR Purchase Card, alternative LOOK cards, access limits, generation logging, and VIP entitlements without creating a parallel catalog or pricing system.
+- [x] Support Private/Admin unrestricted testing through existing Release Mode policy while retaining the existing Beta 3-use and VIP unlimited policy for QUICK FIT.
+- [x] Verify EN/KO/ZH Home entry, product-only prompt, display styles, alternative look regeneration, QR purchase flow, 390px/820px UI, tests, checkpoint, and publish.

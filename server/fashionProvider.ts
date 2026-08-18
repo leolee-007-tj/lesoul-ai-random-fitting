@@ -40,6 +40,8 @@ export type FashionGarment = {
 };
 
 export type FashionLookRequest = {
+  generationMode?: "AI_FITTING" | "QUICK_FIT";
+  displayStyle?: "studio_flat_lay" | "editorial_flat_lay" | "hanger_display" | "ghost_fit";
   userImage: string;
   pose: { id: number; name: string; promptKeyword: string };
   clothing: FashionGarment[];
@@ -82,6 +84,13 @@ export function buildClothingPreservationPrompt(request: FashionLookRequest) {
   const fitNotes = request.bodyMeasurements ? request.clothing.map((garment) => assessFit({ bustCm: request.bodyMeasurements!.chest, waistCm: request.bodyMeasurements!.waist, hipCm: request.bodyMeasurements!.hip, shoulderCm: request.bodyMeasurements!.shoulderWidth }, garment.garmentMeasurements, garment.category, garment.stretchLevel ?? "low", garment.fit ?? "regular")).map((fit, index) => `Garment ${index + 1} Fit Engine: ${fit.status}. ${fit.visualInstruction}`).join("\n") : "";
   const identity = request.modelReference ? `Base model reference is supplied as the first image. Character lock: keep the same generated woman, facial geometry, ${request.modelReference.appearance?.hairLength ?? ""} ${request.modelReference.appearance?.hairStyle ?? ""} hair, ${request.modelReference.appearance?.hairColor ?? ""} hair color, ${request.modelReference.appearance?.skinTone ?? ""} skin tone, and fixed body proportions from ${request.modelReference.modelKey} v${request.modelReference.version}. Only clothing, pose, and scene may change.` : "";
   return `A photorealistic fashion editorial of a person wearing EXACTLY these products:\n${garmentDescriptions}\nPose: ${request.pose.name} — ${request.pose.promptKeyword}.\nBackground: ${request.background.promptKeyword}.\n${identity}\n${measurements}\n${fitNotes}\nCRITICAL: Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
+}
+
+export function buildQuickFitPreservationPrompt(request: FashionLookRequest) {
+  const garmentDescriptions = request.clothing.map(describeGarmentForGeneration).join("\n");
+  const displayStyle = request.displayStyle ?? "studio_flat_lay";
+  const displayInstruction = { studio_flat_lay: "Clean warm-white studio flat lay on a floor or table with soft realistic shadows.", editorial_flat_lay: "A refined magazine editorial flat lay with restrained composition and soft premium styling props only.", hanger_display: "A clean boutique hanger and display arrangement. Garments may hang but no human mannequin or body may appear.", ghost_fit: "An invisible-form garment arrangement that suggests a complete outfit while showing no mannequin, body, head, hands, or person." }[displayStyle];
+  return `Create one premium LESOUL product editorial for this complete outfit using only the supplied real product reference images.\n${garmentDescriptions}\nDisplay style: ${displayStyle}. ${displayInstruction}\nArrange top and bottom as one coherent outfit; a dress may stand alone. Outerwear, bag, and shoes are optional accessories. NO PERSON, NO HUMAN, NO FACE, NO HANDS, NO BODY, NO AI MODEL, NO MANNEQUIN. The products are the only subject.\nCRITICAL PRODUCT PRESERVATION: retain every referenced product's exact color, pattern, fabric appearance, neckline, sleeves, buttons, pockets, length, width, silhouette, waist design, hem, seams, and major construction details. Do not invent, redesign, replace, merge, distort, or add garments. ${CLOTHING_NEGATIVE_PROMPT}`;
 }
 
 export interface FashionProvider {
@@ -153,6 +162,20 @@ export class InternalImageFashionProvider implements FashionProvider {
       console.warn("[FashionProvider] Image generation failed; using reference-image fallback.", error);
       return this.fallback.generateFashionLook(request);
     }
+  }
+}
+
+export async function generateQuickFitEditorial(request: FashionLookRequest): Promise<FashionLookResponse> {
+  const preservationPrompt = buildQuickFitPreservationPrompt(request);
+  try {
+    const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.original, garment.imageViews?.back?.original, ...(garment.imageViews?.detail ?? []).map((asset) => asset.original), ...(garment.images ?? []), garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 24);
+    const originalImages = await Promise.all(productReferenceUrls.map(imageReference));
+    const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" }));
+    if (!generated.url) throw new Error("Image service returned no generated image URL.");
+    return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
+  } catch (error) {
+    console.warn("[QuickFit] Product editorial generation failed; using the primary product reference fallback.", error);
+    return { generatedImage: request.clothing[0]?.imageUrl ?? "", generationStatus: "completed", provider: "mock", metadata: responseMetadata(request, preservationPrompt) };
   }
 }
 

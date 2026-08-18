@@ -83,7 +83,7 @@ export async function saveStylistFeedback(input: { visitorId: string; stylePrese
   await db.insert(stylistFeedback).values({ ...input, anchorProductId: input.anchorProductId ?? null });
 }
 
-type GenerationLogInput = { requestId: string; retryOfRequestId?: string | null; retryCount?: number; userImageUrl: string; poseId: number; style: string; productIds: number[]; backgroundId: number; provider: string; visitorId?: string; releaseMode?: "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE"; source?: "wechat_moments" | "direct" | "admin_test"; tryOnMode?: "my_photo" | "ai_body_model"; bodyModelId?: number | null; };
+type GenerationLogInput = { requestId: string; retryOfRequestId?: string | null; retryCount?: number; userImageUrl: string; poseId: number; style: string; productIds: number[]; backgroundId: number; provider: string; visitorId?: string; releaseMode?: "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE"; source?: "wechat_moments" | "direct" | "admin_test"; generationMode?: "AI_FITTING" | "QUICK_FIT"; tryOnMode?: "my_photo" | "ai_body_model" | "quick_fit"; bodyModelId?: number | null; };
 
 export async function getGenerationLog(requestId: string) {
   const db = await getDb();
