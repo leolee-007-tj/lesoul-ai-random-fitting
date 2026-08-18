@@ -354,3 +354,10 @@
 - [x] Ensure a Chinese, Korean, or English source name and description completes all three localized fields before product save, with an explicit save error if translation cannot complete.
 - [x] Use the current system language for product cards, AI Stylist, Quick Fit, result cards, Purchase Card, and My Looks while retaining a safe source-language fallback.
 - [x] Add regression coverage for Chinese registration followed by Korean and English display, run checks, checkpoint, and publish.
+
+## Product save validation clarity
+
+- [x] Audit the new-product required fields and determine which are genuinely required for save versus optional merchandising metadata.
+- [x] Replace the combined required-field sentence with field-level EN/KO/ZH validation messages and visible input error states.
+- [x] Avoid blocking save for optional season, color, style, or description metadata when the required product identity, category, price, and image fields are complete.
+- [x] Verify save validation on mobile, tests, checkpoint, and publish.

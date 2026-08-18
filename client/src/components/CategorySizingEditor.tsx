@@ -7,6 +7,7 @@ type Category = "top" | "bottom" | "outer" | "dress" | "shoes" | "bag";
 type Props = {
   category: Category;
   price: number | "";
+  priceError?: string;
   measurements: GarmentMeasurements;
   sizeOptions: GarmentSizeOption[];
   onCategoryChange: (category: Category) => void;
@@ -30,7 +31,7 @@ const defaultSizes: Record<Category, string[]> = {
   top: ["S", "M", "L"], bottom: ["S", "M", "L"], outer: ["S", "M", "L"], dress: ["S", "M", "L"], shoes: ["35", "36", "37", "38"], bag: ["ONE SIZE"],
 };
 
-export default function CategorySizingEditor({ category, price, measurements, sizeOptions, onCategoryChange, onPriceChange, onMeasurementsChange, onSizeOptionsChange }: Props) {
+export default function CategorySizingEditor({ category, price, priceError, measurements, sizeOptions, onCategoryChange, onPriceChange, onMeasurementsChange, onSizeOptionsChange }: Props) {
   const { i18n } = useTranslation();
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
@@ -47,7 +48,7 @@ export default function CategorySizingEditor({ category, price, measurements, si
   return <section className="mt-5 rounded-2xl border border-[#dedbd4] bg-[#fbfaf8] p-4">
     <div className="grid gap-3 sm:grid-cols-2">
       <label><span className="text-xs font-semibold text-[#666]">{copy.category}</span><select value={category} onChange={(event) => changeCategory(event.target.value as Category)} className="mt-1 h-11 w-full rounded-xl border border-[#dedbd4] bg-white px-3 text-sm">{(["top", "bottom", "outer", "dress", "shoes", "bag"] as Category[]).map((item) => <option key={item} value={item}>{categoryName(item)}</option>)}</select></label>
-      <label><span className="text-xs font-semibold text-[#666]">{copy.price}</span><input type="number" min="0" step="1" value={price} onChange={(event) => onPriceChange(event.target.value === "" ? "" : Math.max(0, Number(event.target.value)))} className="mt-1 h-11 w-full rounded-xl border border-[#dedbd4] bg-white px-3 text-sm" /><span className="mt-1 block text-[10px] leading-4 text-[#777]">{copy.priceHelp}</span></label>
+      <label><span className="text-xs font-semibold text-[#666]">{copy.price}</span><input type="number" min="0" step="1" value={price} onChange={(event) => onPriceChange(event.target.value === "" ? "" : Math.max(0, Number(event.target.value)))} className={`mt-1 h-11 w-full rounded-xl border bg-white px-3 text-sm ${priceError ? "border-red-400" : "border-[#dedbd4]"}`} aria-invalid={Boolean(priceError)} /><span className="mt-1 block text-[10px] leading-4 text-[#777]">{priceError || copy.priceHelp}</span></label>
     </div>
     <div className="mt-4 border-t border-[#e4dfd7] pt-4"><p className="text-xs font-semibold">{copy.measurements}</p><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{fieldsByCategory[category].map((key) => <label key={key}><span className="text-[10px] font-semibold text-[#666]">{fieldLabel(key)} ({copy.unit})</span><input type="number" min="0" value={measurements[key] ?? ""} onChange={(event) => onMeasurementsChange({ ...measurements, [key]: event.target.value === "" ? undefined : Math.max(0, Number(event.target.value)) })} className="mt-1 h-10 w-full rounded-lg border border-[#dedbd4] bg-white px-3 text-sm" /></label>)}</div></div>
     <div className="mt-4 border-t border-[#e4dfd7] pt-4"><div className="flex items-center justify-between gap-2"><p className="text-xs font-semibold">{copy.sizes}</p><button type="button" onClick={() => onSizeOptionsChange([...sizeOptions, { label: "", available: true }])} className="inline-flex items-center gap-1 rounded-full border border-[#d6d0c7] bg-white px-3 py-1.5 text-[10px] font-semibold"><Plus size={12} aria-hidden="true" />{copy.add}</button></div>{sizeOptions.length ? <div className="mt-3 grid gap-2 sm:grid-cols-3">{sizeOptions.map((option, index) => <div key={`${option.label}-${index}`} className="flex items-center gap-2"><input value={option.label} placeholder="S / M / L" onChange={(event) => onSizeOptionsChange(sizeOptions.map((current, currentIndex) => currentIndex === index ? { ...current, label: event.target.value } : current))} className="h-10 min-w-0 flex-1 rounded-lg border border-[#dedbd4] bg-white px-3 text-sm" /><button type="button" aria-label={`${copy.sizes} ${index + 1} remove`} onClick={() => onSizeOptionsChange(sizeOptions.filter((_, currentIndex) => currentIndex !== index))} className="grid size-9 place-items-center rounded-lg border border-[#dedbd4] bg-white"><X size={13} aria-hidden="true" /></button></div>)}</div> : <p className="mt-2 text-[11px] text-[#777]">{copy.none}</p>}</div>
