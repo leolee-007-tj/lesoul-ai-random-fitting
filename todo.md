@@ -401,3 +401,9 @@
 - [x] Fix the failing AI FITTING reference or provider path while retaining selected garment, fixed model, pose, and background locks.
 - [x] Improve the localized failure guidance and retry path without displaying any unverified composition as a completed LOOK.
 - [x] Add regression coverage, verify a real AI FITTING request, then checkpoint and publish.
+
+## Studio generation-status undefined query recovery
+- [x] Trace the look.status router, generation-log lookup, and Studio polling lifecycle for missing-record and completed-request states.
+- [x] Ensure look.status always returns a typed status object and make Studio polling tolerant of unavailable or terminal states.
+- [x] Add regression coverage for unknown, preparing, completed, and failed generation IDs; verify the Studio route does not emit undefined-query errors.
+- [x] Run checks, checkpoint, and publish the status-query recovery.

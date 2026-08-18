@@ -68,6 +68,17 @@ export const lookRouter = router({
       throw error;
     }
   }),
-  status: publicProcedure.input(z.object({ generationId: z.string().uuid() })).query(async ({ input }) => getGenerationLog(input.generationId)),
+  status: publicProcedure.input(z.object({ generationId: z.string().uuid() })).query(async ({ input }) => {
+    const log = await getGenerationLog(input.generationId);
+    if (log) return log;
+    return {
+      requestId: input.generationId,
+      status: "not_found" as const,
+      resultImageUrl: null,
+      errorMessage: null,
+      durationMs: null,
+      validationStatus: "not_enabled" as const,
+    };
+  }),
   performance: publicProcedure.query(getGenerationPerformance),
 });

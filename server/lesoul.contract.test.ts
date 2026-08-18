@@ -22,7 +22,7 @@ describe("LESOUL experience API contract", () => {
       "catalog.bootstrap", "catalog.products", "catalog.poses", "catalog.backgrounds",
       "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
       "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
-      "look.generate", "stylist.presets", "stylist.recommend", "stylist.feedback",
+      "look.generate", "look.status", "stylist.presets", "stylist.recommend", "stylist.feedback",
     ]));
   });
 });
@@ -50,5 +50,14 @@ describe("administrator product deletion contract", () => {
     expect(managerSource).toContain('deleteAllPhrase.trim().toUpperCase() !== "DELETE ALL"');
     expect(managerSource).toContain("deleteProducts.mutateAsync");
     expect(managerSource).toContain("deleteAllProducts.mutateAsync");
+  });
+});
+
+describe("Studio generation-status contract", () => {
+  it("returns a typed not-found object instead of undefined during the short pre-log polling window", () => {
+    const lookSource = readFileSync(new URL("./routers/look.ts", import.meta.url), "utf8");
+    expect(lookSource).toContain('status: "not_found" as const');
+    expect(lookSource).toContain("requestId: input.generationId");
+    expect(lookSource).not.toContain("query(async ({ input }) => getGenerationLog(input.generationId))");
   });
 });
