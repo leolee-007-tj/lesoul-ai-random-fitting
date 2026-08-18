@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildClothingPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, MockFashionProvider } from "./fashionProvider";
+import { buildClothingPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider } from "./fashionProvider";
 import { defaultBodyMeasurements } from "../shared/bodyMeasurements";
 
 describe("MockFashionProvider", () => {
@@ -64,5 +64,12 @@ describe("clothing preservation prompt", () => {
     expect(prompt).toContain("MODEL-001 v1");
     expect(prompt).toContain("same generated woman");
     expect(prompt).toContain("Do not shrink or reshape the body");
+  });
+});
+
+describe("image provider safeguards", () => {
+  it("bounds a stalled provider request so the customer flow can use an explicit fallback", () => {
+    expect(IMAGE_PROVIDER_TIMEOUT_MS).toBeGreaterThanOrEqual(30_000);
+    expect(IMAGE_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(60_000);
   });
 });

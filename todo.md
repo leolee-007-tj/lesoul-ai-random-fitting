@@ -286,3 +286,10 @@
 - [x] Add an administrator-issued VIP unlimited entitlement that bypasses the visitor allowance but remains subject to the global generation safety limits.
 - [x] Add complete EN/KO/ZH copy for the shopping CTA, product cards, save actions, alternative looks, allowance messages, and VIP states.
 - [x] Verify actual-worn product IDs only, horizontal product cards, alternative-look handoff, 3-use/VIP policy, purchase QR flow, mobile/tablet layouts, tests, checkpoint, and publish.
+
+## Image-generation recovery and pose localization
+
+- [x] Diagnose the real server/provider reason for the customer-facing “Image generation is temporarily unavailable” state and restore the primary generation path or provide an actionable retry fallback.
+- [x] Audit all pose names, titles, descriptions, selected-pose summaries, result/saved-look labels, and generation prompts for EN/KO/ZH language consistency.
+- [x] Replace any remaining seeded or hardcoded pose text with current-language EN/KO/ZH values while preserving stable internal pose IDs and generation keywords.
+- [x] Verify a generation request, pose screens and result labels in three languages, tests, checkpoint, and publish.

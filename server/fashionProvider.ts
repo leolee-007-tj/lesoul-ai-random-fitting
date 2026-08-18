@@ -88,6 +88,20 @@ export interface FashionProvider {
   generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse>;
 }
 
+export const IMAGE_PROVIDER_TIMEOUT_MS = 45_000;
+
+async function withImageProviderTimeout<T>(operation: Promise<T>, timeoutMs = IMAGE_PROVIDER_TIMEOUT_MS): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<T>((_, reject) => { timeout = setTimeout(() => reject(new Error("IMAGE_PROVIDER_TIMEOUT")), timeoutMs); }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 function referenceMimeType(source: string) {
   if (source.startsWith("data:image/png") || /\.png(?:\?|$)/i.test(source)) return "image/png";
   if (source.startsWith("data:image/webp") || /\.webp(?:\?|$)/i.test(source)) return "image/webp";
@@ -132,7 +146,7 @@ export class InternalImageFashionProvider implements FashionProvider {
       const productReferenceUrls = Array.from(new Set(request.clothing.flatMap((garment) => [garment.imageViews?.front?.original, garment.imageViews?.back?.original, ...(garment.imageViews?.detail ?? []).map((asset) => asset.original), ...(garment.images ?? []), garment.imageUrl]).filter((source): source is string => typeof source === "string" && source.length > 0))).slice(0, 24);
       const productReferences = await Promise.all(productReferenceUrls.map(imageReference));
       const originalImages = [await imageReference(request.modelReference?.imageUrl ?? request.userImage), ...productReferences];
-      const generated = await generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" });
+      const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "high" }));
       if (!generated.url) throw new Error("Image service returned no generated image URL.");
       return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
     } catch (error) {
