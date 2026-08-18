@@ -322,3 +322,16 @@
 - [x] Allow unrestricted non-negative CNY price entry and editing without hidden default or upper-limit constraints.
 - [x] Repair new-product save, preserve the selected category/size/measurements/price, and show localized actionable validation errors.
 - [x] Verify a new product can be saved for every garment category with a custom price and relevant sizes on mobile/tablet; run tests, checkpoint, and publish.
+
+## Header navigation clarity
+
+- [x] Audit the current header plus icon, hamburger icon, and existing navigation destinations across mobile and desktop.
+- [x] Replace the ambiguous plus action with a clearly labelled New LOOK action that routes to the model picker.
+- [x] Add an accessible hamburger menu with named EN/KO/ZH destinations for Home, AI Fitting, Quick Fit, My Looks, Products, and relevant owner tools.
+- [x] Verify menu open/close, navigation, accessible labels, mobile/tablet layout, tests, checkpoint, and publish.
+
+## Single hamburger menu correction
+
+- [x] Remove the separate header New LOOK button and place New LOOK as the first named action inside the hamburger menu.
+- [x] Keep the header to the language selector and one clearly labelled hamburger menu, with AI Fitting, Quick Fit, My Looks, Products, and owner tools all inside that menu.
+- [x] Verify the single-menu behavior, EN/KO/ZH labels, mobile/tablet layout, tests, checkpoint, and publish.

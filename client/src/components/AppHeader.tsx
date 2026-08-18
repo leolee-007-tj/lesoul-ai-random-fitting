@@ -1,11 +1,63 @@
-import { Link, useLocation } from "wouter";
-import { Archive, Menu, PackagePlus, Plus, Sparkles } from "lucide-react";
+import { Archive, Home, Menu, PackagePlus, Ruler, Settings2, ShoppingBag, Sparkles, Store, X } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "wouter";
 import LanguageSwitcher from "./LanguageSwitcher";
+
+type MenuItem = { label: string; hint: string; path: string; icon: typeof Home };
 
 export default function AppHeader() {
   const [, navigate] = useLocation();
-  const { t, i18n } = useTranslation();
-  const copy = i18n.language.startsWith("ko") ? { home: "LESOUL AI LOOK 홈", menu: "메뉴" } : i18n.language.startsWith("zh") ? { home: "LESOUL AI LOOK 首页", menu: "菜单" } : { home: "LESOUL AI LOOK home", menu: "Menu" };
-  return <header className="relative z-20 mx-auto flex w-full max-w-[1440px] items-center justify-between px-5 py-5 sm:px-8 lg:px-12"><Link href="/" className="group inline-flex items-center gap-2 sm:gap-2.5" aria-label={copy.home}><span className="grid size-8 place-items-center rounded-full bg-[#171717] text-[13px] text-[#fffdf8] shadow-[0_4px_15px_rgba(20,20,20,.18)] transition-transform duration-200 group-hover:rotate-12"><Sparkles size={14} aria-hidden="true" /></span><span className="font-serif text-[17px] font-semibold tracking-[0.1em] text-[#191919] sm:text-[18px] sm:tracking-[0.12em]">LESOUL <span className="hidden font-sans text-[10px] tracking-[.2em] sm:inline">AI LOOK</span></span></Link><nav className="flex items-center gap-1 sm:gap-3"><LanguageSwitcher /><button onClick={() => navigate("/history")} className="hidden items-center gap-2 text-sm font-medium text-[#4c4c4c] transition-colors hover:text-black md:flex"><Archive size={16} aria-hidden="true" /> {t("nav.history")}</button><button onClick={() => navigate("/products")} className="hidden items-center gap-2 text-sm font-medium text-[#4c4c4c] transition-colors hover:text-black lg:flex"><PackagePlus size={16} aria-hidden="true" /> {t("nav.products")}</button><button onClick={() => navigate("/body-model")} className="grid size-9 place-items-center rounded-full border border-[#d4d0c8] bg-white text-[#222] transition hover:border-[#111] hover:bg-[#f8f8f6] sm:inline-flex sm:h-auto sm:w-auto sm:px-4 sm:py-2 sm:text-xs sm:font-semibold sm:tracking-[.08em]" aria-label={t("nav.create")}><Plus size={16} className="sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">{t("nav.create")}</span></button><Menu size={18} className="text-[#383838] sm:hidden" aria-label={copy.menu} /></nav></header>;
+  const { i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
+  const copy = {
+    en: { home: "LESOUL AI LOOK home", newLook: "New LOOK", newHint: "Choose your model", menu: "Menu", close: "Close menu", explore: "EXPLORE", manage: "MANAGE", homeItem: "Home", homeHint: "Start your LESOUL journey", fitting: "AI Fitting", fittingHint: "Style with a fixed AI model", quick: "Quick Fit", quickHint: "Create looks with products only", looks: "My Looks", looksHint: "Review saved looks", products: "Products", productsHint: "Manage catalog items", fit: "Product Fit", fitHint: "Measurements and sizes", release: "Release Control", releaseHint: "Beta and access settings", notices: "Purchase Notices", noticesHint: "Payment card policy" },
+    ko: { home: "LESOUL AI LOOK 홈", newLook: "새 LOOK", newHint: "모델 선택부터 시작", menu: "메뉴", close: "메뉴 닫기", explore: "탐색", manage: "관리", homeItem: "홈", homeHint: "LESOUL 여정 시작", fitting: "AI 피팅", fittingHint: "고정 AI 모델로 스타일링", quick: "퀵 핏", quickHint: "상품만으로 룩 만들기", looks: "내 룩", looksHint: "저장한 룩 확인", products: "상품", productsHint: "카탈로그 상품 관리", fit: "상품 핏", fitHint: "실측과 사이즈 관리", release: "출시 제어", releaseHint: "베타·접근 설정", notices: "구매 주의사항", noticesHint: "결제 카드 정책" },
+    zh: { home: "LESOUL AI LOOK 首页", newLook: "新建 LOOK", newHint: "从选择模特开始", menu: "菜单", close: "关闭菜单", explore: "探索", manage: "管理", homeItem: "首页", homeHint: "开始 LESOUL 体验", fitting: "AI 试穿", fittingHint: "使用固定 AI 模特搭配", quick: "快速搭配", quickHint: "仅用商品创建造型", looks: "我的造型", looksHint: "查看已保存造型", products: "商品", productsHint: "管理目录商品", fit: "商品版型", fitHint: "管理实测和尺码", release: "发布控制", releaseHint: "Beta 与访问设置", notices: "购买须知", noticesHint: "支付卡政策" },
+  }[locale];
+  const explore: MenuItem[] = [
+    { label: copy.newLook, hint: copy.newHint, path: "/body-model", icon: Sparkles },
+    { label: copy.homeItem, hint: copy.homeHint, path: "/", icon: Home },
+    { label: copy.fitting, hint: copy.fittingHint, path: "/body-model", icon: Sparkles },
+    { label: copy.quick, hint: copy.quickHint, path: "/quick-fit", icon: ShoppingBag },
+    { label: copy.looks, hint: copy.looksHint, path: "/history", icon: Archive },
+  ];
+  const manage: MenuItem[] = [
+    { label: copy.products, hint: copy.productsHint, path: "/products", icon: PackagePlus },
+    { label: copy.fit, hint: copy.fitHint, path: "/product-fit", icon: Ruler },
+    { label: copy.notices, hint: copy.noticesHint, path: "/purchase-notices", icon: Store },
+    { label: copy.release, hint: copy.releaseHint, path: "/release-control", icon: Settings2 },
+  ];
+  const choose = (path: string) => { setOpen(false); navigate(path); };
+  const renderItem = (entry: MenuItem) => {
+    const Icon = entry.icon;
+    return <button key={entry.label} onClick={() => choose(entry.path)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-[#f4f1eb]">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#efebe4] text-[#37332f]"><Icon size={15} aria-hidden="true" /></span>
+      <span className="min-w-0"><span className="block text-sm font-semibold text-[#25211e]">{entry.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#77716a]">{entry.hint}</span></span>
+    </button>;
+  };
+  return <header className="relative z-30 mx-auto flex w-full max-w-[1440px] items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
+    <Link href="/" className="group inline-flex items-center gap-2 sm:gap-2.5" aria-label={copy.home}>
+      <span className="grid size-8 place-items-center rounded-full bg-[#171717] text-[#fffdf8] shadow-[0_4px_15px_rgba(20,20,20,.18)] transition-transform duration-200 group-hover:rotate-12"><Sparkles size={14} aria-hidden="true" /></span>
+      <span className="font-serif text-[17px] font-semibold tracking-[0.1em] text-[#191919] sm:text-[18px] sm:tracking-[0.12em]">LESOUL <span className="hidden font-sans text-[10px] tracking-[.2em] sm:inline">AI LOOK</span></span>
+    </Link>
+    <nav className="flex items-center gap-1.5 sm:gap-3">
+      <LanguageSwitcher />
+      <button onClick={() => setOpen((value) => !value)} aria-label={open ? copy.close : copy.menu} aria-expanded={open} aria-controls="lesoul-header-menu" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#d4d0c8] bg-white px-3 text-[#302d29] transition hover:border-[#171717] hover:bg-[#f8f7f4]">
+        <Menu size={17} aria-hidden="true" /><span className="text-[11px] font-semibold sm:text-xs">{copy.menu}</span>
+      </button>
+    </nav>
+    {open && <>
+      <button aria-label={copy.close} onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default bg-transparent" />
+      <section id="lesoul-header-menu" className="absolute right-5 top-[4.9rem] z-50 w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-[#ded8cf] bg-white p-2 shadow-[0_18px_50px_rgba(32,28,24,.18)] sm:right-8 lg:right-12">
+        <div className="px-3 pb-1 pt-2 text-[10px] font-bold tracking-[.16em] text-[#867f76]">{copy.explore}</div>
+        {explore.map(renderItem)}
+        <div className="mx-2 my-2 border-t border-[#e8e3db]" />
+        <div className="px-3 pb-1 pt-1 text-[10px] font-bold tracking-[.16em] text-[#867f76]">{copy.manage}</div>
+        {manage.map(renderItem)}
+        <button onClick={() => setOpen(false)} className="mt-1 flex w-full items-center justify-center gap-1 rounded-xl border border-[#ded8cf] py-2 text-xs font-semibold text-[#56504a]"><X size={13} aria-hidden="true" />{copy.close}</button>
+      </section>
+    </>}
+  </header>;
 }
