@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createAdminProduct, deleteAdminProduct, getAdminStats, getCatalog, getDb, updateAdminProduct } from "../db";
 import { invokeLLM } from "../_core/llm";
-import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
+import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
@@ -54,16 +54,16 @@ const productInput = z.object({
 
 export const adminRouter = router({
   products: protectedProcedure.query(async () => (await getCatalog()).products),
-  stats: adminProcedure.query(getAdminStats),
-  releaseConfig: adminProcedure.query(getReleaseSettings),
-  updateReleaseConfig: adminProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional() })).mutation(async ({ input }) => {
+  stats: ownerProcedure.query(getAdminStats),
+  releaseConfig: ownerProcedure.query(getReleaseSettings),
+  updateReleaseConfig: ownerProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("Release settings are temporarily unavailable.");
     const current = await getReleaseSettings();
     const update = { ...input, betaFreeGenerationAllowance: input.betaFreeGenerationAllowance ?? current.betaFreeGenerationAllowance, purchaseQrEnabled: input.purchaseQrEnabled ?? current.purchaseQrEnabled, purchaseNoticeEn: input.purchaseNoticeEn ?? current.purchaseNoticeEn, purchaseNoticeKo: input.purchaseNoticeKo ?? current.purchaseNoticeKo, purchaseNoticeZh: input.purchaseNoticeZh ?? current.purchaseNoticeZh };
     await db.insert(releaseSettings).values({ id: 1, ...update }).onDuplicateKeyUpdate({ set: update });
     return getReleaseSettings();
   }),
-  createRedeemCode: adminProcedure.input(z.object({ code: z.string().min(4).max(64).optional(), generationAllowance: z.number().int().min(1).max(1000), isUnlimited: z.boolean().optional(), catalogTier: z.enum(["basic", "full"]), maxUses: z.number().int().min(1).max(100000), expiresAt: z.date().nullable().optional(), campaign: z.string().max(120).nullable().optional(), note: z.string().max(4000).nullable().optional() })).mutation(async ({ input }) => {
+  createRedeemCode: ownerProcedure.input(z.object({ code: z.string().min(4).max(64).optional(), generationAllowance: z.number().int().min(1).max(1000), isUnlimited: z.boolean().optional(), catalogTier: z.enum(["basic", "full"]), maxUses: z.number().int().min(1).max(100000), expiresAt: z.date().nullable().optional(), campaign: z.string().max(120).nullable().optional(), note: z.string().max(4000).nullable().optional() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("Redeem service is temporarily unavailable.");
     const code = (input.code?.trim().toUpperCase() || `LESOUL-${randomBytes(4).toString("hex").toUpperCase()}`);
     const codeHash = createHash("sha256").update(code).digest("hex");

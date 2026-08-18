@@ -3,6 +3,7 @@ import MobileScreen from "@/components/MobileScreen";
 import StylistPanel, { type StylistProduct, type StylistRecommendation } from "@/components/StylistPanel";
 import { getAcquisitionSource, getVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { localizedProductName } from "@shared/productCommerce";
 import { ArrowLeft, ArrowRight, Check, Home, LoaderCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -20,9 +21,9 @@ const displayCopy = {
 } as const;
 
 export default function QuickFit() {
-  const [, navigate] = useLocation(); const { i18n } = useTranslation();
+  const [, navigate] = useLocation(); const { i18n } = useTranslation(); const { user } = useAuth();
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
-  const copy = displayCopy[locale]; const [visitorId] = useState(() => getVisitorId());
+  const copy = displayCopy[locale]; const [localVisitorId] = useState(() => getVisitorId()); const visitorId = user?.openId ? `account:${user.openId}` : localVisitorId;
   const catalog = trpc.catalog.bootstrap.useQuery(); const generate = trpc.look.generate.useMutation();
   const [picked, setPicked] = useState<Product[]>([]); const [style, setStyle] = useState("QUIET LUXURY"); const [displayStyle, setDisplayStyle] = useState<DisplayStyle>("studio_flat_lay"); const [recommendations, setRecommendations] = useState<StylistRecommendation[]>([]); const [selectedLookId, setSelectedLookId] = useState<string | null>(null); const [image, setImage] = useState<string | null>(null); const [isSample, setIsSample] = useState(false); const [error, setError] = useState("");
   const products = ((catalog.data?.products ?? []) as Product[]).filter((item) => item.status === "in_stock");

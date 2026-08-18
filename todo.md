@@ -364,11 +364,11 @@
 
 ## Admin login and redeem reliability
 
-- [ ] Audit current session identity, administrator menu gating, Release Control permissions, redeem code issuance, redemption, entitlement persistence, and allowance application.
-- [ ] Ensure the configured workspace owner can access administrator Release Control and issue standard or VIP-unlimited redeem codes while signed in.
-- [ ] Ensure a signed-in user can redeem a valid code exactly once per code rules and immediately see the granted allowance or VIP status in the UI.
-- [ ] Keep invalid, expired, exhausted, and unauthorized cases safely rejected with localized messages and a copyable original error code.
-- [ ] Add regression coverage for login-bound admin issuance and standard/VIP redemption; verify end-to-end flows, checkpoint, and publish.
+- [x] Audit current session identity, administrator menu gating, Release Control permissions, redeem code issuance, redemption, entitlement persistence, and allowance application.
+- [x] Ensure the configured workspace owner can access administrator Release Control and issue standard or VIP-unlimited redeem codes while signed in.
+- [x] Ensure a signed-in user can redeem a valid code exactly once per code rules and immediately see the granted allowance or VIP status in the UI.
+- [x] Keep invalid, expired, exhausted, and unauthorized cases safely rejected with localized messages and a copyable original error code.
+- [x] Add regression coverage for login-bound admin issuance and standard/VIP redemption; verify end-to-end flows, checkpoint, and publish.
 
 ## Product input recognition recovery
 

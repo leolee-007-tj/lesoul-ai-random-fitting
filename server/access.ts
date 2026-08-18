@@ -92,6 +92,8 @@ export async function redeemAccessCode(visitorId: string, code: string) {
   const redeem = (await db.select().from(redeemCodes).where(eq(redeemCodes.codeHash, codeHash)).limit(1))[0];
   const now = new Date();
   if (!redeem || redeem.status !== "ACTIVE" || (redeem.expiresAt && redeem.expiresAt <= now) || redeem.usedCount >= redeem.maxUses) throw new Error("REDEEM_CODE_INVALID");
+  const existing = (await db.select({ id: visitorEntitlements.id }).from(visitorEntitlements).where(and(eq(visitorEntitlements.visitorId, visitorId), eq(visitorEntitlements.redeemCodeId, redeem.id))).limit(1))[0];
+  if (existing) throw new Error("REDEEM_CODE_ALREADY_USED");
   await db.insert(visitorEntitlements).values({ visitorId, redeemCodeId: redeem.id, generationAllowance: redeem.generationAllowance, isUnlimited: redeem.isUnlimited, catalogTier: redeem.catalogTier });
   await db.update(redeemCodes).set({ usedCount: sql`${redeemCodes.usedCount} + 1`, status: redeem.usedCount + 1 >= redeem.maxUses ? "USED" : "ACTIVE" }).where(eq(redeemCodes.id, redeem.id));
   return { generationAllowance: redeem.generationAllowance, isUnlimited: Boolean(redeem.isUnlimited), catalogTier: redeem.catalogTier };
