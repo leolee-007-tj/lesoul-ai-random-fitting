@@ -238,3 +238,8 @@
 - [x] Define clear, respectful East Asian adult-female fashion-model silhouette guidance for slim, straight, curvy, petite, tall, plus, and custom profiles.
 - [x] Apply the selected silhouette and East Asian baseline consistently to initial model generation without changing body size to force garment fit.
 - [x] Add regression coverage for the 40kg floor and distinct shape prompts; verify mobile UI, checks, checkpoint, and publish.
+
+## AI Body Model realism guidance
+
+- [x] Add a concise EN/KO/ZH AI Body Model creation note explaining that a user-provided full-body photo can produce a more familiar visual likeness while photo-free model creation remains available.
+- [x] Verify the realism note on mobile, run checks, save a checkpoint, and publish.
