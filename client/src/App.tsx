@@ -7,7 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import History from "./pages/History";
 import Home from "./pages/Home";
 import Measurements from "./pages/Measurements";
-import ProductManager from "./pages/ProductManager";
+import ProductManager from "./pages/ProductManagerV2";
 import ResultPreview from "./pages/ResultPreview";
 import Studio from "./pages/Studio";
 import BodyModel from "./pages/BodyModel";

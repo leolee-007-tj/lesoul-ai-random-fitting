@@ -313,3 +313,12 @@
 - [x] Translate all visible icon labels, image alt text, loading and fallback states, navigation labels, purchase actions, save/copy/download actions, and no-data messages for EN/KO/ZH.
 - [x] Add regression coverage for locale completeness and eliminate customer UI dependence on `navigator.language`.
 - [x] Verify the full customer journey in EN, KO, and ZH at mobile/tablet widths, run checks, save a checkpoint, and publish.
+
+## Product Manager category, sizing, price, and save repair
+
+- [x] Diagnose the current new-product save failure through Product Manager validation, tRPC input, database constraints, and server logs.
+- [x] Move the garment category selector to the top of the new-product form and make it the first required merchandising decision.
+- [x] Provide category-aware size entry and real garment measurements for TOP, BOTTOM, DRESS, OUTER, SHOES, and BAG without forcing irrelevant fields.
+- [x] Allow unrestricted non-negative CNY price entry and editing without hidden default or upper-limit constraints.
+- [x] Repair new-product save, preserve the selected category/size/measurements/price, and show localized actionable validation errors.
+- [x] Verify a new product can be saved for every garment category with a custom price and relevant sizes on mobile/tablet; run tests, checkpoint, and publish.
