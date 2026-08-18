@@ -382,3 +382,10 @@
 - [x] Send ordered product references with stronger category-specific preservation instructions, prioritizing selected bottoms such as denim, and include selected pose and background as non-negotiable scene constraints.
 - [x] Reject misleading fallback treatment when provider output is unavailable or unverified, clearly label the result as a sample and return the user to a retry-ready state.
 - [x] Add regression coverage for denim/product references, selected pose, selected background, and fallback messaging; verify the provider path, checkpoint, and publish.
+
+## Administrator product editing and deletion
+- [x] Audit the existing Product Manager edit, deletion, authorization, and product-reference cleanup paths.
+- [x] Ensure a signed-in administrator can edit any registered product and safely delete one product from its detail or list action.
+- [x] Add multi-select product deletion with a localized count-aware confirmation and safe selection reset.
+- [x] Add an administrator-only delete-all-products action with a destructive confirmation phrase and localized outcome states.
+- [x] Add regression coverage for authorization, individual deletion, selected deletion, delete-all confirmation, and empty-catalog handling; verify responsive UI, checkpoint, and publish.

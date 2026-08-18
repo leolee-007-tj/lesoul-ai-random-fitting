@@ -1,0 +1,1 @@
+ALTER TABLE `releaseSettings` ADD `catalogInitialized` int DEFAULT 0 NOT NULL;

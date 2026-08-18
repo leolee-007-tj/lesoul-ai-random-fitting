@@ -1,6 +1,6 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, generationLogs, generations, InsertUser, poses, products, stylePresets, stylistFeedback, users } from "../drizzle/schema";
+import { backgrounds, generationLogs, generations, InsertUser, poses, products, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -31,6 +31,16 @@ export async function getUserByOpenId(openId: string) {
 export async function ensureCatalog() {
   const db = await getDb();
   if (!db) return false;
+  const [settingsRows, [{ productCount }]] = await Promise.all([
+    db.select().from(releaseSettings).where(eq(releaseSettings.id, 1)).limit(1),
+    db.select({ productCount: count() }).from(products),
+  ]);
+  const settings = settingsRows[0];
+  if (settings?.catalogInitialized) return true;
+  if (productCount > 0) {
+    await db.insert(releaseSettings).values({ id: 1, catalogInitialized: 1 }).onDuplicateKeyUpdate({ set: { catalogInitialized: 1 } });
+    return true;
+  }
   await Promise.all(demoProducts.map((item) => db.insert(products).values(item).onDuplicateKeyUpdate({ set: {
     category: item.category, season: item.season, color: item.color, style: item.style, status: item.status,
     price: item.price, imageUrl: item.imageUrl, images: item.images, imageViews: item.imageViews, description: item.description,
@@ -52,6 +62,7 @@ export async function ensureCatalog() {
   await Promise.all(DEFAULT_STYLE_PRESETS.map((preset) => db.insert(stylePresets).values(preset).onDuplicateKeyUpdate({ set: {
     name: preset.name, description: preset.description, matchingTags: preset.matchingTags, weights: preset.weights, isActive: 1,
   } })));
+  await db.insert(releaseSettings).values({ id: 1, catalogInitialized: 1 }).onDuplicateKeyUpdate({ set: { catalogInitialized: 1 } });
   return true;
 }
 
@@ -184,7 +195,32 @@ export async function updateAdminProduct(id: number, input: Partial<Omit<typeof 
 }
 
 export async function deleteAdminProduct(id: number) {
+  return deleteAdminProducts([id]);
+}
+
+export async function deleteAdminProducts(ids: number[]) {
   const db = await getDb();
   if (!db) throw new Error("The admin dashboard is temporarily unavailable.");
-  await db.delete(products).where(eq(products.id, id));
+  const uniqueIds = Array.from(new Set(ids));
+  if (!uniqueIds.length) return { deletedCount: 0 };
+  const existing = await db.select({ id: products.id }).from(products).where(inArray(products.id, uniqueIds));
+  const existingIds = existing.map((item) => item.id);
+  if (!existingIds.length) return { deletedCount: 0 };
+  await db.transaction(async (tx) => {
+    await tx.update(generations).set({ topProductId: null }).where(inArray(generations.topProductId, existingIds));
+    await tx.update(generations).set({ bottomProductId: null }).where(inArray(generations.bottomProductId, existingIds));
+    await tx.update(generations).set({ outerProductId: null }).where(inArray(generations.outerProductId, existingIds));
+    await tx.update(generations).set({ dressProductId: null }).where(inArray(generations.dressProductId, existingIds));
+    await tx.update(stylistFeedback).set({ anchorProductId: null }).where(inArray(stylistFeedback.anchorProductId, existingIds));
+    await tx.delete(products).where(inArray(products.id, existingIds));
+    await tx.insert(releaseSettings).values({ id: 1, catalogInitialized: 1 }).onDuplicateKeyUpdate({ set: { catalogInitialized: 1 } });
+  });
+  return { deletedCount: existingIds.length };
+}
+
+export async function deleteAllAdminProducts() {
+  const db = await getDb();
+  if (!db) throw new Error("The admin dashboard is temporarily unavailable.");
+  const rows = await db.select({ id: products.id }).from(products);
+  return deleteAdminProducts(rows.map((item) => item.id));
 }

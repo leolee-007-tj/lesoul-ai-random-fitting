@@ -102,6 +102,8 @@ export const generations = mysqlTable("generations", {
 /** One id=1 record controls access policy without coupling the LESOUL Core to a release mode. */
 export const releaseSettings = mysqlTable("releaseSettings", {
   id: int("id").primaryKey(),
+  /** Prevent a deliberately emptied administrator catalog from being reseeded with demo products. */
+  catalogInitialized: int("catalogInitialized").default(0).notNull(),
   releaseMode: mysqlEnum("releaseMode", ["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]).default("PRIVATE").notNull(),
   betaCatalogLimit: int("betaCatalogLimit").default(12).notNull(),
   betaDailyVisitorLimit: int("betaDailyVisitorLimit").default(2).notNull(),

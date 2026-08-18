@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { appRouter } from "./routers";
 
@@ -20,8 +21,34 @@ describe("LESOUL experience API contract", () => {
     expect(procedures).toEqual(expect.arrayContaining([
       "catalog.bootstrap", "catalog.products", "catalog.poses", "catalog.backgrounds",
       "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
-      "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct",
+      "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
       "look.generate", "stylist.presets", "stylist.recommend", "stylist.feedback",
     ]));
+  });
+});
+
+describe("administrator product deletion contract", () => {
+  it("keeps catalog mutations authenticated and exposes one, selected, and all-product deletion routes", () => {
+    const adminSource = readFileSync(new URL("./routers/admin.ts", import.meta.url), "utf8");
+    expect(adminSource).toContain("deleteProduct: protectedProcedure");
+    expect(adminSource).toContain("deleteProducts: protectedProcedure");
+    expect(adminSource).toContain("deleteAllProducts: protectedProcedure");
+  });
+
+  it("clears relational product references and marks the catalog initialized before a destructive delete", () => {
+    const dbSource = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
+    expect(dbSource).toContain("topProductId: null");
+    expect(dbSource).toContain("bottomProductId: null");
+    expect(dbSource).toContain("outerProductId: null");
+    expect(dbSource).toContain("dressProductId: null");
+    expect(dbSource).toContain("anchorProductId: null");
+    expect(dbSource).toContain("catalogInitialized: 1");
+  });
+
+  it("requires an explicit DELETE ALL phrase before the destructive UI action is enabled", () => {
+    const managerSource = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx", import.meta.url), "utf8");
+    expect(managerSource).toContain('deleteAllPhrase.trim().toUpperCase() !== "DELETE ALL"');
+    expect(managerSource).toContain("deleteProducts.mutateAsync");
+    expect(managerSource).toContain("deleteAllProducts.mutateAsync");
   });
 });

@@ -127,6 +127,13 @@
       "when": 1787036412711,
       "tag": "0017_fancy_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1787050060597,
+      "tag": "0018_spotty_silvermane",
+      "breakpoints": true
     }
   ]
 }

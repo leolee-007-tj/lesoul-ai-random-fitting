@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createAdminProduct, deleteAdminProduct, getAdminStats, getCatalog, getDb, updateAdminProduct } from "../db";
+import { createAdminProduct, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, updateAdminProduct } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
@@ -95,7 +95,15 @@ export const adminRouter = router({
     return { success: true };
   }),
   deleteProduct: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
-    await deleteAdminProduct(input.id);
-    return { success: true };
+    const result = await deleteAdminProduct(input.id);
+    return { success: true, ...result };
+  }),
+  deleteProducts: protectedProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(1000) })).mutation(async ({ input }) => {
+    const result = await deleteAdminProducts(input.ids);
+    return { success: true, ...result };
+  }),
+  deleteAllProducts: protectedProcedure.mutation(async () => {
+    const result = await deleteAllAdminProducts();
+    return { success: true, ...result };
   }),
 });
