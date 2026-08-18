@@ -52,6 +52,7 @@ export const products = mysqlTable("products", {
   purchaseUrl: text("purchaseUrl"),
   purchasePlatform: varchar("purchasePlatform", { length: 120 }),
   purchaseQrUrl: text("purchaseQrUrl"),
+  purchaseQrUpdatedAt: timestamp("purchaseQrUpdatedAt"),
   isFeatured: int("isFeatured").default(0).notNull(),
   featuredPriority: int("featuredPriority").default(0).notNull(),
   catalogTier: mysqlEnum("catalogTier", ["beta", "basic", "full"]).default("full").notNull(),
@@ -107,6 +108,7 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   globalDailyGenerationLimit: int("globalDailyGenerationLimit").default(120).notNull(),
   monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
   generationEnabled: int("generationEnabled").default(1).notNull(),
+  purchaseQrEnabled: int("purchaseQrEnabled").default(1).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

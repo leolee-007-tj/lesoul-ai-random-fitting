@@ -5,6 +5,7 @@ import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getCurrentEntitlement, getReleaseSettings, selectVisibleProducts } from "../access";
+import { getPurchaseAvailability } from "../../shared/purchasePolicy";
 
 const lookCode = () => `LOOK-${Math.floor(100 + Math.random() * 900)}`;
 
@@ -28,6 +29,14 @@ export const catalogRouter = router({
   }),
   poses: publicProcedure.query(async () => (await getCatalog()).poses),
   backgrounds: publicProcedure.query(async () => (await getCatalog()).backgrounds),
+  purchaseInfo: publicProcedure.input(z.object({ productId: z.number().int().positive() })).query(async ({ input }) => {
+    const [catalog, settings] = await Promise.all([getCatalog(), getReleaseSettings()]);
+    const product = catalog.products.find((item) => item.id === input.productId);
+    const status = getPurchaseAvailability({ exists: Boolean(product), enabled: Boolean(settings.purchaseQrEnabled), status: product?.status, purchaseQrUrl: product?.purchaseQrUrl });
+    if (!product || status === "not_found" || status === "feature_off" || status === "sold_out") return { status, product: null };
+    if (status === "consult") return { status, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price } };
+    return { status: "available" as const, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, purchaseQrUrl: product.purchaseQrUrl, purchaseQrUpdatedAt: product.purchaseQrUpdatedAt } };
+  }),
 });
 
 export const generationRouter = router({

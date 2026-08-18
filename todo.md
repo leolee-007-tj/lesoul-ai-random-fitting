@@ -256,3 +256,13 @@
 - [x] Add a simple EN/KO/ZH model-picker that explains each fixed model and saves the user’s current choice without asking for body measurements or photo upload.
 - [x] Pass the selected fixed model reference to the unchanged Virtual Try-On pipeline and preserve its selected silhouette across pose, scene, and garment changes.
 - [x] Verify fixed-model selection and generation handoff on mobile/tablet, run tests/build, save a checkpoint, and publish.
+
+## Product QR purchase card and personal WeChat sharing
+
+- [x] Audit the existing purchase QR upload, result cards, saved-look product snapshots, and current product query APIs against the product-specific Purchase Card specification.
+- [x] Treat the administrator-uploaded purchase QR image as the product payment QR and preserve its product ID, price, image, active status, and sold-out state when it is replaced.
+- [x] Re-fetch and validate the latest product record on every BUY action; show a purchase screen only for active, in-stock products with a payment QR.
+- [x] Add per-product BUY actions to Editorial Products and show an explicit consultation state rather than an empty QR when no payment QR is configured.
+- [x] Build a mobile-first, screenshot-ready Purchase Screen and Purchase Card containing LESOUL, product image, localized name, CNY price, original-size payment QR, and Chinese payment instruction.
+- [x] Add Save Purchase Card, Save QR, and Copy Message helpers for manual WeChat personal-chat sharing; do not add Moments automation or a fake direct WeChat share button.
+- [x] Verify QR replacement, stale product states, no-QR consultation, 390px purchase card UI, mobile download behavior, tests, checkpoint, and publish.
