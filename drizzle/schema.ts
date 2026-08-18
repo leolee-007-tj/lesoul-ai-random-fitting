@@ -52,6 +52,9 @@ export const products = mysqlTable("products", {
   purchaseUrl: text("purchaseUrl"),
   purchasePlatform: varchar("purchasePlatform", { length: 120 }),
   purchaseQrUrl: text("purchaseQrUrl"),
+  isFeatured: int("isFeatured").default(0).notNull(),
+  featuredPriority: int("featuredPriority").default(0).notNull(),
+  catalogTier: mysqlEnum("catalogTier", ["beta", "basic", "full"]).default("full").notNull(),
   stylistMetadata: json("stylistMetadata").$type<StylistProductMetadata>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -92,6 +95,80 @@ export const generations = mysqlTable("generations", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** One id=1 record controls access policy without coupling the LESOUL Core to a release mode. */
+export const releaseSettings = mysqlTable("releaseSettings", {
+  id: int("id").primaryKey(),
+  releaseMode: mysqlEnum("releaseMode", ["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]).default("PRIVATE").notNull(),
+  betaCatalogLimit: int("betaCatalogLimit").default(12).notNull(),
+  betaDailyVisitorLimit: int("betaDailyVisitorLimit").default(2).notNull(),
+  globalDailyGenerationLimit: int("globalDailyGenerationLimit").default(120).notNull(),
+  monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
+  generationEnabled: int("generationEnabled").default(1).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const redeemCodes = mysqlTable("redeemCodes", {
+  id: int("id").autoincrement().primaryKey(),
+  codeHash: varchar("codeHash", { length: 128 }).notNull().unique(),
+  status: mysqlEnum("status", ["ACTIVE", "USED", "EXPIRED", "DISABLED"]).default("ACTIVE").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  maxUses: int("maxUses").default(1).notNull(),
+  usedCount: int("usedCount").default(0).notNull(),
+  generationAllowance: int("generationAllowance").default(5).notNull(),
+  catalogTier: mysqlEnum("catalogTier", ["basic", "full"]).default("basic").notNull(),
+  campaign: varchar("campaign", { length: 120 }),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const visitorEntitlements = mysqlTable("visitorEntitlements", {
+  id: int("id").autoincrement().primaryKey(),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  redeemCodeId: int("redeemCodeId").references(() => redeemCodes.id),
+  generationAllowance: int("generationAllowance").notNull(),
+  generationUsed: int("generationUsed").default(0).notNull(),
+  catalogTier: mysqlEnum("catalogTier", ["beta", "basic", "full"]).default("beta").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const bodyProfiles = mysqlTable("bodyProfiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").references(() => users.id),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  heightCm: int("heightCm").notNull(),
+  weightKg: int("weightKg").notNull(),
+  bustCm: int("bustCm"),
+  waistCm: int("waistCm"),
+  hipCm: int("hipCm"),
+  genderPresentation: mysqlEnum("genderPresentation", ["female", "masculine", "androgynous", "custom"]).default("female").notNull(),
+  bodyShape: mysqlEnum("bodyShape", ["slim", "straight", "curvy", "petite", "tall", "plus", "custom"]).default("custom").notNull(),
+  profileHash: varchar("profileHash", { length: 128 }).notNull(),
+  version: int("version").default(1).notNull(),
+  consentedAt: timestamp("consentedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const aiBodyModels = mysqlTable("aiBodyModels", {
+  id: int("id").autoincrement().primaryKey(),
+  bodyProfileId: int("bodyProfileId").notNull().references(() => bodyProfiles.id),
+  profileHash: varchar("profileHash", { length: 128 }).notNull(),
+  imageUrl: text("imageUrl"),
+  status: mysqlEnum("status", ["preparing", "ready", "failed"]).default("preparing").notNull(),
+  provider: varchar("provider", { length: 80 }).default("manus_gpt_image_2").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const generationFeedback = mysqlTable("generationFeedback", {
+  id: int("id").autoincrement().primaryKey(),
+  generationRequestId: varchar("generationRequestId", { length: 96 }).notNull(),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  feedback: mysqlEnum("feedback", ["love", "okay", "not_like_me", "garment_inaccurate"]).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const stylePresets = mysqlTable("stylePresets", {
   id: int("id").autoincrement().primaryKey(),
   key: varchar("key", { length: 64 }).notNull().unique(),
@@ -118,6 +195,11 @@ export const stylistFeedback = mysqlTable("stylistFeedback", {
 export const generationLogs = mysqlTable("generationLogs", {
   id: int("id").autoincrement().primaryKey(),
   requestId: varchar("requestId", { length: 96 }).notNull().unique(),
+  visitorId: varchar("visitorId", { length: 96 }).default("legacy").notNull(),
+  releaseMode: mysqlEnum("releaseMode", ["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]).default("PRIVATE").notNull(),
+  source: mysqlEnum("source", ["wechat_moments", "direct", "admin_test"]).default("direct").notNull(),
+  tryOnMode: mysqlEnum("tryOnMode", ["my_photo", "ai_body_model"]).default("my_photo").notNull(),
+  bodyModelId: int("bodyModelId"),
   retryOfRequestId: varchar("retryOfRequestId", { length: 96 }),
   retryCount: int("retryCount").default(0).notNull(),
   userImageUrl: text("userImageUrl").notNull(),

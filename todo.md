@@ -194,3 +194,19 @@
 - [ ] Persist generated looks to the signed-in user's account for cross-device access.
 - [ ] Evaluate WeChat OAuth as an optional provider; do not enable or request credentials until official app credentials, redirect URI, and China-domain requirements are confirmed.
 - [ ] Add tests, verify mobile/tablet sharing and QR flows, save a checkpoint, and publish.
+
+- [x] Audit the attached AI Body Model, WeChat Moments Beta, and Redeem Code production specification against the existing LESOUL Core without rebuilding stable flows.
+- [x] Add one centralized Release Mode configuration for PRIVATE, BETA_PUBLIC, and REDEEM_CODE with entitlement policies kept outside the Core styling and generation pipeline.
+- [x] Add a reusable AI Body Model path with minimal height and weight input, optional body measurements and body-shape presentation, transparent consent copy, and cached base-model reuse after creation.
+- [x] Add product featured visibility and priority controls so the visible beta catalog feeds both the customer catalog and AI Stylist recommendation eligibility.
+- [x] Add configurable per-visitor, global daily, monthly generation protection and a generation kill switch that does not block browsing.
+- [x] Add beta entry, consent, anonymous visitor identity, redeem-code access, manual Moments save/copy UX, and WeChat in-app-browser-safe web behavior; keep WeChat OAuth credentials as an external prerequisite.
+- [x] Verify the Release Mode matrix, body-model prompt safety, catalog visibility, generation limits, consent UI, and mobile / administrator views; document deployment and operational controls.
+
+## Release Mode operating notes
+
+- `/release-control` is administrator-only. Use it to switch among PRIVATE, BETA_PUBLIC, and REDEEM_CODE; enable or disable generation; control the beta catalog count; and issue hashed redeem codes.
+- Redeem code plaintext is shown only when issued. The database stores a SHA-256 hash, plus expiry, use count, allowance, and catalog tier.
+- `BETA_PUBLIC` serves an in-stock, category-balanced featured selection. `REDEEM_CODE` requires a redeemed entitlement before generation and deducts only successful external AI generations.
+- AI Body Model uses minimum height and weight with optional bust, waist, hip, and body-shape inputs. It produces a non-identifying base model, preserves explicit consent time, and reuses a ready model with the same profile hash.
+- WeChat website OAuth remains unconfigured by design. Official AppID/AppSecret, approved website domain, and OAuth redirect URI are required before it can be enabled. The current Moments flow is accurate about its capability: save image and copy Chinese sharing text; it does not claim direct publishing.

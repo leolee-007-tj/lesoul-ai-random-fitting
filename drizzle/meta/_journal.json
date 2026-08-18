@@ -64,6 +64,20 @@
       "when": 1786991297567,
       "tag": "0008_spotty_hex",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1787015964508,
+      "tag": "0009_steep_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787016021017,
+      "tag": "0010_yielding_silver_samurai",
+      "breakpoints": true
     }
   ]
 }

@@ -83,7 +83,7 @@ export async function saveStylistFeedback(input: { visitorId: string; stylePrese
   await db.insert(stylistFeedback).values({ ...input, anchorProductId: input.anchorProductId ?? null });
 }
 
-type GenerationLogInput = { requestId: string; retryOfRequestId?: string | null; retryCount?: number; userImageUrl: string; poseId: number; style: string; productIds: number[]; backgroundId: number; provider: string; };
+type GenerationLogInput = { requestId: string; retryOfRequestId?: string | null; retryCount?: number; userImageUrl: string; poseId: number; style: string; productIds: number[]; backgroundId: number; provider: string; visitorId?: string; releaseMode?: "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE"; source?: "wechat_moments" | "direct" | "admin_test"; tryOnMode?: "my_photo" | "ai_body_model"; bodyModelId?: number | null; };
 
 export async function getGenerationLog(requestId: string) {
   const db = await getDb();
@@ -96,7 +96,7 @@ export async function createGenerationLog(input: GenerationLogInput) {
   if (!db) throw new Error("The generation log service is temporarily unavailable.");
   const existing = await getGenerationLog(input.requestId);
   if (existing) return { log: existing, created: false };
-  await db.insert(generationLogs).values({ ...input, retryOfRequestId: input.retryOfRequestId ?? null, retryCount: input.retryCount ?? 0, status: "preparing" });
+  await db.insert(generationLogs).values({ ...input, visitorId: input.visitorId ?? "legacy", releaseMode: input.releaseMode ?? "PRIVATE", source: input.source ?? "direct", tryOnMode: input.tryOnMode ?? "my_photo", bodyModelId: input.bodyModelId ?? null, retryOfRequestId: input.retryOfRequestId ?? null, retryCount: input.retryCount ?? 0, status: "preparing" });
   const log = await getGenerationLog(input.requestId);
   if (!log) throw new Error("Unable to create a generation log.");
   return { log, created: true };

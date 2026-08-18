@@ -6,7 +6,7 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "isFeatured" | "featuredPriority" | "catalogTier">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
 
 const rawDemoProducts: SeedProductBase[] = [
@@ -77,6 +77,9 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "pur
     momentCouponEnabled: 0,
     momentCouponCode: null,
     momentCouponPercent: 0,
+    isFeatured: product.status === "in_stock" ? 1 : 0,
+    featuredPriority: product.status === "in_stock" ? 100 - rawDemoProducts.indexOf(product) : 0,
+    catalogTier: "full",
     ...specifications,
     images: [product.imageUrl],
     imageViews: { front: { original: product.imageUrl, studioCut: product.imageUrl, thumbnail: product.imageUrl } },

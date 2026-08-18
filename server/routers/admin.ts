@@ -1,7 +1,10 @@
 import { z } from "zod";
-import { createAdminProduct, deleteAdminProduct, getAdminStats, getCatalog, updateAdminProduct } from "../db";
+import { createAdminProduct, deleteAdminProduct, getAdminStats, getCatalog, getDb, updateAdminProduct } from "../db";
 import { invokeLLM } from "../_core/llm";
-import { publicProcedure, router } from "../_core/trpc";
+import { adminProcedure, router } from "../_core/trpc";
+import { redeemCodes, releaseSettings } from "../../drizzle/schema";
+import { getReleaseSettings } from "../access";
+import { createHash, randomBytes } from "node:crypto";
 
 const productInput = z.object({
   name: z.string().min(2).max(160),
@@ -40,13 +43,29 @@ const productInput = z.object({
   purchaseUrl: z.string().url().nullable().optional(),
   purchasePlatform: z.string().max(120).nullable().optional(),
   purchaseQrUrl: z.string().min(1).nullable().optional(),
+  isFeatured: z.number().int().min(0).max(1).optional(),
+  featuredPriority: z.number().int().min(0).max(9999).optional(),
+  catalogTier: z.enum(["beta", "basic", "full"]).optional(),
   stylistMetadata: z.object({ mainColor: z.string().max(80).optional(), secondaryColor: z.string().max(80).optional(), pattern: z.string().max(80).optional(), materialAppearance: z.string().max(120).optional(), silhouette: z.string().max(120).optional(), formality: z.number().int().min(1).max(5).optional(), fashionMood: z.array(z.string().max(64)).max(8).optional(), recommendedStyles: z.array(z.enum(["quiet_luxury", "elegant", "minimal", "chic", "casual", "office", "date", "street", "ai_choice"])).max(9).optional(), compatibleColors: z.array(z.string().max(80)).max(8).optional(), layeringSuitability: z.enum(["base", "layer", "outer", "complete", "accessory"]).optional(), source: z.enum(["manual", "vision"]).optional() }).nullable().optional(),
 });
 
 export const adminRouter = router({
-  products: publicProcedure.query(async () => (await getCatalog()).products),
-  stats: publicProcedure.query(getAdminStats),
-  translateProduct: publicProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
+  products: adminProcedure.query(async () => (await getCatalog()).products),
+  stats: adminProcedure.query(getAdminStats),
+  releaseConfig: adminProcedure.query(getReleaseSettings),
+  updateReleaseConfig: adminProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), globalDailyGenerationLimit: z.number().int().min(0).max(100000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1) })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("Release settings are temporarily unavailable.");
+    await db.insert(releaseSettings).values({ id: 1, ...input }).onDuplicateKeyUpdate({ set: input });
+    return getReleaseSettings();
+  }),
+  createRedeemCode: adminProcedure.input(z.object({ code: z.string().min(4).max(64).optional(), generationAllowance: z.number().int().min(1).max(1000), catalogTier: z.enum(["basic", "full"]), maxUses: z.number().int().min(1).max(100000), expiresAt: z.date().nullable().optional(), campaign: z.string().max(120).nullable().optional(), note: z.string().max(4000).nullable().optional() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("Redeem service is temporarily unavailable.");
+    const code = (input.code?.trim().toUpperCase() || `LESOUL-${randomBytes(4).toString("hex").toUpperCase()}`);
+    const codeHash = createHash("sha256").update(code).digest("hex");
+    await db.insert(redeemCodes).values({ codeHash, generationAllowance: input.generationAllowance, catalogTier: input.catalogTier, maxUses: input.maxUses, expiresAt: input.expiresAt ?? null, campaign: input.campaign ?? null, note: input.note ?? null });
+    return { code };
+  }),
+  translateProduct: adminProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [
         { role: "system", content: "You are a professional fashion-commerce translator. Translate the supplied product name and description into English, Korean, and Simplified Chinese. Preserve brand names, material names, garment category, tone, and factual meaning. Return only the requested JSON object." },
@@ -61,16 +80,16 @@ export const adminRouter = router({
     if (typeof content !== "string") throw new Error("Translation response was empty.");
     return JSON.parse(content) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
   }),
-  createProduct: publicProcedure.input(productInput).mutation(async ({ input }) => {
-    await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null });
+  createProduct: adminProcedure.input(productInput).mutation(async ({ input }) => {
+    await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full" });
     return { success: true };
   }),
-  updateProduct: publicProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+  updateProduct: adminProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
     await updateAdminProduct(id, updates);
     return { success: true };
   }),
-  deleteProduct: publicProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+  deleteProduct: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     await deleteAdminProduct(input.id);
     return { success: true };
   }),
