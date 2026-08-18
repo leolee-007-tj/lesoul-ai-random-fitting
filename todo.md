@@ -225,3 +225,9 @@
 - [x] Add nullable actual garment measurements to Product Manager by category and implement a configurable Size-Aware Fit Engine with RELAXED, REGULAR, FITTED, TIGHT, VERY_TIGHT, and UNLIKELY_TO_FIT results.
 - [x] Display fit status and concise body-versus-garment reasoning in look selection and results without altering the user body to make garments appear to fit.
 - [x] Verify model reuse, identity-reference payloads, appearance choices, fit statuses, mobile/tablet/Desktop UI, tests, migrations, checkpoint, and publish.
+
+## AI Body Model localization
+
+- [x] Inventory every customer-facing AI Body Model creation, progress, preview, adjust, consent, and approval string currently rendered in English.
+- [x] Add complete EN/KO/ZH locale keys and replace hardcoded AI Body Model UI text with selected-language translations.
+- [x] Verify English, Korean, and Chinese AI Body Model screens on mobile, run checks, save a checkpoint, and publish.
