@@ -3,9 +3,9 @@ import MobileScreen from "@/components/MobileScreen";
 import GenerationProgress from "@/components/GenerationProgress";
 import StylistPanel, { type StylistProduct } from "@/components/StylistPanel";
 import { TwoDBackground, TwoDPose } from "@/components/TwoDIllustrations";
-import { readBodyMeasurements, readStudioPhoto, saveStudioPhoto } from "@/lib/bodyMeasurements";
+import { readBodyMeasurements } from "@/lib/bodyMeasurements";
 import { readHistory, saveHistory, type LookAdjustmentParams } from "@/lib/mvpStore";
-import { readBodyModel } from "@/lib/bodyModel";
+import { readFixedModel } from "@/lib/fixedModels";
 import { getAcquisitionSource, getVisitorId } from "@/lib/visitor";
 import { validateUploadedPhoto, type PhotoClassification } from "@/lib/photoValidation";
 import { trpc } from "@/lib/trpc";
@@ -15,6 +15,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { FIXED_MODELS, getFixedModel } from "@shared/fixedModels";
 
 type Product = StylistProduct & { nameEn: string | null; nameKo: string | null; nameZh: string | null; style: string; images: string[] | null; imageViews: import("@shared/bodyMeasurements").ProductImageViews | null; description: string; descriptionEn: string | null; descriptionKo: string | null; descriptionZh: string | null; color: string; fabric: string | null; texture: string | null; fit: string | null; length: string | null; width: string | null; details: string | null; neckline: string | null; sleeve: string | null; garmentMeasurements: import("@shared/fitEngine").GarmentMeasurements | null; stretchLevel: import("@shared/fitEngine").StretchLevel; purchaseUrl: string | null; purchasePlatform: string | null; purchaseQrUrl: string | null; price: number };
 type Pose = { id: number; name: string; promptKeyword: string };
@@ -22,7 +23,7 @@ type Background = { id: number; name: string; promptKeyword: string; imageUrl: s
 
 const poseKeyByName: Record<string, string> = { "한 손 주머니": "handPocket", "Hand in Pocket": "handPocket", "살짝 옆으로": "side", "Side Pose": "side", "정면": "front", "Front Model Pose": "front", "걷는 포즈": "walking", "Walking": "walking", "팔짱": "crossedArms", "앉은 포즈": "seated", "Natural Standing": "standing", "Elegant Fashion Pose": "elegant" };
 const backgroundKeyByName: Record<string, string> = { "서울 카페": "seoulCafe", "갤러리": "gallery", "한강 공원": "hanRiver", "성수동 거리": "seongsu", "도쿄 거리": "tokyo", "파리 카페": "paris", "럭셔리 호텔 로비": "hotel", "꽃집 앞": "flower", "미니멀 스튜디오": "studio", "제주 바닷가": "jeju" };
-const TEST_MODEL = { name: "HANA", title: "AI TEST MODEL", description: "Preloaded full-body fashion model for a predictable composite check.", imageUrl: "/manus-storage/lesoul-test-model_d7a8e7be.png" } as const;
+const TEST_MODEL = FIXED_MODELS[0];
 
 function resizeImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -53,11 +54,12 @@ export default function Studio() {
   const localizePose = (name: string) => { const key = poseKeyByName[name] ?? "standing"; return { title: t(`poseCatalog.${key}.title`), description: t(`poseCatalog.${key}.description`) }; };
   const localizeBackground = (name: string) => t(`backgroundCatalog.${backgroundKeyByName[name] ?? "studio"}`);
   const uploadRef = useRef<HTMLInputElement>(null); const cameraRef = useRef<HTMLInputElement>(null);
-  const query = new URLSearchParams(window.location.search); const demoReady = query.get("demo") === "ready"; const progressPreview = query.get("progress") === "1"; const requestedStep = query.get("step"); const activeBodyModel = readBodyModel(); const usingBodyModel = query.get("tryOn") === "body" && Boolean(activeBodyModel);
+  const usingBodyModel = true; const onPhoto = (_event: ChangeEvent<HTMLInputElement>) => undefined; const useTestModel = () => undefined;
+  const query = new URLSearchParams(window.location.search); const demoReady = query.get("demo") === "ready"; const progressPreview = query.get("progress") === "1"; const requestedStep = query.get("step"); const selectedFixedModel = getFixedModel(query.get("fixedModel")) ?? readFixedModel() ?? TEST_MODEL;
   const [visitorId] = useState(() => getVisitorId()); const [redeemCode, setRedeemCode] = useState(""); const access = trpc.access.status.useQuery({ visitorId }); const redeem = trpc.access.redeem.useMutation({ onSuccess: () => { setRedeemCode(""); access.refetch(); } });
-  const [step, setStep] = useState(() => demoReady ? 4 : requestedStep === "pose" ? 1 : requestedStep === "stylist" ? 2 : requestedStep === "background" ? 3 : 0);
-  const [photo, setPhoto] = useState<string | null>(() => demoReady ? TEST_MODEL.imageUrl : usingBodyModel ? activeBodyModel!.imageUrl : readStudioPhoto());
-  const [photoClassification, setPhotoClassification] = useState<PhotoClassification | null>(() => demoReady || usingBodyModel ? { valid: true, type: "full_body", ratio: 1.25 } : null);
+  const [step, setStep] = useState(() => demoReady ? 4 : requestedStep === "stylist" ? 2 : requestedStep === "background" ? 3 : 1);
+  const [photo] = useState<string>(() => selectedFixedModel.imageUrl);
+  const [photoClassification] = useState<PhotoClassification>({ valid: true, type: "full_body", ratio: 1.25 });
   const [pose, setPose] = useState<Pose | null>(null); const [background, setBackground] = useState<Background | null>(null);
   const [style, setStyle] = useState("MINIMAL"); const [picked, setPicked] = useState<Product[]>([]); const [outfitMode, setOutfitMode] = useState<"stylist" | "random" | "select">("stylist");
   const [error, setError] = useState(""); const [result, setResult] = useState<string | null>(null); const [resultProvider, setResultProvider] = useState<"mock" | "external" | null>(null); const [validationStatus, setValidationStatus] = useState("not_enabled"); const [previousResult, setPreviousResult] = useState<string | null>(null); const [historyId, setHistoryId] = useState<string | null>(null); const [isRegenerating, setIsRegenerating] = useState(false); const [generationPhase, setGenerationPhase] = useState<"idle" | "running" | "finalizing">(() => progressPreview ? "running" : "idle"); const [latestGenerationId, setLatestGenerationId] = useState<string | null>(null); const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null); const [retryOfGenerationId, setRetryOfGenerationId] = useState<string | null>(null); const [lookCode] = useState(() => `LOOK #${Math.floor(100 + Math.random() * 900)}`);
@@ -65,29 +67,22 @@ export default function Studio() {
   const products = (catalog.data?.products ?? []) as Product[]; const poses = (catalog.data?.poses ?? []) as Pose[]; const backgrounds = (catalog.data?.backgrounds ?? []) as Background[]; const activeProducts = products.filter((product) => product.status === "in_stock");
   const labels = [t("studio.uploadTitle"), t("studio.poseTitle"), "AI Stylist", t("studio.backgroundTitle"), t("studio.generateTitle")];
 
-  useEffect(() => { if (photo && !photoClassification) validateUploadedPhoto(photo).then(setPhotoClassification).catch(() => undefined); }, [photo, photoClassification]);
   useEffect(() => {
     if (!demoReady || !poses.length || !backgrounds.length || !activeProducts.length || (pose && background && picked.length)) return;
     const categories = ["top", "bottom", "outer", "shoes", "bag"];
     setPose(poses[0]); setBackground(backgrounds.find((item) => item.name === "미니멀 스튜디오") ?? backgrounds[0]); setStyle("MINIMAL"); setPicked(categories.map((category) => activeProducts.find((product) => product.category === category)).filter(Boolean) as Product[]);
   }, [activeProducts, backgrounds, demoReady, picked.length, pose, background, poses]);
 
-  async function onPhoto(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]; if (!file) return;
-    try { const processed = await resizeImage(file); const validation = await validateUploadedPhoto(processed); setPhoto(processed); setPhotoClassification(validation); saveStudioPhoto(processed); setError(""); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : "Unable to prepare photo."); }
-  }
-  function useTestModel() { setPhoto(TEST_MODEL.imageUrl); setPhotoClassification({ valid: true, type: "full_body", ratio: 1.25 }); saveStudioPhoto(TEST_MODEL.imageUrl); setError(""); }
   function randomOutfit() { const pick = (category: string) => { const choices = activeProducts.filter((product) => product.category === category); return choices[Math.floor(Math.random() * choices.length)]; }; const dress = pick("dress"); const selection = dress && Math.random() < 0.3 ? [dress, pick("shoes"), pick("bag")] : [pick("top"), pick("bottom"), Math.random() < 0.5 ? pick("outer") : undefined, pick("shoes"), pick("bag")]; setPicked(selection.filter(Boolean) as Product[]); setStyle("RANDOM"); }
   function useTestOutfit() { const categories = ["top", "bottom", "outer", "shoes", "bag"]; setPicked(categories.map((category) => activeProducts.find((product) => product.category === category)).filter(Boolean) as Product[]); setStyle("MINIMAL"); setOutfitMode("select"); }
-  function startTestComposite() { if (!poses[0] || !backgrounds.length || !activeProducts.length) return setError(t("catalogUi.catalogLoading")); useTestModel(); setPose(poses[0]); setBackground(backgrounds.find((item) => item.name === "미니멀 스튜디오") ?? backgrounds[0]); useTestOutfit(); setStep(4); }
+  function startTestComposite() { if (!poses[0] || !backgrounds.length || !activeProducts.length) return setError(t("catalogUi.catalogLoading")); setPose(poses[0]); setBackground(backgrounds.find((item) => item.name === "미니멀 스튜디오") ?? backgrounds[0]); useTestOutfit(); setStep(4); }
   function useStylistLook(selection: { products: StylistProduct[]; styleName: string }) { setPicked(selection.products as Product[]); setStyle(selection.styleName); setOutfitMode("stylist"); setError(""); }
-  function continueStep() { if (step === 0) { if (!photo) return setError(t("photoValidation.required")); if (!photoClassification?.valid) return setError(t(`photoValidation.${photoClassification?.type ?? "required"}`)); saveStudioPhoto(photo); return navigate("/measurements"); } if (step === 1 && !pose) return setError(t("catalogUi.choosePose")); if (step === 2 && !picked.length) return setError(t("catalogUi.chooseLook")); if (step === 3 && !background) return setError(t("catalogUi.chooseBackground")); setError(""); setStep((current) => current + 1); }
+  function continueStep() { if (step === 0) { setError(""); return setStep(1); } if (step === 1 && !pose) return setError(t("catalogUi.choosePose")); if (step === 2 && !picked.length) return setError(t("catalogUi.chooseLook")); if (step === 3 && !background) return setError(t("catalogUi.chooseBackground")); setError(""); setStep((current) => current + 1); }
   async function createLook(adjustments: LookAdjustmentParams = {}, retryParent = retryOfGenerationId) {
     if (!photo || !pose || !background || !picked.length) return;
     const adjusted = Object.keys(adjustments).length > 0; if (adjusted) setIsRegenerating(true); const generationId = crypto.randomUUID(); setActiveGenerationId(generationId); setGenerationPhase("running"); setError("");
     try {
-      const response = await generateLook.mutateAsync({ visitorId, source: getAcquisitionSource(), tryOnMode: usingBodyModel ? "ai_body_model" : "my_photo", bodyModelId: usingBodyModel ? activeBodyModel?.id ?? null : null, userImage: photo, pose, clothing: picked.map(({ id, name, nameEn, nameKo, nameZh, category, imageUrl, images, imageViews, description, descriptionEn, descriptionKo, descriptionZh, color, fabric, texture, fit, length, width, details, neckline, sleeve, garmentMeasurements, stretchLevel }) => ({ id, name: localizedProductName({ name, nameEn, nameKo, nameZh, description, descriptionEn, descriptionKo, descriptionZh }, i18n.language), category, imageUrl, images, imageViews, description: descriptionEn || description, color, fabric, texture, fit, length, width, details, neckline, sleeve, garmentMeasurements, stretchLevel })), background, style, adjustments, bodyMeasurements: readBodyMeasurements(), generationId, retryOfGenerationId: retryParent });
+      const response = await generateLook.mutateAsync({ visitorId, source: getAcquisitionSource(), tryOnMode: "ai_body_model", bodyModelId: null, fixedModelKey: selectedFixedModel.key, userImage: photo, pose, clothing: picked.map(({ id, name, nameEn, nameKo, nameZh, category, imageUrl, images, imageViews, description, descriptionEn, descriptionKo, descriptionZh, color, fabric, texture, fit, length, width, details, neckline, sleeve, garmentMeasurements, stretchLevel }) => ({ id, name: localizedProductName({ name, nameEn, nameKo, nameZh, description, descriptionEn, descriptionKo, descriptionZh }, i18n.language), category, imageUrl, images, imageViews, description: descriptionEn || description, color, fabric, texture, fit, length, width, details, neckline, sleeve, garmentMeasurements, stretchLevel })), background, style, adjustments, bodyMeasurements: selectedFixedModel.measurements, generationId, retryOfGenerationId: retryParent });
       setGenerationPhase("finalizing"); await new Promise((resolve) => window.setTimeout(resolve, 650));
       if (adjusted && result) setPreviousResult(result); setResult(response.generatedImage); setResultProvider(response.provider); setValidationStatus(response.validation.status);
       setLatestGenerationId(response.generationId); setRetryOfGenerationId(null);

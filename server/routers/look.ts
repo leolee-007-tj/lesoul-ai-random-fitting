@@ -7,12 +7,14 @@ import { canGenerate, consumeRedeemAllowance } from "../access";
 import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../db";
+import { getFixedModel } from "../../shared/fixedModels";
 
 const lookRequest = z.object({
   visitorId: z.string().min(1).max(96),
   source: z.enum(["wechat_moments", "direct", "admin_test"]).default("direct"),
   tryOnMode: z.enum(["my_photo", "ai_body_model"]).default("my_photo"),
   bodyModelId: z.number().int().positive().nullable().optional(),
+  fixedModelKey: z.enum(["balanced", "volume", "petite"]).nullable().optional(),
   userImage: z.string().min(1),
   pose: z.object({ id: z.number().int(), name: z.string(), promptKeyword: z.string() }),
   clothing: z.array(z.object({ id: z.number().int(), name: z.string(), category: z.string(), imageUrl: z.string(), images: z.array(z.string()).nullable().optional(), imageViews: z.object({ front: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), back: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), side: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), detail: z.array(z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() })).max(4).optional() }).nullable().optional(), description: z.string(), color: z.string().nullable().optional(), fabric: z.string().nullable().optional(), texture: z.string().nullable().optional(), fit: z.string().nullable().optional(), length: z.string().nullable().optional(), width: z.string().nullable().optional(), details: z.string().nullable().optional(), neckline: z.string().nullable().optional(), sleeve: z.string().nullable().optional(), garmentMeasurements: z.object({ shoulderCm: z.number().nullable().optional(), bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), sleeveCm: z.number().nullable().optional(), totalLengthCm: z.number().nullable().optional(), riseCm: z.number().nullable().optional(), thighCm: z.number().nullable().optional(), inseamCm: z.number().nullable().optional() }).nullable().optional(), stretchLevel: z.enum(["none", "low", "medium", "high"]).optional() })).min(1),
@@ -41,7 +43,11 @@ export const lookRouter = router({
     try {
       await markGenerationLogGenerating(input.generationId);
       let modelReference: { imageUrl: string; modelKey: string; version: number; appearance: { hairLength: string; hairStyle: string; hairColor: string; skinTone: string } } | null = null;
-      if (input.tryOnMode === "ai_body_model" && input.bodyModelId) {
+      if (input.fixedModelKey) {
+        const fixed = getFixedModel(input.fixedModelKey);
+        if (!fixed) throw new Error("FIXED_MODEL_REFERENCE_UNAVAILABLE");
+        modelReference = { imageUrl: fixed.imageUrl, modelKey: `fixed-${fixed.key}`, version: 1, appearance: fixed.appearance };
+      } else if (input.tryOnMode === "ai_body_model" && input.bodyModelId) {
         const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
         const row = (await db.select({ imageUrl: aiBodyModels.imageUrl, modelKey: aiBodyModels.modelKey, version: aiBodyModels.version, hairLength: bodyProfiles.hairLength, hairStyle: bodyProfiles.hairStyle, hairColor: bodyProfiles.hairColor, skinTone: bodyProfiles.skinTone }).from(aiBodyModels).innerJoin(bodyProfiles, eq(aiBodyModels.bodyProfileId, bodyProfiles.id)).where(and(eq(aiBodyModels.id, input.bodyModelId), eq(aiBodyModels.approved, 1), eq(bodyProfiles.visitorId, input.visitorId))).limit(1))[0];
         if (!row?.imageUrl) throw new Error("AI_BODY_MODEL_REFERENCE_UNAVAILABLE");

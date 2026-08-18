@@ -248,3 +248,11 @@
 
 - [x] Change the initial AI Body Model weight value and its empty-input fallback from 55kg to 40kg.
 - [x] Verify the 40kg default on mobile, run checks, save a checkpoint, and publish.
+
+## Fixed AI model selection
+
+- [x] Retire the customer-facing personal AI Body Model creation, preview approval, and personal photo guidance flow from the Studio journey.
+- [x] Provide exactly three persistent East Asian adult female fashion models: the existing balanced test model, a fuller-volume model, and a petite short-leg-proportion model.
+- [x] Add a simple EN/KO/ZH model-picker that explains each fixed model and saves the user’s current choice without asking for body measurements or photo upload.
+- [x] Pass the selected fixed model reference to the unchanged Virtual Try-On pipeline and preserve its selected silhouette across pose, scene, and garment changes.
+- [x] Verify fixed-model selection and generation handoff on mobile/tablet, run tests/build, save a checkpoint, and publish.
