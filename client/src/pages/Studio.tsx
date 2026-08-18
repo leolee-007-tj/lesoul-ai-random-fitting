@@ -4,7 +4,7 @@ import GenerationProgress from "@/components/GenerationProgress";
 import StylistPanel, { type StylistProduct } from "@/components/StylistPanel";
 import { TwoDBackground, TwoDPose } from "@/components/TwoDIllustrations";
 import { readBodyMeasurements, readStudioPhoto, saveStudioPhoto } from "@/lib/bodyMeasurements";
-import { saveHistory, type LookAdjustmentParams } from "@/lib/mvpStore";
+import { readHistory, saveHistory, type LookAdjustmentParams } from "@/lib/mvpStore";
 import { readBodyModel } from "@/lib/bodyModel";
 import { getAcquisitionSource, getVisitorId } from "@/lib/visitor";
 import { validateUploadedPhoto, type PhotoClassification } from "@/lib/photoValidation";
@@ -14,6 +14,7 @@ import { ArrowLeft, ArrowRight, Camera, Check, ImageUp, LoaderCircle, Sparkles, 
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 type Product = StylistProduct & { nameEn: string | null; nameKo: string | null; nameZh: string | null; style: string; images: string[] | null; imageViews: import("@shared/bodyMeasurements").ProductImageViews | null; description: string; descriptionEn: string | null; descriptionKo: string | null; descriptionZh: string | null; color: string; fabric: string | null; texture: string | null; fit: string | null; length: string | null; width: string | null; details: string | null; neckline: string | null; sleeve: string | null; purchaseUrl: string | null; purchasePlatform: string | null; purchaseQrUrl: string | null; price: number };
 type Pose = { id: number; name: string; promptKeyword: string };
@@ -48,6 +49,7 @@ function resizeImage(file: File): Promise<string> {
 export default function Studio() {
   const [, navigate] = useLocation();
   const { i18n, t } = useTranslation();
+  const { user } = useAuth();
   const localizePose = (name: string) => { const key = poseKeyByName[name] ?? "standing"; return { title: t(`poseCatalog.${key}.title`), description: t(`poseCatalog.${key}.description`) }; };
   const localizeBackground = (name: string) => t(`backgroundCatalog.${backgroundKeyByName[name] ?? "studio"}`);
   const uploadRef = useRef<HTMLInputElement>(null); const cameraRef = useRef<HTMLInputElement>(null);
@@ -59,7 +61,7 @@ export default function Studio() {
   const [pose, setPose] = useState<Pose | null>(null); const [background, setBackground] = useState<Background | null>(null);
   const [style, setStyle] = useState("MINIMAL"); const [picked, setPicked] = useState<Product[]>([]); const [outfitMode, setOutfitMode] = useState<"stylist" | "random" | "select">("stylist");
   const [error, setError] = useState(""); const [result, setResult] = useState<string | null>(null); const [resultProvider, setResultProvider] = useState<"mock" | "external" | null>(null); const [validationStatus, setValidationStatus] = useState("not_enabled"); const [previousResult, setPreviousResult] = useState<string | null>(null); const [historyId, setHistoryId] = useState<string | null>(null); const [isRegenerating, setIsRegenerating] = useState(false); const [generationPhase, setGenerationPhase] = useState<"idle" | "running" | "finalizing">(() => progressPreview ? "running" : "idle"); const [latestGenerationId, setLatestGenerationId] = useState<string | null>(null); const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null); const [retryOfGenerationId, setRetryOfGenerationId] = useState<string | null>(null); const [lookCode] = useState(() => `LOOK #${Math.floor(100 + Math.random() * 900)}`);
-  const catalog = trpc.catalog.bootstrap.useQuery(); const generateLook = trpc.look.generate.useMutation(); const generationPerformance = trpc.look.performance.useQuery(); const generationStatusQuery = trpc.look.status.useQuery({ generationId: activeGenerationId ?? "00000000-0000-4000-8000-000000000000" }, { enabled: Boolean(activeGenerationId), refetchInterval: generationPhase === "running" ? 7500 : false });
+  const catalog = trpc.catalog.bootstrap.useQuery(); const generateLook = trpc.look.generate.useMutation(); const syncAccountLook = trpc.savedLooks.sync.useMutation(); const generationPerformance = trpc.look.performance.useQuery(); const generationStatusQuery = trpc.look.status.useQuery({ generationId: activeGenerationId ?? "00000000-0000-4000-8000-000000000000" }, { enabled: Boolean(activeGenerationId), refetchInterval: generationPhase === "running" ? 7500 : false });
   const products = (catalog.data?.products ?? []) as Product[]; const poses = (catalog.data?.poses ?? []) as Pose[]; const backgrounds = (catalog.data?.backgrounds ?? []) as Background[]; const activeProducts = products.filter((product) => product.status === "in_stock");
   const labels = [t("studio.uploadTitle"), t("studio.poseTitle"), "AI Stylist", t("studio.backgroundTitle"), t("studio.generateTitle")];
 
@@ -91,6 +93,7 @@ export default function Studio() {
       setLatestGenerationId(response.generationId); setRetryOfGenerationId(null);
       const id = historyId ?? crypto.randomUUID(); setHistoryId(id);
       saveHistory({ id, imageUrl: response.generatedImage, pose: localizePose(pose.name).title, background: localizeBackground(background.name), style, productNames: picked.map((product) => localizedProductName(product, i18n.language)), products: picked.map((product) => ({ id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, description: product.description, descriptionEn: product.descriptionEn, descriptionKo: product.descriptionKo, descriptionZh: product.descriptionZh, category: product.category, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews, price: product.price, fabric: product.fabric, fit: product.fit, length: product.length, width: product.width, details: product.details, purchaseUrl: product.purchaseUrl, purchasePlatform: product.purchasePlatform, purchaseQrUrl: product.purchaseQrUrl })), createdAt: response.metadata.generatedAt, language: i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en", adjustmentParams: adjustments, shareUrl: window.location.href });
+      const accountSnapshot = readHistory().find((item) => item.id === id); if (user && accountSnapshot) void syncAccountLook.mutateAsync({ id, lookCode: lookCode.slice(0, 48), imageUrl: response.generatedImage, snapshot: accountSnapshot });
       setStep(5);
     } catch { setError("Image generation is temporarily unavailable. Please try again."); }
     finally { setIsRegenerating(false); setGenerationPhase("idle"); }

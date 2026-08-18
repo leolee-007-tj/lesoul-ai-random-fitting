@@ -169,6 +169,16 @@ export const generationFeedback = mysqlTable("generationFeedback", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const savedLooks = mysqlTable("savedLooks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  lookId: varchar("lookId", { length: 96 }).notNull(),
+  lookCode: varchar("lookCode", { length: 48 }).notNull(),
+  imageUrl: text("imageUrl").notNull(),
+  snapshot: json("snapshot").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const stylePresets = mysqlTable("stylePresets", {
   id: int("id").autoincrement().primaryKey(),
   key: varchar("key", { length: 64 }).notNull().unique(),

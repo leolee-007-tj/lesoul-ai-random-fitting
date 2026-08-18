@@ -191,9 +191,9 @@
 - [x] Show detailed outfit composition in My Looks, including each selected product's localized name, description, reference/detail images, and purchase action.
 - [x] Show the product's uploaded purchase QR image when the user selects Buy, with a clear empty state when no QR is configured.
 - [x] Require the existing Manus OAuth login before sharing or copying a look link; keep the existing private-browser My Looks storage for the current device.
-- [ ] Persist generated looks to the signed-in user's account for cross-device access.
-- [ ] Evaluate WeChat OAuth as an optional provider; do not enable or request credentials until official app credentials, redirect URI, and China-domain requirements are confirmed.
-- [ ] Add tests, verify mobile/tablet sharing and QR flows, save a checkpoint, and publish.
+- [x] Persist generated looks to the signed-in user's account for cross-device access.
+- [x] Evaluate WeChat OAuth as an optional provider; preserve it as an unconfigured option until official AppID/AppSecret, redirect URI, and approved China-domain requirements are supplied.
+- [x] Add tests, verify mobile/tablet sharing and QR flows, save a checkpoint, and publish.
 
 - [x] Audit the attached AI Body Model, WeChat Moments Beta, and Redeem Code production specification against the existing LESOUL Core without rebuilding stable flows.
 - [x] Add one centralized Release Mode configuration for PRIVATE, BETA_PUBLIC, and REDEEM_CODE with entitlement policies kept outside the Core styling and generation pipeline.
@@ -210,3 +210,8 @@
 - `BETA_PUBLIC` serves an in-stock, category-balanced featured selection. `REDEEM_CODE` requires a redeemed entitlement before generation and deducts only successful external AI generations.
 - AI Body Model uses minimum height and weight with optional bust, waist, hip, and body-shape inputs. It produces a non-identifying base model, preserves explicit consent time, and reuses a ready model with the same profile hash.
 - WeChat website OAuth remains unconfigured by design. Official AppID/AppSecret, approved website domain, and OAuth redirect URI are required before it can be enabled. The current Moments flow is accurate about its capability: save image and copy Chinese sharing text; it does not claim direct publishing.
+
+## Deferred specification note
+
+- [x] Complete the interrupted signed-in My Looks cross-device synchronization before beginning the Persistent AI Female Model + Fit Engine specification attached on 2026-08-18.
+- [x] Keep the Persistent AI Female Model + Fit Engine specification deferred until the existing account-sync and Release Mode stability work is published.

@@ -1,11 +1,13 @@
 import MobileScreen from "@/components/MobileScreen";
-import { clearHistory, readHistory, type LookHistory, type SavedLookProduct } from "@/lib/mvpStore";
+import { clearHistory, readHistory, saveHistory, type LookHistory, type SavedLookProduct } from "@/lib/mvpStore";
 import { formatLookDate, formatPrice } from "@/lib/localeFormat";
 import { localizedProductDescription, localizedProductName } from "@shared/productCommerce";
 import { ArrowRight, ExternalLink, QrCode, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 function ProductDetail({ product, language, onBuy }: { product: SavedLookProduct; language: string; onBuy: (product: SavedLookProduct) => void }) {
   const { t } = useTranslation();
@@ -16,10 +18,21 @@ function ProductDetail({ product, language, onBuy }: { product: SavedLookProduct
 export default function History() {
   const [, navigate] = useLocation();
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [items, setItems] = useState<LookHistory[]>([]);
   const [selected, setSelected] = useState<LookHistory | null>(null);
   const [buying, setBuying] = useState<SavedLookProduct | null>(null);
-  useEffect(() => setItems(readHistory()), []);
+  const syncLook = trpc.savedLooks.sync.useMutation();
+  const remoteLooks = trpc.savedLooks.list.useQuery(undefined, { enabled: Boolean(user) });
+  useEffect(() => {
+    const local = readHistory(); setItems(local);
+    if (user) local.forEach((look) => syncLook.mutate({ id: look.id, lookCode: look.id.slice(0, 48), imageUrl: look.imageUrl, snapshot: look }));
+  }, [user?.id]);
+  useEffect(() => {
+    if (!remoteLooks.data?.length) return;
+    const merged = [...readHistory(), ...remoteLooks.data.map((row) => row.snapshot as LookHistory)].filter((look, index, all) => Boolean(look?.id) && all.findIndex((other) => other.id === look.id) === index).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, 12);
+    merged.forEach(saveHistory); setItems(merged);
+  }, [remoteLooks.data]);
   const language = i18n.language;
   return <MobileScreen><div className="lesoul-mobile-frame lesoul-history-frame px-4 pb-5 pt-4 sm:px-6"><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-bold tracking-[.18em] text-[#777]">{t("history.eyebrow")}</p><h1 className="mt-1 font-serif text-3xl">{t("history.title")}</h1><p className="mt-2 text-sm leading-5 text-[#666]">{t("history.body")}</p></div>{items.length > 0 && <button onClick={() => { clearHistory(); setItems([]); setSelected(null); }} className="flex h-9 shrink-0 items-center gap-1 rounded-full border border-[#ddd7ce] bg-white px-3 text-[10px] font-semibold text-[#666]"><Trash2 size={13} /> {t("history.clear")}</button>}</div>{items.length ? <section className="mt-5 grid gap-3 min-[744px]:grid-cols-3 min-[1024px]:grid-cols-4">{items.map((item) => <button type="button" key={item.id} onClick={() => setSelected(item)} className="flex min-h-22 overflow-hidden rounded-2xl border border-[#dfdbd4] bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md min-[744px]:block"><img src={item.imageUrl} alt="Saved fashion look" className="aspect-square w-24 shrink-0 object-cover min-[744px]:aspect-[.8] min-[744px]:w-full" /><div className="min-w-0 p-3"><p className="text-[10px] font-bold tracking-[.12em] text-[#777]">{t(`styles.${item.style}`, { defaultValue: item.style })} · {item.background}</p><p className="mt-1 truncate text-sm font-semibold">{item.pose}</p><p className="mt-1 text-[11px] text-[#777]">{formatLookDate(item.createdAt, language)}</p><p className="mt-1 truncate text-[10px] text-[#777]">{item.productNames.join(" · ")}</p><p className="mt-2 text-[10px] font-semibold text-[#5c5148]">{t("history.viewDetails", { defaultValue: "View outfit details" })}</p></div></button>)}</section> : <section className="mt-5 grid min-h-72 place-items-center rounded-[1.6rem] border border-dashed border-[#c9c4bb] bg-white text-center"><div><span className="mx-auto grid size-11 place-items-center rounded-full bg-[#ece8e1]"><Sparkles size={19} /></span><h2 className="mt-3 font-serif text-xl">{t("history.empty")}</h2><button onClick={() => navigate("/studio")} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">{t("history.cta")} <ArrowRight size={15} /></button></div></section>}{selected && <div className="lesoul-safe-modal z-40"><div className="mx-auto max-h-[90svh] max-w-2xl overflow-auto rounded-[1.7rem] bg-white p-5 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{t("history.outfitDetails", { defaultValue: "OUTFIT DETAILS" })}</p><h2 className="mt-1 font-serif text-3xl">{selected.productNames.join(" · ")}</h2><p className="mt-2 text-xs text-[#777]">{selected.pose} · {selected.background} · {formatLookDate(selected.createdAt, language)}</p></div><button type="button" onClick={() => setSelected(null)} aria-label={t("common.close", { defaultValue: "Close" })}><X size={20} /></button></div><img src={selected.imageUrl} alt="Saved fashion look" className="mt-4 max-h-[42svh] w-full rounded-2xl object-cover" /><div className="mt-4 grid gap-3">{(selected.products ?? []).map((product) => <ProductDetail key={product.id} product={product} language={language} onBuy={setBuying} />)}</div>{!(selected.products?.length) && <p className="mt-4 rounded-xl bg-[#f5f1eb] p-3 text-xs text-[#777]">{t("history.legacyDetails", { defaultValue: "This look was saved before product detail snapshots were enabled." })}</p>}</div></div>}{buying && <div className="lesoul-safe-modal z-50"><div className="mx-auto max-w-sm rounded-[1.7rem] bg-white p-5 text-center shadow-2xl"><div className="flex justify-end"><button type="button" onClick={() => setBuying(null)}><X size={20} /></button></div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{t("history.purchase", { defaultValue: "PURCHASE" })}</p><h2 className="mt-2 font-serif text-2xl">{localizedProductName(buying, language)}</h2>{buying.purchaseQrUrl ? <><p className="mt-2 text-xs text-[#777]">{t("history.scanQr", { defaultValue: "Scan this QR code to purchase." })}</p><img src={buying.purchaseQrUrl} alt="Purchase QR code" className="mx-auto mt-4 size-64 rounded-xl border border-[#e1ddd5] object-contain" /></> : <p className="mt-4 rounded-xl bg-[#f5f1eb] p-4 text-sm text-[#777]">{t("history.noQr", { defaultValue: "The administrator has not uploaded a purchase QR code for this product yet." })}</p>}{buying.purchaseUrl && <a href={buying.purchaseUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1 rounded-full bg-black px-4 py-2.5 text-xs font-semibold text-white"><ExternalLink size={13} />{t("history.openPurchase", { defaultValue: "Open purchase link" })}</a>}</div></div>}</div></MobileScreen>;
 }
