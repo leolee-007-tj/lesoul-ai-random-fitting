@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createAdminProduct, deleteAdminProduct, getAdminStats, getCatalog, getDb, updateAdminProduct } from "../db";
 import { invokeLLM } from "../_core/llm";
-import { adminProcedure, ownerProcedure, router } from "../_core/trpc";
+import { adminProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
@@ -53,7 +53,7 @@ const productInput = z.object({
 });
 
 export const adminRouter = router({
-  products: ownerProcedure.query(async () => (await getCatalog()).products),
+  products: protectedProcedure.query(async () => (await getCatalog()).products),
   stats: adminProcedure.query(getAdminStats),
   releaseConfig: adminProcedure.query(getReleaseSettings),
   updateReleaseConfig: adminProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional() })).mutation(async ({ input }) => {
@@ -70,7 +70,7 @@ export const adminRouter = router({
     await db.insert(redeemCodes).values({ codeHash, generationAllowance: input.generationAllowance, isUnlimited: input.isUnlimited ? 1 : 0, catalogTier: input.catalogTier, maxUses: input.maxUses, expiresAt: input.expiresAt ?? null, campaign: input.campaign ?? null, note: input.note ?? null });
     return { code };
   }),
-  translateProduct: ownerProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
+  translateProduct: protectedProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [
         { role: "system", content: "You are a professional fashion-commerce translator. Translate the supplied product name and description into English, Korean, and Simplified Chinese. Preserve brand names, material names, garment category, tone, and factual meaning. Return only the requested JSON object." },
@@ -85,16 +85,16 @@ export const adminRouter = router({
     if (typeof content !== "string") throw new Error("Translation response was empty.");
     return JSON.parse(content) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
   }),
-  createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
+  createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
     await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
-  updateProduct: ownerProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+  updateProduct: protectedProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
     await updateAdminProduct(id, { ...updates, ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
   }),
-  deleteProduct: ownerProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+  deleteProduct: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     await deleteAdminProduct(input.id);
     return { success: true };
   }),

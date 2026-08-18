@@ -335,3 +335,10 @@
 - [x] Remove the separate header New LOOK button and place New LOOK as the first named action inside the hamburger menu.
 - [x] Keep the header to the language selector and one clearly labelled hamburger menu, with AI Fitting, Quick Fit, My Looks, Products, and owner tools all inside that menu.
 - [x] Verify the single-menu behavior, EN/KO/ZH labels, mobile/tablet layout, tests, checkpoint, and publish.
+
+## Product save permission 10002 recovery
+
+- [x] Trace the 10002 response through current session identity, owner configuration, user role, and product-management tRPC middleware.
+- [x] Restore product CRUD access for a signed-in workspace user without making catalog mutation public.
+- [x] Keep the existing localized owner-login or access-denied state and copyable original error code for unauthenticated sessions.
+- [x] Verify signed-in product create/update access and unauthorized rejection behavior through the protected product route, tests, checkpoint, and publish.
