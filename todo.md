@@ -342,3 +342,8 @@
 - [x] Restore product CRUD access for a signed-in workspace user without making catalog mutation public.
 - [x] Keep the existing localized owner-login or access-denied state and copyable original error code for unauthenticated sessions.
 - [x] Verify signed-in product create/update access and unauthorized rejection behavior through the protected product route, tests, checkpoint, and publish.
+
+## Product price input cleanup
+
+- [x] Remove the automatic visible 0 from the new-product price input while retaining a required non-negative CNY price validation on save.
+- [x] Verify blank price entry, custom price entry, mobile form rendering, tests, checkpoint, and publish.
