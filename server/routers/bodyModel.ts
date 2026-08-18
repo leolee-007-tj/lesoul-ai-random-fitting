@@ -6,11 +6,11 @@ import { getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { publicProcedure, router } from "../_core/trpc";
 
-const profileInput = z.object({
+export const profileInput = z.object({
   visitorId: z.string().min(1).max(96),
   modelKey: z.string().min(8).max(48).optional(),
   heightCm: z.number().int().min(140).max(200),
-  weightKg: z.number().int().min(35).max(180),
+  weightKg: z.number().int().min(40).max(180),
   bustCm: z.number().int().min(60).max(160).nullable().optional(),
   waistCm: z.number().int().min(45).max(140).nullable().optional(),
   hipCm: z.number().int().min(60).max(170).nullable().optional(),
@@ -23,7 +23,17 @@ const profileInput = z.object({
   consent: z.literal(true),
 });
 
-export const modelPrompt = (input: z.infer<typeof profileInput>) => `Create one persistent anonymous adult female fashion model for virtual try-on. This is a generated fashion identity, not a portrait of a real person. Full body, front-oriented neutral standing pose, full hands and feet visible, simple fitted neutral cream top and charcoal trousers, plain soft ivory studio background. Prioritise the submitted body measurements over default fashion-model proportions: height ${input.heightCm} cm, weight ${input.weightKg} kg, bust ${input.bustCm ?? "not provided"} cm, waist ${input.waistCm ?? "not provided"} cm, hip ${input.hipCm ?? "not provided"} cm. Represent the submitted body volume and proportions honestly; do not make the body slimmer to suit clothing. Appearance lock: ${input.hairLength} ${input.hairStyle.replace("_", " ")} hair in ${input.hairColor.replace("_", " ")}, ${input.skinTone.replace("_", "-")} skin tone. Natural realistic proportion, neutral expression, consistent non-identifying facial geometry, no logo, no text, no accessories, no collage.`;
+const bodyShapeGuidance: Record<z.infer<typeof profileInput>["bodyShape"], string> = {
+  slim: "A lean, balanced silhouette with natural body volume and a subtle waist definition.",
+  straight: "A balanced straight silhouette with shoulder, waist, and hip proportions expressed naturally rather than artificially narrowed.",
+  curvy: "A confident, proportionate hourglass fashion silhouette with a clearly defined natural waist and balanced fuller bust and hip proportions; elegant and non-sexualized, never exaggerated.",
+  petite: "A compact, naturally proportioned silhouette with realistic limb and torso scale for the submitted height.",
+  tall: "A longer, naturally proportioned editorial silhouette that respects the submitted height and body volume.",
+  plus: "A fuller, balanced silhouette with authentic body volume and a natural waist, without reduction or smoothing of the body.",
+  custom: "Use the submitted measurements as the primary source and create a neutral, natural adult fashion silhouette without applying a preset archetype.",
+};
+
+export const modelPrompt = (input: z.infer<typeof profileInput>) => `Create one persistent anonymous adult female fashion model for virtual try-on. This is a generated fashion identity, not a portrait of a real person. Use a respectful East Asian adult female fashion-editorial baseline in styling and non-identifying facial geometry; do not imitate any real person or stereotype. Full body, front-oriented neutral standing pose, full hands and feet visible, simple fitted neutral cream top and charcoal trousers, plain soft ivory studio background. Prioritise the submitted body measurements over default fashion-model proportions: height ${input.heightCm} cm, weight ${input.weightKg} kg, bust ${input.bustCm ?? "not provided"} cm, waist ${input.waistCm ?? "not provided"} cm, hip ${input.hipCm ?? "not provided"} cm. Selected silhouette: ${input.bodyShape}. ${bodyShapeGuidance[input.bodyShape]} Represent the submitted body volume and proportions honestly; do not make the body slimmer to suit clothing. Appearance lock: ${input.hairLength} ${input.hairStyle.replace("_", " ")} hair in ${input.hairColor.replace("_", " ")}, ${input.skinTone.replace("_", "-")} skin tone. Natural realistic proportion, neutral expression, no logo, no text, no accessories, no collage.`;
 
 const toResult = (model: typeof aiBodyModels.$inferSelect, profile: typeof bodyProfiles.$inferSelect, reused: boolean) => ({ id: model.id, imageUrl: model.imageUrl!, reused, profileId: profile.id, modelKey: model.modelKey, version: model.version, approved: Boolean(model.approved), profile: { heightCm: profile.heightCm, weightKg: profile.weightKg, bustCm: profile.bustCm, waistCm: profile.waistCm, hipCm: profile.hipCm, hairLength: profile.hairLength, hairStyle: profile.hairStyle, hairColor: profile.hairColor, skinTone: profile.skinTone } });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { modelPrompt } from "./routers/bodyModel";
+import { modelPrompt, profileInput } from "./routers/bodyModel";
 
 describe("AI Body Model prompt", () => {
   it("uses measurements for a non-identifying full-body fitting model", () => {
@@ -11,5 +11,13 @@ describe("AI Body Model prompt", () => {
     expect(prompt).toContain("light-medium skin tone");
     expect(prompt).toContain("do not make the body slimmer to suit clothing");
     expect(prompt).toContain("plain soft ivory studio background");
+    expect(prompt).toContain("East Asian adult female fashion-editorial baseline");
+    expect(prompt).toContain("clearly defined natural waist");
+    expect(prompt).toContain("never exaggerated");
+  });
+
+  it("does not accept a weight below the 40kg model floor", () => {
+    expect(() => profileInput.parse({ visitorId: "visitor-1", heightCm: 160, weightKg: 39, genderPresentation: "female", consent: true })).toThrow();
+    expect(profileInput.parse({ visitorId: "visitor-1", heightCm: 160, weightKg: 40, genderPresentation: "female", consent: true }).weightKg).toBe(40);
   });
 });

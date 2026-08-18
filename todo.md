@@ -231,3 +231,10 @@
 - [x] Inventory every customer-facing AI Body Model creation, progress, preview, adjust, consent, and approval string currently rendered in English.
 - [x] Add complete EN/KO/ZH locale keys and replace hardcoded AI Body Model UI text with selected-language translations.
 - [x] Verify English, Korean, and Chinese AI Body Model screens on mobile, run checks, save a checkpoint, and publish.
+
+## AI Body Model silhouette refinement
+
+- [x] Set the AI Body Model weight input to a minimum of 40kg and keep client and server validation consistent.
+- [x] Define clear, respectful East Asian adult-female fashion-model silhouette guidance for slim, straight, curvy, petite, tall, plus, and custom profiles.
+- [x] Apply the selected silhouette and East Asian baseline consistently to initial model generation without changing body size to force garment fit.
+- [x] Add regression coverage for the 40kg floor and distinct shape prompts; verify mobile UI, checks, checkpoint, and publish.
