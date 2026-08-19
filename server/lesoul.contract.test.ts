@@ -68,6 +68,7 @@ describe("customer-facing UX cleanup contract", () => {
     const bodyModel = readFileSync(new URL("../client/src/pages/BodyModel.tsx", import.meta.url), "utf8");
     expect(home).toContain('navigate("/body-model")');
     expect(home).toContain('navigate("/quick-fit")');
+    expect(home).toContain("return <MobileScreen>");
     expect(home).not.toContain('features: [');
     expect(bodyModel).toContain("CREATE MY AI MODEL");
     expect(bodyModel).toContain("USE QUICK MODEL");
@@ -99,8 +100,18 @@ describe("customer-facing UX cleanup contract", () => {
   it("gates management navigation to administrators while retaining customer Quick Fit navigation", () => {
     const header = readFileSync(new URL("../client/src/components/AppHeader.tsx", import.meta.url), "utf8");
     const bottomNav = readFileSync(new URL("../client/src/components/MobileBottomNav.tsx", import.meta.url), "utf8");
-    expect(header).toContain('const showManage = user?.role === "admin"');
+    expect(header).toContain('const showAdminManage = user?.role === "admin"');
     expect(bottomNav).toContain('href: "/quick-fit"');
     expect(bottomNav).not.toContain('href: "/products"');
+  });
+
+  it("restores header login/logout and a clear administrator product-management entry", () => {
+    const header = readFileSync(new URL("../client/src/components/AppHeader.tsx", import.meta.url), "utf8");
+    const dbSource = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
+    expect(header).toContain('onClick={() => startLogin()}');
+    expect(header).toContain("await logout()");
+    expect(header).toContain("상품 관리 · 옷 추가");
+    expect(header).toContain("const showCatalogManage = isAuthenticated");
+    expect(dbSource).toContain('user.openId === ENV.ownerOpenId ? "admin"');
   });
 });

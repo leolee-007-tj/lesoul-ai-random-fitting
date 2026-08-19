@@ -417,3 +417,15 @@
 - [x] Keep AI Fitting and Quick Fit results product-first: generated LOOK, immediate editorial/selected-product horizontal cards, existing QR BUY flow, one save action, and only the two unselected Stylist alternatives.
 - [x] Hide provider, prompt, IDs, internal validation, sample/testing, and development controls from public and beta customer screens while preserving private/admin access and existing usage/redeem behavior.
 - [x] Verify language consistency, successful/failing generation allowance behavior, fixed identity retention, QR purchase cards, alternative LOOK reuse, and 390px mobile CTA/navigation behavior; run tests, checkpoint, publish, and report the required before/after UX changes.
+
+## Product manager access and centered home title
+- [x] Audit signed-in administrator menu gating and the current Home title layout at mobile and wide desktop widths.
+- [x] Restore a clearly named administrator-only Product Manager / Add Product entry without exposing catalog management to public customers.
+- [x] Center the LESOUL start-screen title and two primary CTA cards while preserving mobile spacing and quiet-luxury hierarchy.
+- [x] Verify administrator access, customer menu privacy, responsive Home layout, tests, checkpoint, and publish.
+
+## Login, logout, and administrator entry recovery
+- [x] Audit the existing OAuth start-login and logout helpers and the header's current authenticated/anonymous menu state.
+- [x] Add localized Login, signed-in account status, and Logout actions to the header menu without exposing administrator tools to anonymous or standard users.
+- [x] Show a clear administrator-only Product Manager / Add Product entry after owner/admin login and retain the Product Manager route protections.
+- [x] Verify anonymous, signed-in user, and administrator menu states alongside the centered Home layout; test, checkpoint, and publish.
