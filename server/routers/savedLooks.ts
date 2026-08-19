@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { savedLooks } from "../../drizzle/schema";
 import { getDb } from "../db";
@@ -33,6 +33,13 @@ export const savedLooksRouter = router({
     const ownership = ctx.testAccess ? and(eq(savedLooks.visitorId, ctx.testAccess.visitorId), eq(savedLooks.lookId, input.lookId)) : and(eq(savedLooks.userId, ctx.user!.id), eq(savedLooks.lookId, input.lookId));
     await db.delete(savedLooks).where(ownership);
     return { success: true };
+  }),
+  removeMany: customerProcedure.input(z.object({ lookIds: z.array(z.string().min(1).max(96)).min(1).max(12) })).mutation(async ({ ctx, input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Saved looks are temporarily unavailable.");
+    const ownership = ctx.testAccess ? and(eq(savedLooks.visitorId, ctx.testAccess.visitorId), inArray(savedLooks.lookId, input.lookIds)) : and(eq(savedLooks.userId, ctx.user!.id), inArray(savedLooks.lookId, input.lookIds));
+    await db.delete(savedLooks).where(ownership);
+    return { success: true, removedLookIds: input.lookIds };
   }),
   clear: customerProcedure.mutation(async ({ ctx }) => {
     const db = await getDb();
