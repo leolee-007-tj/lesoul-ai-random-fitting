@@ -20,6 +20,7 @@ export const products = mysqlTable("products", {
   nameEn: varchar("nameEn", { length: 160 }),
   nameKo: varchar("nameKo", { length: 160 }),
   nameZh: varchar("nameZh", { length: 160 }),
+  brand: varchar("brand", { length: 120 }),
   category: mysqlEnum("category", ["top", "bottom", "outer", "dress", "shoes", "bag"]).notNull(),
   season: varchar("season", { length: 120 }).notNull(),
   color: varchar("color", { length: 80 }).notNull(),

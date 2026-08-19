@@ -114,4 +114,16 @@ describe("customer-facing UX cleanup contract", () => {
     expect(header).toContain("const showCatalogManage = isAuthenticated");
     expect(dbSource).toContain('user.openId === ENV.ownerOpenId ? "admin"');
   });
+
+  it("keeps the home title higher and supports optional brand plus F free-size product data", () => {
+    const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
+    const schema = readFileSync(new URL("../drizzle/schema.ts", import.meta.url), "utf8");
+    const manager = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx", import.meta.url), "utf8");
+    const sizing = readFileSync(new URL("../client/src/components/CategorySizingEditor.tsx", import.meta.url), "utf8");
+    expect(home).toContain("justify-center pb-12");
+    expect(schema).toContain('brand: varchar("brand", { length: 120 })');
+    expect(manager).toContain("brand: draft.brand.trim() || null");
+    expect(sizing).toContain('top: ["F", "S", "M", "L"]');
+    expect(sizing).toContain('label: "F", available: true');
+  });
 });

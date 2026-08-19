@@ -429,3 +429,10 @@
 - [x] Add localized Login, signed-in account status, and Logout actions to the header menu without exposing administrator tools to anonymous or standard users.
 - [x] Show a clear administrator-only Product Manager / Add Product entry after owner/admin login and retain the Product Manager route protections.
 - [x] Verify anonymous, signed-in user, and administrator menu states alongside the centered Home layout; test, checkpoint, and publish.
+
+## Home title position and product brand/free-size support
+- [x] Audit the Home hero vertical spacing and the existing product schema, product manager draft, save route, and size option sources.
+- [x] Move the Home title/CTA composition upward while preserving the visible header, safe areas, and mobile bottom navigation clearance.
+- [x] Add an optional product brand field through schema, migration, product CRUD, and localized Product Manager inputs/display data.
+- [x] Add F (Free Size) as a selectable size option wherever category-relevant product sizes are configured.
+- [x] Add regression coverage, verify responsive Home and product save behavior, checkpoint, and publish.

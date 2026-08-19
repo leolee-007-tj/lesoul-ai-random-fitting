@@ -11,6 +11,7 @@ const productInput = z.object({
   nameEn: z.string().max(160).nullable().optional(),
   nameKo: z.string().max(160).nullable().optional(),
   nameZh: z.string().max(160).nullable().optional(),
+  brand: z.string().max(120).nullable().optional(),
   category: z.enum(["top", "bottom", "outer", "dress", "shoes", "bag"]),
   season: z.string().min(1).max(120),
   color: z.string().min(1).max(80),
@@ -86,7 +87,7 @@ export const adminRouter = router({
     return JSON.parse(content) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
-    await createAdminProduct({ ...input, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, stretchLevel: input.stretchLevel ?? "low" });
+    await createAdminProduct({ ...input, brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
   updateProduct: protectedProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {

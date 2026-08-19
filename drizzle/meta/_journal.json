@@ -134,6 +134,13 @@
       "when": 1787050060597,
       "tag": "0018_spotty_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1787114226936,
+      "tag": "0019_lumpy_kylun",
+      "breakpoints": true
     }
   ]
 }
