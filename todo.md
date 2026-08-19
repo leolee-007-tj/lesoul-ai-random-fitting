@@ -469,3 +469,11 @@
 - [x] Add a first-screen secondary ‘Browse Products’ entry and a public catalog route that lists all active items by garment category without requiring generation allowance or sign-in.
 - [x] Reuse localized product cards and product-detail-to-QR-purchase flow, adding clear category tabs/sections for tops, bottoms, outerwear, dresses, shoes, and bags.
 - [x] Verify browsing after allowance exhaustion, category navigation, product detail, QR safeguards, responsive mobile layout, tests, checkpoint, and publish.
+
+## Purchase list and WeChat manual sales flow
+- [x] Audit the attached purchase-list requirements against existing ProductDetailScreen, result cards, QR purchase screen, purchase settings, product size data, and customer persistence patterns.
+- [x] Add a backward-compatible PURCHASE_LIST/QR purchase-mode setting with PURCHASE_LIST as the public default, retaining existing QR fields and legacy QR mode for future use.
+- [x] Build a shared localized purchase list with productId-linked items, size selection, quantity controls, remove/clear actions, reference subtotal, floating item-count indicator, and result/detail entry points.
+- [x] Replace public QR payment language and direct QR checkout entry with Add to List and Purchase List actions while retaining manual WeChat inventory/final-price guidance.
+- [x] Build a vertical saveable Purchase Request Card containing visible product photos, selected size, quantity, reference price, item total, request number, and localized WeChat instructions; do not process payment or send WeChat messages automatically.
+- [x] Verify EN/KO/ZH states, F-size behavior, persisted cart/order-card data, mobile layouts, QR backward compatibility, permissions, tests, checkpoint, and publish.

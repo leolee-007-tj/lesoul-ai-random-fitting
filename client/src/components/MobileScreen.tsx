@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import AppHeader from "./AppHeader";
 import MobileBottomNav from "./MobileBottomNav";
+import PurchaseListFab from "./PurchaseListFab";
 
 type MobileScreenProps = {
   children: ReactNode;
@@ -41,6 +42,7 @@ export default function MobileScreen({ children, action, showHeader = true, clas
     {showHeader && <div className="lesoul-mobile-header"><AppHeader /></div>}
     <main className="lesoul-mobile-content">{children}</main>
     {action && <div className="lesoul-action-dock">{action}</div>}
+    <PurchaseListFab />
     <MobileBottomNav />
   </div>;
 }

@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
-type Product = StylistProduct & { nameEn: string | null; nameKo: string | null; nameZh: string | null; description: string; descriptionEn: string | null; descriptionKo: string | null; descriptionZh: string | null; color: string; images: string[] | null; imageViews: any; fabric: string | null; texture: string | null; fit: string | null; length: string | null; width: string | null; details: string | null; neckline: string | null; sleeve: string | null; garmentMeasurements: any; stretchLevel: "none" | "low" | "medium" | "high"; price: number; purchaseQrUrl: string | null };
+type Product = StylistProduct & { nameEn: string | null; nameKo: string | null; nameZh: string | null; description: string; descriptionEn: string | null; descriptionKo: string | null; descriptionZh: string | null; color: string; images: string[] | null; imageViews: any; fabric: string | null; texture: string | null; fit: string | null; length: string | null; width: string | null; details: string | null; neckline: string | null; sleeve: string | null; garmentMeasurements: any; sizeOptions: Array<{ label: string; available?: boolean }> | null; stretchLevel: "none" | "low" | "medium" | "high"; price: number; purchaseQrUrl: string | null };
 type DisplayStyle = "studio_flat_lay" | "editorial_flat_lay" | "hanger_display" | "ghost_fit";
 
 const displayStyles: DisplayStyle[] = ["studio_flat_lay", "editorial_flat_lay", "hanger_display", "ghost_fit"];

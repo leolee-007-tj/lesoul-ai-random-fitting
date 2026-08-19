@@ -23,6 +23,7 @@ describe("LESOUL experience API contract", () => {
       "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
       "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
       "look.generate", "look.status", "stylist.presets", "stylist.recommend", "stylist.feedback",
+      "purchase.config", "purchase.createRequest",
     ]));
   });
 });
@@ -167,5 +168,40 @@ describe("customer-facing UX cleanup contract", () => {
     expect(browse).toContain("trpc.catalog.browseProducts.useQuery()");
     expect(browse).toContain("<ProductDetailScreen productId={detailId} browseAll");
     expect(home).toContain('navigate("/catalog")');
+  });
+
+  it("uses PURCHASE_LIST by default while retaining QR mode and latest product validation as backward-compatible settings", () => {
+    const schema = readFileSync(new URL("../drizzle/schema.ts", import.meta.url), "utf8");
+    const purchase = readFileSync(new URL("./routers/purchase.ts", import.meta.url), "utf8");
+    const admin = readFileSync(new URL("./routers/admin.ts", import.meta.url), "utf8");
+    expect(schema).toContain('purchaseMode: mysqlEnum("purchaseMode", ["PURCHASE_LIST", "QR", "DISABLED"]).default("PURCHASE_LIST")');
+    expect(schema).toContain('purchaseListMaxItems: int("purchaseListMaxItems").default(10)');
+    expect(purchase).toContain('settings.purchaseMode !== "PURCHASE_LIST"');
+    expect(purchase).toContain("PURCHASE_ITEM_UNAVAILABLE");
+    expect(purchase).toContain("PURCHASE_SIZE_UNAVAILABLE");
+    expect(purchase).toContain("currentPrice: product.price");
+    expect(admin).toContain('purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"])');
+  });
+
+  it("keeps one shared, persisted purchase list across product detail, AI fitting, QUICK FIT, and the manual WeChat request card", () => {
+    const context = readFileSync(new URL("../client/src/contexts/PurchaseListContext.tsx", import.meta.url), "utf8");
+    const detail = readFileSync(new URL("../client/src/components/ProductDetailScreen.tsx", import.meta.url), "utf8");
+    const result = readFileSync(new URL("../client/src/components/LookResultPanel.tsx", import.meta.url), "utf8");
+    const editorial = readFileSync(new URL("../client/src/components/EditorialPurchaseBar.tsx", import.meta.url), "utf8");
+    const list = readFileSync(new URL("../client/src/pages/PurchaseList.tsx", import.meta.url), "utf8");
+    const card = readFileSync(new URL("../client/src/components/PurchaseRequestCard.tsx", import.meta.url), "utf8");
+    const notices = readFileSync(new URL("../client/src/pages/PurchaseNoticeManager.tsx", import.meta.url), "utf8");
+    expect(context).toContain('const STORAGE_KEY = "lesoulPurchaseList"');
+    expect(context).toContain("purchase_list_item_added");
+    expect(detail).toContain("<PurchaseListAddButton");
+    expect(result).toContain('source="ai_fitting"');
+    expect(editorial).toContain('source="quick_fit"');
+    expect(list).toContain("trpc.purchase.createRequest.useMutation");
+    expect(list).toContain("selectedSize");
+    expect(card).toContain("purchase_request_saved");
+    expect(card).toContain("WeChat");
+    expect(card).toContain("purchaseNoticeKo");
+    expect(notices).toContain("purchaseMode: config.data.purchaseMode");
+    expect(notices).toContain("send it to LESOUL via WeChat");
   });
 });

@@ -112,6 +112,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   globalDailyGenerationLimit: int("globalDailyGenerationLimit").default(120).notNull(),
   monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
   generationEnabled: int("generationEnabled").default(1).notNull(),
+  purchaseMode: mysqlEnum("purchaseMode", ["PURCHASE_LIST", "QR", "DISABLED"]).default("PURCHASE_LIST").notNull(),
+  purchaseListMaxItems: int("purchaseListMaxItems").default(10).notNull(),
   purchaseQrEnabled: int("purchaseQrEnabled").default(1).notNull(),
   purchaseNoticeEn: text("purchaseNoticeEn"),
   purchaseNoticeKo: text("purchaseNoticeKo"),
