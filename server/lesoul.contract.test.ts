@@ -19,7 +19,7 @@ describe("LESOUL experience API contract", () => {
   it("exposes the catalog, generation, upload, and admin routes required by the app", () => {
     const procedures = Object.keys(appRouter._def.procedures);
     expect(procedures).toEqual(expect.arrayContaining([
-      "catalog.bootstrap", "catalog.products", "catalog.poses", "catalog.backgrounds",
+      "catalog.bootstrap", "catalog.products", "catalog.productDetail", "catalog.poses", "catalog.backgrounds",
       "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
       "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
       "look.generate", "look.status", "stylist.presets", "stylist.recommend", "stylist.feedback",
@@ -125,5 +125,18 @@ describe("customer-facing UX cleanup contract", () => {
     expect(manager).toContain("brand: draft.brand.trim() || null");
     expect(sizing).toContain('top: ["F", "S", "M", "L"]');
     expect(sizing).toContain('label: "F", available: true');
+  });
+
+  it("opens customer product details before the existing QR purchase screen", () => {
+    const catalog = readFileSync(new URL("./routers/catalog.ts", import.meta.url), "utf8");
+    const detail = readFileSync(new URL("../client/src/components/ProductDetailScreen.tsx", import.meta.url), "utf8");
+    const editorial = readFileSync(new URL("../client/src/components/EditorialPurchaseBar.tsx", import.meta.url), "utf8");
+    const result = readFileSync(new URL("../client/src/components/LookResultPanel.tsx", import.meta.url), "utf8");
+    expect(catalog).toContain("productDetail: publicProcedure");
+    expect(catalog).toContain("purchaseStatus");
+    expect(detail).toContain("<PurchaseScreen productId={product.id}");
+    expect(detail).toContain("localizedProductDescription(product, language)");
+    expect(editorial).toContain("<ProductDetailScreen productId={detailId}");
+    expect(result).toContain("<ProductDetailScreen productId={detailId}");
   });
 });

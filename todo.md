@@ -436,3 +436,9 @@
 - [x] Add an optional product brand field through schema, migration, product CRUD, and localized Product Manager inputs/display data.
 - [x] Add F (Free Size) as a selectable size option wherever category-relevant product sizes are configured.
 - [x] Add regression coverage, verify responsive Home and product save behavior, checkpoint, and publish.
+
+## Product detail before QR purchase
+- [x] Audit result-product cards, editorial purchase cards, catalog lookup, and the existing QR purchase route to identify all customer card entry points.
+- [x] Add a localized product detail screen with gallery, brand, localized name/description, category, size options, measurements, CNY price, and stock status.
+- [x] Make customer product cards open the detail screen first and provide a clear Buy / QR purchase action that preserves the current purchase-card safeguards.
+- [x] Add regression coverage and verify mobile product detail, back navigation, and QR purchase behavior; checkpoint and publish.
