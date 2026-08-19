@@ -442,3 +442,8 @@
 - [x] Add a localized product detail screen with gallery, brand, localized name/description, category, size options, measurements, CNY price, and stock status.
 - [x] Make customer product cards open the detail screen first and provide a clear Buy / QR purchase action that preserves the current purchase-card safeguards.
 - [x] Add regression coverage and verify mobile product detail, back navigation, and QR purchase behavior; checkpoint and publish.
+
+## QUICK FIT look selection recovery
+- [x] Trace the QUICK FIT ‘select this look’ click handler, recommendation state, generation mutation, and visible error/loading transitions.
+- [x] Repair the selected-look handoff so a valid recommendation always starts the corresponding product-only editorial generation or exposes a localized actionable error.
+- [x] Add regression coverage and verify the mobile selection button moves into a clear generating/result state; checkpoint and publish.
