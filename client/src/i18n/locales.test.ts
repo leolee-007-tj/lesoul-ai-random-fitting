@@ -26,6 +26,7 @@ describe("LESOUL v2 locale resources", () => {
       "product.status.inStock", "product.status.preOrder", "product.status.soldOut", "product.status.unpublished",
       "product.newArrival", "product.addToPurchaseList", "product.reserve", "product.soldOutNotice",
       "home.newArrivals", "stylist.recommendation", "stylist.chooseAnchor", "common.loading", "common.retry",
+      "auth.eyebrow", "auth.title", "auth.body", "auth.username", "auth.password", "auth.submit", "auth.invalid", "auth.unavailable", "auth.note", "auth.admin",
     ];
     for (const locale of [commerceResources.en, commerceResources.ko, commerceResources.zh]) {
       for (const key of commerceKeys) expect(readPath(locale, key)).toEqual(expect.any(String));
@@ -39,6 +40,7 @@ describe("LESOUL v2 locale resources", () => {
     await i18n.changeLanguage("zh");
     expect(i18n.t("product.status.preOrder")).toBe("预售");
     expect(i18n.t("stylist.recommendation")).toBe("AI 搭配推荐");
+    expect(i18n.t("auth.submit")).toBe("继续");
     await i18n.changeLanguage("en");
   });
 });

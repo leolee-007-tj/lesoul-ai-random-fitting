@@ -53,7 +53,7 @@ function resizeImage(file: File): Promise<string> {
 export default function Studio() {
   const [, navigate] = useLocation();
   const { i18n, t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const language = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const ui = {
     en: { stylist: "AI Stylist", redeemTitle: "REDEEM CODE REQUIRED", pausedTitle: "GENERATION TEMPORARILY PAUSED", redeemBody: "Sign in, then enter your redemption code to unlock this account.", pausedBody: "You can still browse the catalog while generation is unavailable.", unlock: "Unlock", redeemSignIn: "Sign in to redeem", redeemError: "The code is invalid, expired, exhausted, or already used on this account.", modelAlt: "Selected AI model", yourLook: "YOUR LOOK", alternative: "TRY ANOTHER LOOK", tryLook: "TRY THIS LOOK", retry: "TRY AGAIN", copyError: "COPY ERROR", changePose: "CHANGE POSE", changeBackground: "CHANGE BACKGROUND", showAllPoses: "MORE POSES", poseBody: "Choose a pose only when you want to customise your LOOK.", measurementTitle: "PHYSICAL FIT BASIS", measurementBody: "Saved centimeter measurements are the visual fit basis. Product photo scale is not used as a physical size reference; this remains an editorial guide, not a size guarantee." },
@@ -99,7 +99,7 @@ export default function Studio() {
       setLatestGenerationId(response.generationId); setRetryOfGenerationId(null);
       const id = historyId ?? crypto.randomUUID(); setHistoryId(id);
       saveHistory({ id, imageUrl: response.generatedImage, pose: localizedPose(pose.name).title, poseRaw: pose.name, background: localizeBackground(background.name), style, productNames: productSelection.map((product) => localizedProductName(product, i18n.language)), products: productSelection.map((product) => ({ id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, description: product.description, descriptionEn: product.descriptionEn, descriptionKo: product.descriptionKo, descriptionZh: product.descriptionZh, category: product.category, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews, price: product.price, fabric: product.fabric, fit: product.fit, length: product.length, width: product.width, details: product.details, purchaseUrl: product.purchaseUrl, purchasePlatform: product.purchasePlatform, purchaseQrUrl: product.purchaseQrUrl })), createdAt: response.metadata.generatedAt, language: i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en", adjustmentParams: adjustments, shareUrl: window.location.href, selectedStylistLookId: selectedRecommendationId, stylistCandidates: recommendationSet.map(({ lookId, productIds, score }) => ({ lookId, productIds, score })) });
-      const accountSnapshot = readHistory().find((item) => item.id === id); if (user && accountSnapshot) void syncAccountLook.mutateAsync({ id, lookCode: lookCode.slice(0, 48), imageUrl: response.generatedImage, snapshot: accountSnapshot });
+      const accountSnapshot = readHistory().find((item) => item.id === id); if (isAuthenticated && accountSnapshot) void syncAccountLook.mutateAsync({ id, lookCode: lookCode.slice(0, 48), imageUrl: response.generatedImage, snapshot: accountSnapshot });
       setStep(5);
     } catch (caught) {
       const raw = caught instanceof Error ? caught.message : "UNKNOWN_GENERATION_ERROR";

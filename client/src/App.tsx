@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import CustomerGate from "@/components/CustomerGate";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -19,26 +20,28 @@ import BrowseProducts from "./pages/BrowseProducts";
 import PurchaseList from "./pages/PurchaseList";
 import OperationsDashboard from "./pages/OperationsDashboard";
 import StyleMatch from "./pages/StyleMatch";
+import Login from "./pages/Login";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/studio"} component={Studio} />
-      <Route path={"/quick-fit"} component={QuickFit} />
+      <Route path={"/login"} component={Login} />
+      <Route path={"/"} component={() => <CustomerGate><Home /></CustomerGate>} />
+      <Route path={"/studio"} component={() => <CustomerGate><Studio /></CustomerGate>} />
+      <Route path={"/quick-fit"} component={() => <CustomerGate><QuickFit /></CustomerGate>} />
       <Route path={"/catalog"} component={BrowseProducts} />
-      <Route path={"/purchase-list"} component={PurchaseList} />
-      <Route path={"/body-model"} component={BodyModel} />
-      <Route path={"/measurements"} component={Measurements} />
-      <Route path={"/history"} component={History} />
+      <Route path={"/purchase-list"} component={() => <CustomerGate><PurchaseList /></CustomerGate>} />
+      <Route path={"/body-model"} component={() => <CustomerGate><BodyModel /></CustomerGate>} />
+      <Route path={"/measurements"} component={() => <CustomerGate><Measurements /></CustomerGate>} />
+      <Route path={"/history"} component={() => <CustomerGate><History /></CustomerGate>} />
       <Route path={"/products"} component={ProductManager} />
       <Route path={"/product-fit"} component={ProductFitManager} />
       <Route path={"/release-control"} component={ReleaseControl} />
       <Route path={"/purchase-notices"} component={PurchaseNoticeManager} />
       <Route path={"/operations"} component={OperationsDashboard} />
-      <Route path={"/style-match"} component={StyleMatch} />
-      <Route path={"/result-preview"} component={ResultPreview} />
+      <Route path={"/style-match"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
+      <Route path={"/result-preview"} component={() => <CustomerGate><ResultPreview /></CustomerGate>} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

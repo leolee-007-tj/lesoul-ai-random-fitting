@@ -106,10 +106,10 @@ describe("customer-facing UX cleanup contract", () => {
     expect(bottomNav).not.toContain('href: "/products"');
   });
 
-  it("restores header login/logout and a clear administrator product-management entry", () => {
+  it("keeps shared NORMAL login separate from logout and administrator product-management entry", () => {
     const header = readFileSync(new URL("../client/src/components/AppHeader.tsx", import.meta.url), "utf8");
     const dbSource = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
-    expect(header).toContain('onClick={() => startLogin()}');
+    expect(header).toContain('onClick={() => choose("/login")}');
     expect(header).toContain("await logout()");
     expect(header).toContain("상품 관리 · 옷 추가");
     expect(header).toContain("const showCatalogManage = showAdminManage");

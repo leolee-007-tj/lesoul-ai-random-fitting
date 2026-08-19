@@ -1,4 +1,4 @@
-import { int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, json, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 import type { CompatibilityWeights, StylistProductMetadata } from "../shared/stylist";
 
 /** Core identity record populated by Manus OAuth. */
@@ -234,13 +234,15 @@ export const generationFeedback = mysqlTable("generationFeedback", {
 
 export const savedLooks = mysqlTable("savedLooks", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().references(() => users.id),
+  /** Optional future account link. Test-phase ownership is always visitorId. */
+  userId: int("userId").references(() => users.id),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
   lookId: varchar("lookId", { length: 96 }).notNull(),
   lookCode: varchar("lookCode", { length: 48 }).notNull(),
   imageUrl: text("imageUrl").notNull(),
   snapshot: json("snapshot").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => [uniqueIndex("savedLooks_visitor_look_unique").on(table.visitorId, table.lookId)]);
 
 export const stylePresets = mysqlTable("stylePresets", {
   id: int("id").autoincrement().primaryKey(),

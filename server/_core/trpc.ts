@@ -11,6 +11,23 @@ const t = initTRPC.context<TrpcContext>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
+export function resolveCustomerVisitorId(ctx: TrpcContext, requestedVisitorId: string) {
+  if (ctx.testAccess) {
+    if (ctx.testAccess.visitorId !== requestedVisitorId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "VISITOR_OWNERSHIP_MISMATCH" });
+    }
+    return ctx.testAccess.visitorId;
+  }
+  if (!ctx.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+  }
+  const accountVisitorId = `account:${ctx.user.openId}`;
+  if (requestedVisitorId !== accountVisitorId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "ACCOUNT_OWNERSHIP_MISMATCH" });
+  }
+  return accountVisitorId;
+}
+
 const requireUser = t.middleware(async opts => {
   const { ctx, next } = opts;
 
@@ -27,6 +44,17 @@ const requireUser = t.middleware(async opts => {
 });
 
 export const protectedProcedure = t.procedure.use(requireUser);
+
+/** Customer operations require either the isolated browser-bound test session or an existing signed-in account. */
+export const customerProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    if (!ctx.user && !ctx.testAccess) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+    }
+    return next({ ctx });
+  }),
+);
 
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {

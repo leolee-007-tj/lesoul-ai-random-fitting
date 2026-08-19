@@ -20,10 +20,15 @@ export function useAuth(options?: UseAuthOptions) {
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const testSessionQuery = trpc.auth.testSession.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       utils.auth.me.setData(undefined, null);
+      utils.auth.testSession.setData(undefined, { active: false, visitorId: null });
     },
   });
 
@@ -46,7 +51,9 @@ export function useAuth(options?: UseAuthOptions) {
         sessionStorage.removeItem("manus-cookie");
       } catch {}
       utils.auth.me.setData(undefined, null);
+      utils.auth.testSession.setData(undefined, { active: false, visitorId: null });
       await utils.auth.me.invalidate();
+      await utils.auth.testSession.invalidate();
     }
   }, [logoutMutation, utils]);
 
@@ -57,22 +64,26 @@ export function useAuth(options?: UseAuthOptions) {
     );
     return {
       user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
-      error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+      testAccess: testSessionQuery.data?.active ? testSessionQuery.data : null,
+      loading: meQuery.isLoading || testSessionQuery.isLoading || logoutMutation.isPending,
+      error: meQuery.error ?? testSessionQuery.error ?? logoutMutation.error ?? null,
+      isAuthenticated: Boolean(meQuery.data || testSessionQuery.data?.active),
     };
   }, [
     meQuery.data,
     meQuery.error,
     meQuery.isLoading,
+    testSessionQuery.data,
+    testSessionQuery.error,
+    testSessionQuery.isLoading,
     logoutMutation.error,
     logoutMutation.isPending,
   ]);
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
-    if (state.user) return;
+    if (meQuery.isLoading || testSessionQuery.isLoading || logoutMutation.isPending) return;
+    if (state.isAuthenticated) return;
     if (typeof window === "undefined") return;
     if (redirectPath && window.location.pathname === redirectPath) return;
 
@@ -87,12 +98,13 @@ export function useAuth(options?: UseAuthOptions) {
     redirectPath,
     logoutMutation.isPending,
     meQuery.isLoading,
-    state.user,
+    testSessionQuery.isLoading,
+    state.isAuthenticated,
   ]);
 
   return {
     ...state,
-    refresh: () => meQuery.refetch(),
+    refresh: () => Promise.all([meQuery.refetch(), testSessionQuery.refetch()]),
     logout,
   };
 }

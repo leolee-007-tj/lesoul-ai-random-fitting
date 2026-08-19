@@ -4,7 +4,7 @@ import { z } from "zod";
 import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
-import { publicProcedure, router } from "../_core/trpc";
+import { customerProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { beginAiUsage, finishAiUsage } from "../aiUsageController";
 
 export const profileInput = z.object({
@@ -39,26 +39,27 @@ export const modelPrompt = (input: z.infer<typeof profileInput>) => `Create one 
 const toResult = (model: typeof aiBodyModels.$inferSelect, profile: typeof bodyProfiles.$inferSelect, reused: boolean) => ({ id: model.id, imageUrl: model.imageUrl!, reused, profileId: profile.id, modelKey: model.modelKey, version: model.version, approved: Boolean(model.approved), profile: { heightCm: profile.heightCm, weightKg: profile.weightKg, bustCm: profile.bustCm, waistCm: profile.waistCm, hipCm: profile.hipCm, hairLength: profile.hairLength, hairStyle: profile.hairStyle, hairColor: profile.hairColor, skinTone: profile.skinTone } });
 
 export const bodyModelRouter = router({
-  create: publicProcedure.input(profileInput).mutation(async ({ input, ctx }) => {
+  create: customerProcedure.input(profileInput).mutation(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
-    const canonical = { ...input, modelKey: undefined, consent: undefined };
+    const canonical = { ...input, visitorId, modelKey: undefined, consent: undefined };
     const profileHash = createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
-    const sameProfile = (await db.select().from(bodyProfiles).where(and(eq(bodyProfiles.visitorId, input.visitorId), eq(bodyProfiles.profileHash, profileHash))).orderBy(desc(bodyProfiles.createdAt)).limit(1))[0];
+    const sameProfile = (await db.select().from(bodyProfiles).where(and(eq(bodyProfiles.visitorId, visitorId), eq(bodyProfiles.profileHash, profileHash))).orderBy(desc(bodyProfiles.createdAt)).limit(1))[0];
     if (sameProfile) {
       const sameModel = (await db.select().from(aiBodyModels).where(eq(aiBodyModels.bodyProfileId, sameProfile.id)).orderBy(desc(aiBodyModels.createdAt)).limit(1))[0];
       if (sameModel?.status === "ready" && sameModel.imageUrl) return toResult(sameModel, sameProfile, true);
     }
-    const latestProfile = (await db.select().from(bodyProfiles).where(eq(bodyProfiles.visitorId, input.visitorId)).orderBy(desc(bodyProfiles.createdAt)).limit(1))[0];
+    const latestProfile = (await db.select().from(bodyProfiles).where(eq(bodyProfiles.visitorId, visitorId)).orderBy(desc(bodyProfiles.createdAt)).limit(1))[0];
     const modelKey = input.modelKey ?? latestProfile?.modelKey ?? `MODEL-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
     const version = latestProfile?.modelKey === modelKey ? latestProfile.version + 1 : 1;
-    const insertProfile = await db.insert(bodyProfiles).values({ visitorId: input.visitorId, heightCm: input.heightCm, weightKg: input.weightKg, bustCm: input.bustCm ?? null, waistCm: input.waistCm ?? null, hipCm: input.hipCm ?? null, genderPresentation: "female", bodyShape: input.bodyShape, modelKey, hairLength: input.hairLength, hairStyle: input.hairStyle, hairColor: input.hairColor, skinTone: input.skinTone, approvalStatus: "preview", profileHash, version, consentedAt: new Date() });
+    const insertProfile = await db.insert(bodyProfiles).values({ visitorId, heightCm: input.heightCm, weightKg: input.weightKg, bustCm: input.bustCm ?? null, waistCm: input.waistCm ?? null, hipCm: input.hipCm ?? null, genderPresentation: "female", bodyShape: input.bodyShape, modelKey, hairLength: input.hairLength, hairStyle: input.hairStyle, hairColor: input.hairColor, skinTone: input.skinTone, approvalStatus: "preview", profileHash, version, consentedAt: new Date() });
     const profile = (await db.select().from(bodyProfiles).where(eq(bodyProfiles.id, Number(insertProfile[0].insertId))).limit(1))[0]!;
     const modelInsert = await db.insert(aiBodyModels).values({ bodyProfileId: profile.id, profileHash, modelKey, version, approved: 0, status: "preparing" });
     const modelId = Number(modelInsert[0].insertId);
     let usageEventId: number | null = null;
     const startedAt = Date.now();
     try {
-      const usage = await beginAiUsage({ visitorId: input.visitorId, feature: "AI_BODY_MODEL", provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor: ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null });
+      const usage = await beginAiUsage({ visitorId, feature: "AI_BODY_MODEL", provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor: ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null });
       usageEventId = usage.eventId;
       const result = await generateImage({ prompt: modelPrompt(input), model: "MODEL_GPT_IMAGE_2", quality: "high" });
       if (!result.url) throw new Error("AI Body Model image was not returned.");
@@ -73,19 +74,21 @@ export const bodyModelRouter = router({
       throw error;
     }
   }),
-  approve: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96), modelId: z.number().int().positive() })).mutation(async ({ input }) => {
+  approve: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), modelId: z.number().int().positive() })).mutation(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
     const model = (await db.select().from(aiBodyModels).where(eq(aiBodyModels.id, input.modelId)).limit(1))[0];
     if (!model || model.status !== "ready" || !model.imageUrl) throw new Error("AI_MODEL_NOT_READY");
-    const profile = (await db.select().from(bodyProfiles).where(and(eq(bodyProfiles.id, model.bodyProfileId), eq(bodyProfiles.visitorId, input.visitorId))).limit(1))[0];
+    const profile = (await db.select().from(bodyProfiles).where(and(eq(bodyProfiles.id, model.bodyProfileId), eq(bodyProfiles.visitorId, visitorId))).limit(1))[0];
     if (!profile) throw new Error("AI_MODEL_NOT_FOUND");
     await db.update(bodyProfiles).set({ approvalStatus: "approved" }).where(eq(bodyProfiles.id, profile.id));
     await db.update(aiBodyModels).set({ approved: 1 }).where(eq(aiBodyModels.id, model.id));
     return { ...toResult({ ...model, approved: 1 }, { ...profile, approvalStatus: "approved" }, false), approved: true };
   }),
-  latest: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96) })).query(async ({ input }) => {
+  latest: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96) })).query(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const db = await getDb(); if (!db) return null;
-    const profile = (await db.select().from(bodyProfiles).where(and(eq(bodyProfiles.visitorId, input.visitorId), eq(bodyProfiles.approvalStatus, "approved"))).orderBy(desc(bodyProfiles.createdAt)).limit(1))[0];
+    const profile = (await db.select().from(bodyProfiles).where(and(eq(bodyProfiles.visitorId, visitorId), eq(bodyProfiles.approvalStatus, "approved"))).orderBy(desc(bodyProfiles.createdAt)).limit(1))[0];
     if (!profile) return null;
     const model = (await db.select().from(aiBodyModels).where(and(eq(aiBodyModels.bodyProfileId, profile.id), eq(aiBodyModels.approved, 1))).orderBy(desc(aiBodyModels.createdAt)).limit(1))[0];
     return model?.imageUrl ? toResult(model, profile, true) : null;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateFashionLook, generateQuickFitEditorial } from "../fashionProvider";
-import { publicProcedure, router } from "../_core/trpc";
+import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { completeGenerationLog, createGenerationLog, getGenerationLog, getGenerationPerformance, markGenerationLogGenerating } from "../db";
 import { validateGeneratedLook, validationNotEnabled } from "../../shared/generationValidation";
 import { beginAiUsage, evaluateAiAccess, finishAiUsage, type AiFeatureType } from "../aiUsageController";
@@ -29,7 +29,8 @@ const lookRequest = z.object({
 });
 
 export const lookRouter = router({
-  generate: publicProcedure.input(lookRequest).mutation(async ({ input, ctx }) => {
+  generate: customerProcedure.input(lookRequest).mutation(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const existing = await getGenerationLog(input.generationId);
     if (existing?.resultImageUrl && existing.status === "completed") {
       return { generatedImage: existing.resultImageUrl, generationStatus: "completed" as const, provider: "external" as const, metadata: { pose: input.pose.name, background: input.background.name, style: input.style, clothingCount: input.clothing.length, generatedAt: existing.completedAt?.toISOString() ?? existing.updatedAt.toISOString(), preservationPrompt: "Reused completed generation", negativePrompt: "Reused completed generation" }, generationId: input.generationId, validation: validationNotEnabled(), reused: true };
@@ -41,12 +42,12 @@ export const lookRouter = router({
     const isLiying = !isQuickFit && input.fixedModelKey === LIYING_FIXED_MODEL_KEY;
     const feature: AiFeatureType = input.retryOfGenerationId ? "REGENERATION" : isQuickFit ? "QUICK_FIT" : isLiying ? "LIYING_AI" : "AI_FITTING";
     const actor = ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null;
-    const access = await evaluateAiAccess({ visitorId: input.visitorId, feature, actor });
+    const access = await evaluateAiAccess({ visitorId, feature, actor });
     if (!access.allowed) {
-      await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor });
+      await beginAiUsage({ visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor });
       throw new Error(`GENERATION_ACCESS_DENIED:${access.reason}`);
     }
-    const { created } = await createGenerationLog({ requestId: input.generationId, retryOfRequestId: input.retryOfGenerationId ?? null, retryCount: Math.max(0, retryCount), userImageUrl: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, poseId: input.pose.id, style: input.style, productIds: input.clothing.map((item) => item.id), backgroundId: input.background.id, provider: "manus_gpt_image_2", visitorId: input.visitorId, releaseMode: access.releaseMode, source: input.source, generationMode: input.generationMode, tryOnMode: isQuickFit ? "quick_fit" : input.tryOnMode, bodyModelId: input.bodyModelId ?? null });
+    const { created } = await createGenerationLog({ requestId: input.generationId, retryOfRequestId: input.retryOfGenerationId ?? null, retryCount: Math.max(0, retryCount), userImageUrl: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, poseId: input.pose.id, style: input.style, productIds: input.clothing.map((item) => item.id), backgroundId: input.background.id, provider: "manus_gpt_image_2", visitorId, releaseMode: access.releaseMode, source: input.source, generationMode: input.generationMode, tryOnMode: isQuickFit ? "quick_fit" : input.tryOnMode, bodyModelId: input.bodyModelId ?? null });
     if (!created) throw new Error("Unable to reserve a unique generation request.");
     const startedAt = Date.now();
     let usageEventId: number | null = null;
@@ -59,12 +60,12 @@ export const lookRouter = router({
         modelReference = { imageUrl: fixed.imageUrl, modelKey: `fixed-${fixed.key}`, version: 1, appearance: fixed.appearance };
       } else if (input.tryOnMode === "ai_body_model" && input.bodyModelId) {
         const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
-        const row = (await db.select({ imageUrl: aiBodyModels.imageUrl, modelKey: aiBodyModels.modelKey, version: aiBodyModels.version, hairLength: bodyProfiles.hairLength, hairStyle: bodyProfiles.hairStyle, hairColor: bodyProfiles.hairColor, skinTone: bodyProfiles.skinTone }).from(aiBodyModels).innerJoin(bodyProfiles, eq(aiBodyModels.bodyProfileId, bodyProfiles.id)).where(and(eq(aiBodyModels.id, input.bodyModelId), eq(aiBodyModels.approved, 1), eq(bodyProfiles.visitorId, input.visitorId))).limit(1))[0];
+        const row = (await db.select({ imageUrl: aiBodyModels.imageUrl, modelKey: aiBodyModels.modelKey, version: aiBodyModels.version, hairLength: bodyProfiles.hairLength, hairStyle: bodyProfiles.hairStyle, hairColor: bodyProfiles.hairColor, skinTone: bodyProfiles.skinTone }).from(aiBodyModels).innerJoin(bodyProfiles, eq(aiBodyModels.bodyProfileId, bodyProfiles.id)).where(and(eq(aiBodyModels.id, input.bodyModelId), eq(aiBodyModels.approved, 1), eq(bodyProfiles.visitorId, visitorId))).limit(1))[0];
         if (!row?.imageUrl) throw new Error("AI_BODY_MODEL_REFERENCE_UNAVAILABLE");
         modelReference = { imageUrl: row.imageUrl, modelKey: row.modelKey, version: row.version, appearance: { hairLength: row.hairLength, hairStyle: row.hairStyle, hairColor: row.hairColor, skinTone: row.skinTone } };
       }
       const request = { ...input, userImage: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, modelReference };
-      const usage = await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor });
+      const usage = await beginAiUsage({ visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor });
       usageEventId = usage.eventId;
       const response = isQuickFit ? await generateQuickFitEditorial(request) : await generateFashionLook(request);
       const validation = isQuickFit ? validationNotEnabled() : await validateGeneratedLook({ resultImageUrl: response.generatedImage, userImageUrl: request.userImage, productIds: input.clothing.map((item) => item.id), poseId: input.pose.id, backgroundId: input.background.id });

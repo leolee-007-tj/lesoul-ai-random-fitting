@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getActiveStylePresets, getActiveStylistProducts, saveStylistFeedback } from "../db";
 import { getReleaseSettings } from "../access";
-import { publicProcedure, router } from "../_core/trpc";
+import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { recommendTopLooks, validateRecommendedProductIds } from "../stylistEngine";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { beginAiUsage, finishAiUsage } from "../aiUsageController";
@@ -14,10 +14,11 @@ export const stylistRouter = router({
     const settings = await getReleaseSettings();
     return getActiveStylistProducts(Boolean(settings.stylistIncludePreorder));
   }),
-  recommend: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), locale: z.enum(["en", "ko", "zh"]).default("en"), body: z.object({ bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), shoulderCm: z.number().nullable().optional() }).nullable().optional() })).query(async ({ input, ctx }) => {
+  recommend: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), locale: z.enum(["en", "ko", "zh"]).default("en"), body: z.object({ bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), shoulderCm: z.number().nullable().optional() }).nullable().optional() })).query(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const actor = ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null;
     const startedAt = Date.now();
-    const usage = await beginAiUsage({ visitorId: input.visitorId, feature: "AI_STYLIST", provider: "lesoul_rule_engine", model: "compatibility_v1", actor });
+    const usage = await beginAiUsage({ visitorId, feature: "AI_STYLIST", provider: "lesoul_rule_engine", model: "compatibility_v1", actor });
     try {
       const [settings, presets] = await Promise.all([getReleaseSettings(), getActiveStylePresets()]);
       const activeProducts = await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder));
@@ -31,14 +32,15 @@ export const stylistRouter = router({
       throw error;
     }
   }),
-  feedback: publicProcedure.input(z.object({ visitorId: z.string().min(8).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), productIds: z.array(z.number().int().positive()).min(1).max(5), score: z.number().int().min(0).max(100), feedback: z.enum(["good", "bad"]) })).mutation(async ({ input }) => {
+  feedback: customerProcedure.input(z.object({ visitorId: z.string().min(8).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), productIds: z.array(z.number().int().positive()).min(1).max(5), score: z.number().int().min(0).max(100), feedback: z.enum(["good", "bad"]) })).mutation(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const [settings, presets] = await Promise.all([getReleaseSettings(), getActiveStylePresets()]);
     const activeProducts = await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder));
     if (!presets.some((item) => item.key === input.styleKey)) throw new Error("The requested style preset is not active.");
     validateRecommendedProductIds(input.productIds, activeProducts);
     if (input.anchorProductId && !input.productIds.includes(input.anchorProductId)) throw new Error("The selected anchor product must be retained in feedback.");
     const { styleKey: stylePresetKey, ...feedbackInput } = input;
-    await saveStylistFeedback({ ...feedbackInput, stylePresetKey });
+    await saveStylistFeedback({ ...feedbackInput, visitorId, stylePresetKey });
     return { success: true };
   }),
 });

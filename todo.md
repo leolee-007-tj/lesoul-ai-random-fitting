@@ -549,3 +549,13 @@
 - [ ] Link authenticated account IDs to AI usage, VIP redemption, purchase-list activity, and existing access analytics without duplicating authorization logic in screens.
 - [ ] Expand administrator user analytics and user detail views with real registered-user counts, active-user periods, VIP status, feature usage, redemption source, and purchase-list activity distinct from visitors.
 - [ ] Add complete EN/KO/ZH login, configuration, error, account, dashboard, and user-management copy; test real configured OAuth readiness, logged-out protection, role paths, analytics, existing AI/purchase regression, checkpoint, and publish.
+
+## Shared test login with browser-scoped visitor ownership
+- [x] Stop the unconfigured WeChat OAuth implementation path and audit existing session, visitor ID, My Looks, purchase list, AI usage, recommendation history, saved-look deletion, and administrator authorization flows.
+- [x] Add a server-verified test-only shared login for `lesoul` / `8888`, with a secure persistent session cookie and no password comparison or credential value exposed in frontend code.
+- [x] Gate personal customer features behind the shared login while preserving public product browsing and retaining the independent existing administrator authentication and permissions.
+- [x] Use one stable browser/device visitorId, independent of display locale and the shared login name, as the temporary owner for My Looks, saved looks, purchase list, AI usage limits, recommendation history, and temporary VIP state.
+- [x] Ensure saved-look list, deletion, and language changes remain visitorId-scoped so one browser cannot observe or restore another browser's data; prepare nullable future account-link ownership fields without pretending WeChat migration has occurred.
+- [x] Verify server login rejection, persistent login, logout, isolated two-browser visitor data, visitor-scoped three-use limits, administrator-only controls, EN/KO/ZH login states, existing AI/purchase flow regressions, checkpoint, and publish.
+- [x] Restrict browser-scoped shared-credential visitorId ownership exclusively to the NORMAL `lesoul` / `8888` test session; preserve VIP and OWNER/ADMIN data, access, entitlements, saved looks, and usage under their unique authenticated userId without fallback to shared visitor ownership.
+- [x] Add identity-bound regression tests proving a NORMAL shared-test session cannot read or write VIP/OWNER/ADMIN data and that VIP/OWNER/ADMIN never resolve to the shared-test visitorId path.

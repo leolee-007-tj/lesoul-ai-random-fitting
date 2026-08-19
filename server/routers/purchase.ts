@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { getReleaseSettings } from "../access";
 import { getCatalog } from "../db";
-import { publicProcedure, router } from "../_core/trpc";
+import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 
 const requestItems = z.array(z.object({ productId: z.number().int().positive(), selectedSize: z.string().trim().min(1).max(32), quantity: z.number().int().min(1).max(99), purchaseType: z.enum(["NORMAL", "RESERVATION"]).optional() })).min(1).max(20);
 
@@ -17,7 +17,8 @@ export const purchaseRouter = router({
     const settings = await getReleaseSettings();
     return { mode: settings.purchaseMode, maxItems: settings.purchaseListMaxItems, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
   }),
-  createRequest: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96), items: requestItems, source: z.enum(["ai_fitting", "quick_fit", "catalog", "detail"]).optional(), generationId: z.string().max(96).nullable().optional(), lookId: z.string().max(96).nullable().optional() })).mutation(async ({ input }) => {
+  createRequest: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), items: requestItems, source: z.enum(["ai_fitting", "quick_fit", "catalog", "detail"]).optional(), generationId: z.string().max(96).nullable().optional(), lookId: z.string().max(96).nullable().optional() })).mutation(async ({ input, ctx }) => {
+    const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const settings = await getReleaseSettings();
     if (settings.purchaseMode !== "PURCHASE_LIST") throw new Error("PURCHASE_LIST_MODE_UNAVAILABLE");
     if (input.items.length > settings.purchaseListMaxItems) throw new Error("PURCHASE_LIST_LIMIT_REACHED");
@@ -36,6 +37,6 @@ export const purchaseRouter = router({
       return { productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: item.selectedSize, quantity: item.quantity, currentPrice: product.price, status: product.status, availabilityStatus: product.availabilityStatus, purchaseType: product.availabilityStatus === "PRE_ORDER" ? "RESERVATION" as const : "NORMAL" as const };
     });
     const referenceTotal = items.reduce((sum, item) => sum + item.currentPrice * item.quantity, 0);
-    return { purchaseRequestId: requestNumber(), createdAt: new Date(), visitorId: input.visitorId, source: input.source ?? "detail", generationId: input.generationId ?? null, lookId: input.lookId ?? null, releaseMode: settings.releaseMode, items, referenceTotal, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
+    return { purchaseRequestId: requestNumber(), createdAt: new Date(), visitorId, source: input.source ?? "detail", generationId: input.generationId ?? null, lookId: input.lookId ?? null, releaseMode: settings.releaseMode, items, referenceTotal, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
   }),
 });

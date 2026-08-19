@@ -3,7 +3,7 @@ const KEY = "lesoul-visitor-id";
 export function getVisitorId() {
   const current = window.localStorage.getItem(KEY);
   if (current) return current;
-  const created = crypto.randomUUID();
+  const created = `visitor_${crypto.randomUUID()}`;
   window.localStorage.setItem(KEY, created);
   return created;
 }

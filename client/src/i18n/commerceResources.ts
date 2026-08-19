@@ -12,6 +12,7 @@ export const commerceResources = {
     home: { newArrivals: "NEW ARRIVALS" },
     stylist: { recommendation: "AI STYLE MATCH", chooseAnchor: "Choose one available LESOUL piece to build a complete look." },
     common: { loading: "Loading…", retry: "Try again", cancel: "Cancel", confirm: "Confirm" },
+    auth: { eyebrow: "LESOUL ACCESS", title: "Enter LESOUL", body: "Sign in to create and keep your personal LOOKs on this browser.", username: "ID", password: "PASSWORD", submit: "CONTINUE", invalid: "The ID or password is incorrect.", unavailable: "Sign-in is temporarily unavailable.", note: "For the test release, your LOOKs and purchase list stay on this browser. Clearing browser data or changing devices cannot restore them yet.", admin: "Administrator? Sign in with your private account." },
   },
   ko: {
     product: {
@@ -26,6 +27,7 @@ export const commerceResources = {
     home: { newArrivals: "신상품" },
     stylist: { recommendation: "AI 코디 추천", chooseAnchor: "판매 중인 LESOUL 상품 하나를 골라 완성 코디를 찾아보세요." },
     common: { loading: "불러오는 중…", retry: "다시 시도", cancel: "취소", confirm: "확인" },
+    auth: { eyebrow: "LESOUL ACCESS", title: "LESOUL 시작하기", body: "이 브라우저에서 나만의 LOOK을 만들고 보관하려면 로그인하세요.", username: "ID", password: "비밀번호", submit: "계속", invalid: "ID 또는 비밀번호가 올바르지 않습니다.", unavailable: "현재 로그인을 사용할 수 없습니다.", note: "테스트 공개 단계에서는 LOOK과 구매목록이 이 브라우저에 보관됩니다. 기기를 바꾸거나 브라우저 데이터를 지우면 복구할 수 없습니다.", admin: "관리자이신가요? 개인 관리자 계정으로 로그인하세요." },
   },
   zh: {
     product: {
@@ -40,5 +42,6 @@ export const commerceResources = {
     home: { newArrivals: "新品" },
     stylist: { recommendation: "AI 搭配推荐", chooseAnchor: "选择一件在售 LESOUL 商品，找到完整搭配。" },
     common: { loading: "加载中…", retry: "重试", cancel: "取消", confirm: "确认" },
+    auth: { eyebrow: "LESOUL ACCESS", title: "进入 LESOUL", body: "登录后即可在此浏览器中创建并保留你的个人 LOOK。", username: "ID", password: "密码", submit: "继续", invalid: "ID 或密码不正确。", unavailable: "登录暂时不可用。", note: "测试公开阶段，你的 LOOK 和购买清单保留在此浏览器中。更换设备或清除浏览器数据后暂无法恢复。", admin: "管理员？请使用你的私有账户登录。" },
   },
 } as const;
