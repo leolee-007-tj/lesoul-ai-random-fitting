@@ -575,3 +575,12 @@
 - [x] Add localized individual delete, selection mode, selected-count, selection cancel, delete-selected, and confirmed delete-all controls without changing AI generation, matching, product, purchase, VIP, or login behavior.
 - [x] Add clear localized confirmation dialogs and empty state; after any deletion reset selected IDs, exit selection mode when appropriate, and update visible count without optimistic ghost restoration.
 - [x] Verify individual, multi-select, and all deletion across EN→KO→ZH, refresh, logout/login, navigation, legacy migration, NORMAL/VIP/ADMIN ownership boundaries, tests, mobile UI, checkpoint, and publish.
+
+## VIP account login and administrator management
+- [ ] Audit the existing test-access session, Manus owner session, user schema, redeem entitlements, role controller, saved-look ownership, purchase-list ownership, AI usage events, and administrator operations routes.
+- [ ] Save a stable checkpoint before replacing the redeem-based VIP path, then add a non-destructive VIP account model with unique ID, secure password hash, optional display name, active state, unique userId, and future-safe account ownership.
+- [ ] Add server-verified VIP ID/password login with secure persistent session cookies, duplicate-ID rejection, inactive-account rejection, password reset without plaintext retrieval, and strict separation from NORMAL shared access and OWNER/ADMIN authentication.
+- [ ] Resolve NORMAL ownership with visitorId only and VIP/OWNER/ADMIN ownership with unique userId only across My Looks, purchase lists, AI usage, recommendations, and existing role capabilities.
+- [ ] Add ADMIN-only VIP create, reset-password, activate/deactivate, account list, and per-VIP AI usage views while preserving data after deactivation and retaining the existing AI master switch.
+- [ ] Disable customer-facing redeem and VIP code UI without dropping historical tables; update EN/KO/ZH login, administration, errors, account states, and role-specific header/menu copy.
+- [ ] Verify NORMAL/VIP/ADMIN login persistence, menu matrix, VIP cross-device saved looks, user data isolation, inactive VIP rejection, owner management button, master AI switch, AI/product/purchase regression, tests, checkpoint, and publish.
