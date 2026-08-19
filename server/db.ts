@@ -1,11 +1,12 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, generationLogs, generations, InsertUser, poses, products, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
+import { backgrounds, generationLogs, generations, InsertUser, poses, productCategories, products, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
 import { isStylistEligible } from "../shared/productAvailability";
 import { resolveCatalogDisplay } from "../shared/catalogDisplay";
+import { baseCategoryToCoreCategory, DEFAULT_MANAGED_CATEGORIES, type BaseCategory } from "../shared/productCategories";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -38,6 +39,7 @@ export async function ensureCatalog() {
     db.select({ productCount: count() }).from(products),
   ]);
   const settings = settingsRows[0];
+  await ensureManagedProductCategories();
   if (settings?.catalogInitialized) return true;
   if (productCount > 0) {
     await db.insert(releaseSettings).values({ id: 1, catalogInitialized: 1 }).onDuplicateKeyUpdate({ set: { catalogInitialized: 1 } });
@@ -73,8 +75,75 @@ export async function getCatalog() {
   const db = await getDb();
   if (!db) throw new Error("The catalog is temporarily unavailable.");
   await ensureCatalog();
-  const [catalogProducts, catalogPoses, catalogBackgrounds, catalogStylePresets] = await Promise.all([db.select().from(products), db.select().from(poses), db.select().from(backgrounds), db.select().from(stylePresets).where(eq(stylePresets.isActive, 1))]);
-  return { products: resolveCatalogDisplay(catalogProducts), poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets };
+  const [catalogProducts, catalogPoses, catalogBackgrounds, catalogStylePresets, managedCategories] = await Promise.all([db.select().from(products), db.select().from(poses), db.select().from(backgrounds), db.select().from(stylePresets).where(eq(stylePresets.isActive, 1)), listProductCategories(true)]);
+  const categoryById = new Map(managedCategories.map((category) => [category.id, category]));
+  const enrichedProducts = catalogProducts.map((product) => ({ ...product, displayCategory: product.displayCategoryId ? categoryById.get(product.displayCategoryId) ?? null : null }));
+  return { products: resolveCatalogDisplay(enrichedProducts), poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets, productCategories: managedCategories };
+}
+
+async function ensureManagedProductCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  for (const category of DEFAULT_MANAGED_CATEGORIES) {
+    const existing = await db.select().from(productCategories).where(eq(productCategories.baseCategory, category.baseCategory)).limit(1);
+    if (!existing[0]) await db.insert(productCategories).values(category);
+  }
+  const categories = await db.select().from(productCategories);
+  for (const category of categories) {
+    const coreCategory = baseCategoryToCoreCategory(category.baseCategory);
+    await db.update(products).set({ displayCategoryId: category.id }).where(sql`${products.displayCategoryId} IS NULL AND ${products.category} = ${coreCategory}`);
+  }
+  return categories;
+}
+
+export async function listProductCategories(includeInactive = false) {
+  const db = await getDb();
+  if (!db) throw new Error("Category management is temporarily unavailable.");
+  const categories = await ensureManagedProductCategories();
+  const visible = includeInactive ? categories : categories.filter((category) => category.isActive === 1);
+  const usage = await db.select({ displayCategoryId: products.displayCategoryId, usageCount: count() }).from(products).groupBy(products.displayCategoryId);
+  const usageById = new Map(usage.filter((row) => row.displayCategoryId !== null).map((row) => [row.displayCategoryId as number, Number(row.usageCount)]));
+  return visible.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id).map((category) => ({ ...category, usageCount: usageById.get(category.id) ?? 0 }));
+}
+
+export async function getProductCategory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Category management is temporarily unavailable.");
+  await ensureManagedProductCategories();
+  return (await db.select().from(productCategories).where(eq(productCategories.id, id)).limit(1))[0];
+}
+
+export async function createProductCategory(input: { nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; isActive?: number; sortOrder?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Category management is temporarily unavailable.");
+  const result = await db.insert(productCategories).values({ ...input, isActive: input.isActive ?? 1, sortOrder: input.sortOrder ?? 100 });
+  return getProductCategory(Number(result[0].insertId));
+}
+
+export async function updateProductCategory(id: number, input: Partial<{ nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; isActive: number; sortOrder: number }>) {
+  const db = await getDb();
+  if (!db) throw new Error("Category management is temporarily unavailable.");
+  const existing = await getProductCategory(id);
+  if (!existing) throw new Error("The selected category no longer exists.");
+  const usage = (await db.select({ usageCount: count() }).from(products).where(eq(products.displayCategoryId, id)))[0]?.usageCount ?? 0;
+  if (input.baseCategory && input.baseCategory !== existing.baseCategory && Number(usage) > 0) throw new Error("The Base Category cannot change while products use this category.");
+  await db.transaction(async (tx) => {
+    await tx.update(productCategories).set(input).where(eq(productCategories.id, id));
+  });
+  return getProductCategory(id);
+}
+
+export async function resolveDisplayCategoryId(displayCategoryId: number | null | undefined, fallbackCategory: "top" | "bottom" | "outer" | "dress" | "shoes" | "bag", allowInactive = false) {
+  const db = await getDb();
+  if (!db) throw new Error("Category management is temporarily unavailable.");
+  await ensureManagedProductCategories();
+  if (displayCategoryId) {
+    const category = await getProductCategory(displayCategoryId);
+    if (!category || (!allowInactive && !category.isActive)) throw new Error("The selected product category is inactive or unavailable.");
+    return { displayCategoryId: category.id, category: baseCategoryToCoreCategory(category.baseCategory) };
+  }
+  const fallback = (await db.select().from(productCategories).where(eq(productCategories.baseCategory, ({ top: "TOP", bottom: "PANTS", outer: "JACKET", dress: "DRESS", shoes: "SHOES", bag: "BAG" } as const)[fallbackCategory])).limit(1))[0];
+  return { displayCategoryId: fallback?.id ?? null, category: fallbackCategory };
 }
 
 export async function getActiveStylistProducts(includePreorder = false) {

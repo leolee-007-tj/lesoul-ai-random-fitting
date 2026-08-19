@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createAdminProduct, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, updateAdminProduct } from "../db";
+import { createAdminProduct, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
@@ -7,6 +7,7 @@ import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
 import { legacyStatusForAvailability, normaliseAvailabilityStatus } from "../../shared/productAvailability";
 import { validDisplayScale } from "../../shared/catalogDisplay";
+import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -14,6 +15,7 @@ const productInput = z.object({
   nameKo: z.string().max(160).nullable().optional(),
   nameZh: z.string().max(160).nullable().optional(),
   brand: z.string().max(120).nullable().optional(),
+  displayCategoryId: z.number().int().positive().nullable().optional(),
   category: z.enum(["top", "bottom", "outer", "dress", "shoes", "bag"]),
   season: z.string().min(1).max(120),
   color: z.string().min(1).max(80),
@@ -63,6 +65,9 @@ const productInput = z.object({
 
 export const adminRouter = router({
   products: protectedProcedure.query(async () => (await getCatalog()).products),
+  productCategories: protectedProcedure.query(async () => listProductCategories(true)),
+  createProductCategory: ownerProcedure.input(z.object({ nameEn: z.string().trim().min(1).max(120), nameKo: z.string().trim().min(1).max(120), nameZh: z.string().trim().min(1).max(120), baseCategory: z.enum(BASE_CATEGORY_OPTIONS), isActive: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).mutation(async ({ input }) => createProductCategory(input)),
+  updateProductCategory: ownerProcedure.input(z.object({ id: z.number().int().positive(), nameEn: z.string().trim().min(1).max(120).optional(), nameKo: z.string().trim().min(1).max(120).optional(), nameZh: z.string().trim().min(1).max(120).optional(), baseCategory: z.enum(BASE_CATEGORY_OPTIONS).optional(), isActive: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).mutation(async ({ input }) => { const { id, ...updates } = input; return updateProductCategory(id, updates); }),
   stats: ownerProcedure.query(getAdminStats),
   releaseConfig: ownerProcedure.query(getReleaseSettings),
   updateReleaseConfig: ownerProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"]).optional(), purchaseListMaxItems: z.number().int().min(1).max(20).optional(), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional(), stylistIncludePreorder: z.number().int().min(0).max(1).optional() })).mutation(async ({ input }) => {
@@ -96,15 +101,17 @@ export const adminRouter = router({
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
+    const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, input.category);
     const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
-    await createAdminProduct({ ...input, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
+    await createAdminProduct({ ...input, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
   updateProduct: protectedProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
+    const categoryLink = updates.displayCategoryId === undefined ? null : await resolveDisplayCategoryId(updates.displayCategoryId, updates.category ?? "top");
     const availabilityStatus = updates.availabilityStatus ? normaliseAvailabilityStatus(updates.availabilityStatus, updates.status) : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
-    await updateAdminProduct(id, { ...updates, ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
+    await updateAdminProduct(id, { ...updates, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
   }),
   deleteProduct: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {

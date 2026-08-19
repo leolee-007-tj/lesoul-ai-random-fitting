@@ -14,6 +14,19 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+/** Administrator-managed customer labels mapped to a stable core category for AI and sizing logic. */
+export const productCategories = mysqlTable("productCategories", {
+  id: int("id").autoincrement().primaryKey(),
+  nameEn: varchar("nameEn", { length: 120 }).notNull(),
+  nameKo: varchar("nameKo", { length: 120 }).notNull(),
+  nameZh: varchar("nameZh", { length: 120 }).notNull(),
+  baseCategory: mysqlEnum("baseCategory", ["TOP", "PANTS", "JACKET", "DRESS", "SHOES", "BAG"]).notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  sortOrder: int("sortOrder").default(100).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const products = mysqlTable("products", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 160 }).notNull().unique(),
@@ -21,6 +34,8 @@ export const products = mysqlTable("products", {
   nameKo: varchar("nameKo", { length: 160 }),
   nameZh: varchar("nameZh", { length: 160 }),
   brand: varchar("brand", { length: 120 }),
+  /** Optional manager-controlled customer display category. The legacy category remains the stable AI/base category. */
+  displayCategoryId: int("displayCategoryId"),
   category: mysqlEnum("category", ["top", "bottom", "outer", "dress", "shoes", "bag"]).notNull(),
   season: varchar("season", { length: 120 }).notNull(),
   color: varchar("color", { length: 80 }).notNull(),

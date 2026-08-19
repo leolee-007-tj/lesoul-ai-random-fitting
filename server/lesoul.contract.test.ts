@@ -21,7 +21,7 @@ describe("LESOUL experience API contract", () => {
     expect(procedures).toEqual(expect.arrayContaining([
       "catalog.bootstrap", "catalog.products", "catalog.productDetail", "catalog.poses", "catalog.backgrounds",
       "uploads.photo", "uploads.productImage", "generations.prepare", "generations.generate", "generations.byId", "generations.save", "generations.list",
-      "admin.products", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
+      "admin.products", "admin.productCategories", "admin.createProductCategory", "admin.updateProductCategory", "admin.stats", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
       "look.generate", "look.status", "stylist.presets", "stylist.recommend", "stylist.feedback",
       "purchase.config", "purchase.createRequest",
     ]));
@@ -241,5 +241,26 @@ describe("customer-facing UX cleanup contract", () => {
     expect(list).toContain('context="purchase"');
     expect(card).toContain('context="request"');
     expect(provider).toContain("PHYSICAL SCALE AUTHORITY");
+  });
+
+  it("keeps display categories multilingual while Base Category remains the stable sizing and AI contract", () => {
+    const schema = readFileSync(new URL("../drizzle/schema.ts", import.meta.url), "utf8");
+    const admin = readFileSync(new URL("./routers/admin.ts", import.meta.url), "utf8");
+    const categoryDb = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
+    const manager = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx", import.meta.url), "utf8");
+    const provider = readFileSync(new URL("./fashionProvider.ts", import.meta.url), "utf8");
+    const studio = readFileSync(new URL("../client/src/pages/Studio.tsx", import.meta.url), "utf8");
+    const quickFit = readFileSync(new URL("../client/src/pages/QuickFit.tsx", import.meta.url), "utf8");
+    expect(schema).toContain('export const productCategories = mysqlTable("productCategories"');
+    expect(schema).toContain('displayCategoryId: int("displayCategoryId")');
+    expect(admin).toContain("createProductCategory: ownerProcedure");
+    expect(admin).toContain("updateProductCategory: ownerProcedure");
+    expect(categoryDb).toContain("The Base Category cannot change while products use this category.");
+    expect(manager).toContain("CategoryManagementPanel");
+    expect(manager).toContain("displayCategoryId: draft.displayCategoryId");
+    expect(manager).toContain("const firstActive = (managedCategories.data ?? []).find");
+    expect(provider).toContain("Stable Base Category");
+    expect(studio).toContain("displayCategoryName");
+    expect(quickFit).toContain("displayCategoryName");
   });
 });

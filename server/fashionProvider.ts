@@ -22,6 +22,8 @@ export type FashionGarment = {
   id: number;
   name: string;
   category: string;
+  displayCategoryName?: string | null;
+  baseCategory?: string | null;
   imageUrl: string;
   images?: string[] | null;
   imageViews?: ProductImageViews | null;
@@ -147,7 +149,8 @@ export function describeGarmentForGeneration(garment: FashionGarment) {
     views?.back?.original && `Back construction reference: ${views.back.original}`,
     ...(views?.detail ?? []).map((asset, index) => `Important detail reference ${index + 1}: ${asset.original}`),
   ].filter(Boolean).join(". ");
-  return `Wearing ${garment.name}${garment.color ? ` in ${garment.color}` : ""}: ${attributes || garment.description}. Features ${construction || garment.description}. ${references || `Reference clothing image: ${(garment.images?.[0] ?? garment.imageUrl)}`}. Treat every supplied view as the same garment, not separate garments.`;
+  const categoryContext = garment.displayCategoryName ? `Customer display category: ${garment.displayCategoryName}. Stable Base Category: ${garment.baseCategory ?? garment.category.toUpperCase()}.` : `Stable Base Category: ${garment.baseCategory ?? garment.category.toUpperCase()}.`;
+  return `Wearing ${garment.name}${garment.color ? ` in ${garment.color}` : ""}: ${attributes || garment.description}. ${categoryContext} Features ${construction || garment.description}. ${references || `Reference clothing image: ${(garment.images?.[0] ?? garment.imageUrl)}`}. Treat every supplied view as the same garment, not separate garments.`;
 }
 
 export function buildClothingPreservationPrompt(request: FashionLookRequest) {
@@ -159,7 +162,7 @@ export function buildClothingPreservationPrompt(request: FashionLookRequest) {
   const relativePhysicalFit = buildRelativePhysicalFitInstructions(request.bodyMeasurements, request.clothing);
   const fitNotes = request.bodyMeasurements ? request.clothing.map((garment) => assessFit({ bustCm: request.bodyMeasurements!.chest, waistCm: request.bodyMeasurements!.waist, hipCm: request.bodyMeasurements!.hip, shoulderCm: request.bodyMeasurements!.shoulderWidth }, garment.garmentMeasurements, garment.category, garment.stretchLevel ?? "low", garment.fit ?? "regular")).map((fit, index) => `Garment ${index + 1} Fit Engine: ${fit.status}. ${fit.visualInstruction}`).join("\n") : "";
   const identity = request.modelReference ? `Base model reference is supplied as the first image. Character lock: keep the same generated woman, facial geometry, ${request.modelReference.appearance?.hairLength ?? ""} ${request.modelReference.appearance?.hairStyle ?? ""} hair, ${request.modelReference.appearance?.hairColor ?? ""} hair color, ${request.modelReference.appearance?.skinTone ?? ""} skin tone, and fixed body proportions from ${request.modelReference.modelKey} v${request.modelReference.version}. Only clothing, pose, and scene may change.` : "";
-  const garmentLocks = request.clothing.map((garment, index) => `GARMENT LOCK ${index + 1}: ${garment.category.toUpperCase()} — ${garment.name}. This exact selected item must be visible as its correct layer; do not omit, replace, recolor, crop away, or substitute it.${garment.category === "bottom" ? " Bottom/denim lock: preserve the supplied waist, rise, leg width, inseam, wash, pockets, hem, and silhouette exactly." : ""}`).join("\n");
+  const garmentLocks = request.clothing.map((garment, index) => `GARMENT LOCK ${index + 1}: ${garment.displayCategoryName ?? garment.category.toUpperCase()} [BASE CATEGORY: ${garment.baseCategory ?? garment.category.toUpperCase()}] — ${garment.name}. This exact selected item must be visible as its correct layer; do not omit, replace, recolor, crop away, or substitute it.${garment.category === "bottom" ? " Bottom/denim lock: preserve the supplied waist, rise, leg width, inseam, wash, pockets, hem, and silhouette exactly." : ""}`).join("\n");
   return `A photorealistic fashion editorial of a person wearing EXACTLY these selected LESOUL products:\n${garmentDescriptions}\n${garmentLocks}\nPOSE LOCK — non-negotiable: reproduce the selected pose exactly: ${request.pose.name} — ${request.pose.promptKeyword}. Do not substitute a standing pose, crop the pose, or alter the intended body orientation.\nBACKGROUND LOCK — non-negotiable: render the selected background scene: ${request.background.name} — ${request.background.promptKeyword}. Do not replace it with a studio, blank backdrop, unrelated street, or generic scene.\n${identity}\n${measurements}\n${bodyProportionGuide}\n${garmentProportionGuide}\n${relativePhysicalFit}\n${fitNotes}\nABSOLUTE PHYSICAL FIT RULE: BODY MEASUREMENTS are fixed. PRODUCT MEASUREMENTS are fixed. PHOTO SCALE IS NOT PHYSICAL SCALE. Fit appearance must result from these two fixed physical inputs. Never reshape the body to make an item fit, and never alter the garment dimensions to make the outfit conventionally flattering.\nCRITICAL REFERENCE COMPLIANCE: every selected garment must remain visually identifiable from its supplied reference images, especially the selected bottom or denim. Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
 }
 

@@ -14,6 +14,7 @@ type Props = {
   onPriceChange: (price: number | "") => void;
   onMeasurementsChange: (measurements: GarmentMeasurements) => void;
   onSizeOptionsChange: (options: GarmentSizeOption[]) => void;
+  showCategorySelector?: boolean;
 };
 
 type MeasurementKey = keyof GarmentMeasurements;
@@ -31,7 +32,7 @@ const defaultSizes: Record<Category, string[]> = {
   top: ["F", "S", "M", "L"], bottom: ["F", "S", "M", "L"], outer: ["F", "S", "M", "L"], dress: ["F", "S", "M", "L"], shoes: ["F", "35", "36", "37", "38"], bag: ["F", "ONE SIZE"],
 };
 
-export default function CategorySizingEditor({ category, price, priceError, measurements, sizeOptions, onCategoryChange, onPriceChange, onMeasurementsChange, onSizeOptionsChange }: Props) {
+export default function CategorySizingEditor({ category, price, priceError, measurements, sizeOptions, onCategoryChange, onPriceChange, onMeasurementsChange, onSizeOptionsChange, showCategorySelector = true }: Props) {
   const { i18n } = useTranslation();
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
@@ -46,8 +47,8 @@ export default function CategorySizingEditor({ category, price, priceError, meas
   };
   const fieldLabel = (key: MeasurementKey) => key === "totalLengthCm" && category === "shoes" ? copy.shoeLength : key === "totalLengthCm" && category === "bag" ? copy.bagLength : copy.fields[key];
   return <section className="mt-5 rounded-2xl border border-[#dedbd4] bg-[#fbfaf8] p-4">
-    <div className="grid gap-3 sm:grid-cols-2">
-      <label><span className="text-xs font-semibold text-[#666]">{copy.category}</span><select value={category} onChange={(event) => changeCategory(event.target.value as Category)} className="mt-1 h-11 w-full rounded-xl border border-[#dedbd4] bg-white px-3 text-sm">{(["top", "bottom", "outer", "dress", "shoes", "bag"] as Category[]).map((item) => <option key={item} value={item}>{categoryName(item)}</option>)}</select></label>
+    <div className={`grid gap-3 ${showCategorySelector ? "sm:grid-cols-2" : ""}`}>
+      {showCategorySelector && <label><span className="text-xs font-semibold text-[#666]">{copy.category}</span><select value={category} onChange={(event) => changeCategory(event.target.value as Category)} className="mt-1 h-11 w-full rounded-xl border border-[#dedbd4] bg-white px-3 text-sm">{(["top", "bottom", "outer", "dress", "shoes", "bag"] as Category[]).map((item) => <option key={item} value={item}>{categoryName(item)}</option>)}</select></label>}
       <label><span className="text-xs font-semibold text-[#666]">{copy.price}</span><input type="number" min="0" step="1" value={price} onChange={(event) => onPriceChange(event.target.value === "" ? "" : Math.max(0, Number(event.target.value)))} className={`mt-1 h-11 w-full rounded-xl border bg-white px-3 text-sm ${priceError ? "border-red-400" : "border-[#dedbd4]"}`} aria-invalid={Boolean(priceError)} /><span className="mt-1 block text-[10px] leading-4 text-[#777]">{priceError || copy.priceHelp}</span></label>
     </div>
     <div className="mt-4 border-t border-[#e4dfd7] pt-4"><p className="text-xs font-semibold">{copy.measurements}</p><div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">{fieldsByCategory[category].map((key) => <label key={key}><span className="text-[10px] font-semibold text-[#666]">{fieldLabel(key)} ({copy.unit})</span><input type="number" min="0" value={measurements[key] ?? ""} onChange={(event) => onMeasurementsChange({ ...measurements, [key]: event.target.value === "" ? undefined : Math.max(0, Number(event.target.value)) })} className="mt-1 h-10 w-full rounded-lg border border-[#dedbd4] bg-white px-3 text-sm" /></label>)}</div></div>
