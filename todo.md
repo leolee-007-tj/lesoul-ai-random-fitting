@@ -463,3 +463,9 @@
 - [x] Add defensive measurement normalization and a proportion-aware prompt block that uses available garment and body dimensions as visual fit guidance, never as an exact measurement guarantee.
 - [x] Preserve existing garment, pose, background, and fixed-identity locks while testing the new measurement guidance for tops, bottoms, dresses, outerwear, and missing-measurement cases.
 - [x] Verify generation request payloads, regression tests, and responsive customer copy; checkpoint and publish.
+
+## Generation-independent product browsing
+- [x] Audit Home, current public catalog data, product-detail component, QR purchase flow, and generation-access messaging for reusable customer entry points.
+- [x] Add a first-screen secondary ‘Browse Products’ entry and a public catalog route that lists all active items by garment category without requiring generation allowance or sign-in.
+- [x] Reuse localized product cards and product-detail-to-QR-purchase flow, adding clear category tabs/sections for tops, bottoms, outerwear, dresses, shoes, and bags.
+- [x] Verify browsing after allowance exhaustion, category navigation, product detail, QR safeguards, responsive mobile layout, tests, checkpoint, and publish.

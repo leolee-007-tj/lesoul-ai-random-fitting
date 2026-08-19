@@ -157,4 +157,15 @@ describe("customer-facing UX cleanup contract", () => {
     expect(stylist).toContain("<Check size={10}");
     expect(stylist).toContain('aria-pressed={isSelected}');
   });
+
+  it("keeps all active products browseable by category even when generation access is unavailable", () => {
+    const catalog = readFileSync(new URL("../server/routers/catalog.ts", import.meta.url), "utf8");
+    const browse = readFileSync(new URL("../client/src/pages/BrowseProducts.tsx", import.meta.url), "utf8");
+    const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
+    expect(catalog).toContain("browseProducts: publicProcedure");
+    expect(catalog).toContain('product.status === "in_stock"');
+    expect(browse).toContain("trpc.catalog.browseProducts.useQuery()");
+    expect(browse).toContain("<ProductDetailScreen productId={detailId} browseAll");
+    expect(home).toContain('navigate("/catalog")');
+  });
 });

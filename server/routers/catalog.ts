@@ -28,10 +28,12 @@ export const catalogRouter = router({
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
     return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
   }),
-  productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional() })).query(async ({ input }) => {
+  browseProducts: publicProcedure.query(async () => (await getCatalog()).products.filter((product) => product.status === "in_stock").map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
+  productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional(), browseAll: z.boolean().optional() })).query(async ({ input }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    const product = selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).find((item) => item.id === input.productId);
+    const visibleProducts = input.browseAll ? catalog.products.filter((item) => item.status === "in_stock") : selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit);
+    const product = visibleProducts.find((item) => item.id === input.productId);
     if (!product) return { status: "not_found" as const, product: null };
     const purchaseStatus = getPurchaseAvailability({ exists: true, enabled: Boolean(settings.purchaseQrEnabled), status: product.status, purchaseQrUrl: product.purchaseQrUrl });
     return {
