@@ -27,6 +27,7 @@ describe("LESOUL v2 locale resources", () => {
       "product.newArrival", "product.addToPurchaseList", "product.reserve", "product.soldOutNotice",
       "home.newArrivals", "stylist.recommendation", "stylist.chooseAnchor", "common.loading", "common.retry",
       "auth.eyebrow", "auth.title", "auth.body", "auth.username", "auth.password", "auth.submit", "auth.invalid", "auth.unavailable", "auth.note", "auth.admin",
+      "look.backgrounds.paris.name", "look.backgrounds.paris.description", "look.backgrounds.studio.name", "look.backgrounds.studio.description", "look.styles.QUIET_LUXURY", "look.styles.MINIMAL",
     ];
     for (const locale of [commerceResources.en, commerceResources.ko, commerceResources.zh]) {
       for (const key of commerceKeys) expect(readPath(locale, key)).toEqual(expect.any(String));

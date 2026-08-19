@@ -14,8 +14,12 @@ export type LookHistory = {
   imageUrl: string;
   pose: string;
   poseRaw?: string;
+  poseKey?: string | null;
   background: string;
+  backgroundRaw?: string;
+  backgroundKey?: string | null;
   style: string;
+  styleKey?: string | null;
   productNames: string[];
   products?: SavedLookProduct[];
   createdAt: string;
@@ -31,7 +35,7 @@ const HISTORY_KEY = "lesoul-ai-look-history";
 export function readHistory(): LookHistory[] {
   try {
     const raw = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]") as Array<Partial<LookHistory>>;
-    const migrated = raw.map((entry) => ({ ...entry, language: entry.language ?? "en", adjustmentParams: entry.adjustmentParams ?? {}, shareUrl: entry.shareUrl ?? null, products: entry.products ?? [], poseRaw: entry.poseRaw ?? entry.pose, selectedStylistLookId: entry.selectedStylistLookId ?? null, stylistCandidates: entry.stylistCandidates ?? [] })) as LookHistory[];
+    const migrated = raw.map((entry) => ({ ...entry, language: entry.language ?? "en", adjustmentParams: entry.adjustmentParams ?? {}, shareUrl: entry.shareUrl ?? null, products: entry.products ?? [], poseRaw: entry.poseRaw ?? entry.pose, poseKey: entry.poseKey ?? null, backgroundRaw: entry.backgroundRaw ?? entry.background, backgroundKey: entry.backgroundKey ?? null, styleKey: entry.styleKey ?? null, selectedStylistLookId: entry.selectedStylistLookId ?? null, stylistCandidates: entry.stylistCandidates ?? [] })) as LookHistory[];
     localStorage.setItem(HISTORY_KEY, JSON.stringify(migrated));
     return migrated;
   } catch { return []; }

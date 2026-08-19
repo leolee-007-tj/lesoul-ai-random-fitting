@@ -21,9 +21,9 @@ function resolveInitialLanguage(): SupportedLanguage {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: { ...en, product: { ...(en as any).product, ...commerceResources.en.product }, home: { ...(en as any).home, ...commerceResources.en.home }, stylist: { ...(en as any).stylist, ...commerceResources.en.stylist }, common: { ...(en as any).common, ...commerceResources.en.common }, auth: { ...(en as any).auth, ...commerceResources.en.auth } } },
-    ko: { translation: { ...ko, product: { ...(ko as any).product, ...commerceResources.ko.product }, home: { ...(ko as any).home, ...commerceResources.ko.home }, stylist: { ...(ko as any).stylist, ...commerceResources.ko.stylist }, common: { ...(ko as any).common, ...commerceResources.ko.common }, auth: { ...(ko as any).auth, ...commerceResources.ko.auth } } },
-    zh: { translation: { ...zh, product: { ...(zh as any).product, ...commerceResources.zh.product }, home: { ...(zh as any).home, ...commerceResources.zh.home }, stylist: { ...(zh as any).stylist, ...commerceResources.zh.stylist }, common: { ...(zh as any).common, ...commerceResources.zh.common }, auth: { ...(zh as any).auth, ...commerceResources.zh.auth } } },
+    en: { translation: { ...en, product: { ...(en as any).product, ...commerceResources.en.product }, home: { ...(en as any).home, ...commerceResources.en.home }, stylist: { ...(en as any).stylist, ...commerceResources.en.stylist }, common: { ...(en as any).common, ...commerceResources.en.common }, auth: { ...(en as any).auth, ...commerceResources.en.auth }, look: commerceResources.en.look } },
+    ko: { translation: { ...ko, product: { ...(ko as any).product, ...commerceResources.ko.product }, home: { ...(ko as any).home, ...commerceResources.ko.home }, stylist: { ...(ko as any).stylist, ...commerceResources.ko.stylist }, common: { ...(ko as any).common, ...commerceResources.ko.common }, auth: { ...(ko as any).auth, ...commerceResources.ko.auth }, look: commerceResources.ko.look } },
+    zh: { translation: { ...zh, product: { ...(zh as any).product, ...commerceResources.zh.product }, home: { ...(zh as any).home, ...commerceResources.zh.home }, stylist: { ...(zh as any).stylist, ...commerceResources.zh.stylist }, common: { ...(zh as any).common, ...commerceResources.zh.common }, auth: { ...(zh as any).auth, ...commerceResources.zh.auth }, look: commerceResources.zh.look } },
   },
   lng: resolveInitialLanguage(),
   fallbackLng: "en",

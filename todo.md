@@ -561,9 +561,9 @@
 - [x] Add identity-bound regression tests proving a NORMAL shared-test session cannot read or write VIP/OWNER/ADMIN data and that VIP/OWNER/ADMIN never resolve to the shared-test visitorId path.
 
 ## Saved Looks, locations, and outfit-detail i18n integrity
-- [ ] Audit saved-look snapshots, History, result/editorial views, background and pose records, product snapshots, AI Style Match reasons, and existing EN/KO/ZH resolvers for display values stored in a prior locale.
-- [ ] Create or extend shared localization resolvers for stable background/location, pose, style, category, and product identifiers, with safe legacy text mapping and non-destructive fallback for unmatched existing looks.
-- [ ] Preserve stable IDs in newly saved looks and resolve localized labels at render time rather than permanently displaying the language selected at look creation.
-- [ ] Update My Looks, outfit details, saved look history, editorial preview, purchase product cards, and shared product/detail components to prioritize current localized product data, then localized snapshots, then legacy text.
-- [ ] Ensure background/location names and descriptions, pose labels, style labels, status, fit/purchase guidance, and AI recommendation reasons follow the active EN/KO/ZH locale without triggering extra AI calls for saved looks.
-- [ ] Add regression tests for legacy and new saved looks, location/pose/product resolver fallbacks, locale switching EN→KO→ZH, mixed-language prevention, and unaffected AI matching, generation, purchase, VIP, and login flows; verify mobile UI, checkpoint, and publish.
+- [x] Audit saved-look snapshots, History, result/editorial views, background and pose records, product snapshots, AI Style Match reasons, and existing EN/KO/ZH resolvers for display values stored in a prior locale.
+- [x] Create or extend shared localization resolvers for stable background/location, pose, style, category, and product identifiers, with safe legacy text mapping and non-destructive fallback for unmatched existing looks.
+- [x] Preserve stable IDs in newly saved looks and resolve localized labels at render time rather than permanently displaying the language selected at look creation.
+- [x] Update My Looks, outfit details, saved look history, editorial preview, purchase product cards, and shared product/detail components to prioritize current localized product data, then localized snapshots, then legacy text.
+- [x] Ensure background/location names and descriptions, pose labels, style labels, status, fit/purchase guidance, and AI recommendation reasons follow the active EN/KO/ZH locale without triggering extra AI calls for saved looks.
+- [x] Add regression tests for legacy and new saved looks, location/pose/product resolver fallbacks, locale switching EN→KO→ZH, mixed-language prevention, and unaffected AI matching, generation, purchase, VIP, and login flows; verify mobile UI, checkpoint, and publish.
