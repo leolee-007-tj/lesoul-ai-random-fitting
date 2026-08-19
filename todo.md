@@ -457,3 +457,9 @@
 - [x] Confirm the selected LOOK state, display-style controls, and generation mutation ordering after the automatic-selection change.
 - [x] Preserve the selected-card border and badge while removing automatic generation from LOOK selection.
 - [x] Make the expression-style step visibly required before the explicit generate action, then add regression coverage, checkpoint, and publish.
+
+## Measurement-informed AI fitting proportions
+- [x] Audit stored product garment measurements, body measurement inputs, fixed-model proportions, request mapping, and current garment-preservation prompt sections.
+- [x] Add defensive measurement normalization and a proportion-aware prompt block that uses available garment and body dimensions as visual fit guidance, never as an exact measurement guarantee.
+- [x] Preserve existing garment, pose, background, and fixed-identity locks while testing the new measurement guidance for tops, bottoms, dresses, outerwear, and missing-measurement cases.
+- [x] Verify generation request payloads, regression tests, and responsive customer copy; checkpoint and publish.

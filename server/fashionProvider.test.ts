@@ -46,12 +46,17 @@ describe("clothing preservation prompt", () => {
     const prompt = buildClothingPreservationPrompt({
       userImage: "photo.jpg",
       pose: { id: 1, name: "Natural Standing", promptKeyword: "standing" },
-      clothing: [{ id: 1, name: "Precision Blazer", category: "outer", imageUrl: "fallback.jpg", imageViews: { front: { original: "front-original.jpg", studioCut: "front-studio.jpg", thumbnail: "front-thumb.jpg" }, back: { original: "back-original.jpg", studioCut: "back-studio.jpg", thumbnail: "back-thumb.jpg" }, detail: [{ original: "detail-cuff.jpg", studioCut: "detail-cuff.jpg", thumbnail: "detail-cuff.jpg" }, { original: "detail-button.jpg", studioCut: "detail-button.jpg", thumbnail: "detail-button.jpg" }] }, description: "Blazer", color: "Black", fabric: "Wool", texture: "Structured", fit: "Regular", length: "Long", width: "Straight", details: "Buttons", neckline: "Collared", sleeve: "Long" }],
+      clothing: [{ id: 1, name: "Precision Blazer", category: "outer", imageUrl: "fallback.jpg", imageViews: { front: { original: "front-original.jpg", studioCut: "front-studio.jpg", thumbnail: "front-thumb.jpg" }, back: { original: "back-original.jpg", studioCut: "back-studio.jpg", thumbnail: "back-thumb.jpg" }, detail: [{ original: "detail-cuff.jpg", studioCut: "detail-cuff.jpg", thumbnail: "detail-cuff.jpg" }, { original: "detail-button.jpg", studioCut: "detail-button.jpg", thumbnail: "detail-button.jpg" }] }, description: "Blazer", color: "Black", fabric: "Wool", texture: "Structured", fit: "Regular", length: "Long", width: "Straight", details: "Buttons", neckline: "Collared", sleeve: "Long", garmentMeasurements: { shoulderCm: 43, bustCm: 102, sleeveCm: 60, totalLengthCm: 72 } }],
       background: { id: 1, name: "Studio", promptKeyword: "studio" }, style: "CHIC",
-      bodyMeasurements: { ...defaultBodyMeasurements, height: 170, shoulderWidth: 44, chest: 94 },
+      bodyMeasurements: { ...defaultBodyMeasurements, height: 170, shoulderWidth: 44, chest: 94, armLength: 59, inseam: 79, thigh: 54 },
     });
     expect(prompt).toContain("Height 170cm");
     expect(prompt).toContain("Shoulder width 44cm");
+    expect(prompt).toContain("BODY PROPORTION GUIDE");
+    expect(prompt).toContain("arm length 59cm");
+    expect(prompt).toContain("SAVED MEASUREMENT GUIDE 1");
+    expect(prompt).toContain("total length 72cm");
+    expect(prompt).toContain("MEASUREMENT SAFETY");
     expect(prompt).toContain("Front construction reference: front-original.jpg");
     expect(prompt).toContain("Back construction reference: back-original.jpg");
     expect(prompt).toContain("Important detail reference 1: detail-cuff.jpg");
