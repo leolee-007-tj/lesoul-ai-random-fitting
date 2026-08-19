@@ -6,7 +6,7 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "brand" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "purchaseQrUpdatedAt" | "isFeatured" | "featuredPriority" | "catalogTier" | "garmentMeasurements" | "sizeOptions" | "stretchLevel" | "isActive" | "availabilityStatus" | "isNew" | "newArrivalAt">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "brand" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "purchaseQrUpdatedAt" | "isFeatured" | "featuredPriority" | "catalogTier" | "garmentMeasurements" | "sizeOptions" | "catalogDisplay" | "stretchLevel" | "isActive" | "availabilityStatus" | "isNew" | "newArrivalAt">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
 const categoryMeasurements: Record<Product["category"], { garmentMeasurements: NonNullable<Product["garmentMeasurements"]>; stretchLevel: Product["stretchLevel"] }> = {
   top: { garmentMeasurements: { shoulderCm: 40, bustCm: 98, sleeveCm: 58, totalLengthCm: 60 }, stretchLevel: "low" },
@@ -76,6 +76,7 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "pur
     availabilityStatus: product.status === "sold_out" ? "SOLD_OUT" as const : "AVAILABLE" as const,
     isNew: 0,
     newArrivalAt: null,
+    catalogDisplay: null,
     brand: "LESOUL",
     nameEn: product.name,
     nameKo: product.name,

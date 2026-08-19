@@ -54,9 +54,11 @@ describe("clothing preservation prompt", () => {
     expect(prompt).toContain("Shoulder width 44cm");
     expect(prompt).toContain("BODY PROPORTION GUIDE");
     expect(prompt).toContain("arm length 59cm");
-    expect(prompt).toContain("SAVED MEASUREMENT GUIDE 1");
+    expect(prompt).toContain("PRODUCT PHYSICAL MEASUREMENTS 1");
     expect(prompt).toContain("total length 72cm");
-    expect(prompt).toContain("MEASUREMENT SAFETY");
+    expect(prompt).toContain("PHYSICAL SCALE AUTHORITY");
+    expect(prompt).toContain("RELATIVE PHYSICAL FIT 1");
+    expect(prompt).toContain("ABSOLUTE PHYSICAL FIT RULE");
     expect(prompt).toContain("Front construction reference: front-original.jpg");
     expect(prompt).toContain("Back construction reference: back-original.jpg");
     expect(prompt).toContain("Important detail reference 1: detail-cuff.jpg");

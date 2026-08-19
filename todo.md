@@ -488,10 +488,10 @@
 - [x] Verify EN/KO/ZH text, Product Manager controls, active versus sold-out/preorder visibility, AI Stylist eligibility, NEW ordering, size/FREE behavior, request-card saving, mobile layout, tests, checkpoint, and publish.
 
 ## Physical measurement authority and card display normalization
-- [ ] Audit the full attached specification, current garment/body measurement normalization, fit engine, generation prompt, catalog product-card components, and product manager metadata paths.
-- [ ] Make entered centimeter measurements explicitly authoritative over apparent reference-photo size for AI FITTING, adding relative body×garment physical-fit instructions without changing garment or body dimensions.
-- [ ] Add backward-compatible catalog presentation metadata for automatic and optional manual uniform display scale and object position, preserving original image files and aspect ratio.
-- [ ] Calculate category-local measurement medians and bounded display-scale guidance from existing product measurements, with safe neutral fallbacks for missing or non-comparable measurements.
-- [ ] Add Product Manager controls for automatic versus manual card display scale and safe object positioning, retaining existing image uploads and product data.
-- [ ] Apply the normalized container-scale presentation to public catalog, Home new arrivals, AI FITTING result cards, QUICK FIT editorial cards, and purchase-list/request-card thumbnails without pixel stretching or use in generation prompts.
-- [ ] Verify EN/KO/ZH user copy, mobile and desktop cards, missing measurements, extreme cropped/long examples, physical-fit prompt priority, tests, migration, checkpoint, and publish.
+- [x] Audit the full attached specification, current garment/body measurement normalization, fit engine, generation prompt, catalog product-card components, and product manager metadata paths.
+- [x] Make entered centimeter measurements explicitly authoritative over apparent reference-photo size for AI FITTING, adding relative body×garment physical-fit instructions without changing garment or body dimensions.
+- [x] Add backward-compatible catalog presentation metadata for automatic and optional manual uniform display scale and object position, preserving original image files and aspect ratio.
+- [x] Calculate category-local measurement medians and bounded display-scale guidance from existing product measurements, with safe neutral fallbacks for missing or non-comparable measurements.
+- [x] Add Product Manager controls for automatic versus manual card display scale and safe object positioning, retaining existing image uploads and product data.
+- [x] Apply the normalized container-scale presentation to public catalog, Home new arrivals, AI FITTING result cards, QUICK FIT editorial cards, and purchase-list/request-card thumbnails without pixel stretching or use in generation prompts.
+- [x] Verify EN/KO/ZH user copy, mobile and desktop cards, missing measurements, extreme cropped/long examples, physical-fit prompt priority, tests, migration, checkpoint, and publish.

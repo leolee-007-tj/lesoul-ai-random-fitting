@@ -64,6 +64,8 @@ export const products = mysqlTable("products", {
   catalogTier: mysqlEnum("catalogTier", ["beta", "basic", "full"]).default("full").notNull(),
   garmentMeasurements: json("garmentMeasurements").$type<import("../shared/fitEngine").GarmentMeasurements>(),
   sizeOptions: json("sizeOptions").$type<import("../shared/fitEngine").GarmentSizeOption[]>(),
+  /** UI-only thumbnail presentation. Never used for body/garment fit or generation prompts. */
+  catalogDisplay: json("catalogDisplay").$type<import("../shared/catalogDisplay").CatalogDisplaySettings>(),
   stretchLevel: mysqlEnum("stretchLevel", ["none", "low", "medium", "high"]).default("low").notNull(),
   stylistMetadata: json("stylistMetadata").$type<StylistProductMetadata>(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

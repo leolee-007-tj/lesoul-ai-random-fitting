@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
+import type { CatalogDisplaySettings } from "@shared/catalogDisplay";
 
 export type PurchaseListItem = {
   productId: number;
@@ -7,6 +8,7 @@ export type PurchaseListItem = {
   nameKo?: string | null;
   nameZh?: string | null;
   productImage: string;
+  catalogDisplay?: (CatalogDisplaySettings & { effectiveScale?: number | null }) | null;
   selectedSize: string;
   availableSizes: string[];
   recommendedSize?: string | null;

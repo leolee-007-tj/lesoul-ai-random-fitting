@@ -5,6 +5,7 @@ import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
 import { isStylistEligible } from "../shared/productAvailability";
+import { resolveCatalogDisplay } from "../shared/catalogDisplay";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -73,7 +74,7 @@ export async function getCatalog() {
   if (!db) throw new Error("The catalog is temporarily unavailable.");
   await ensureCatalog();
   const [catalogProducts, catalogPoses, catalogBackgrounds, catalogStylePresets] = await Promise.all([db.select().from(products), db.select().from(poses), db.select().from(backgrounds), db.select().from(stylePresets).where(eq(stylePresets.isActive, 1))]);
-  return { products: catalogProducts, poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets };
+  return { products: resolveCatalogDisplay(catalogProducts), poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets };
 }
 
 export async function getActiveStylistProducts(includePreorder = false) {

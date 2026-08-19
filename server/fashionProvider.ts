@@ -85,9 +85,31 @@ function buildGarmentProportionGuide(clothing: FashionGarment[]) {
         : garment.category === "dress"
           ? "Keep shoulder, waist, hip, sleeve, and hem placement proportionate to the fixed torso and legs."
           : "Keep the recorded scale proportionate to the fixed body and scene.";
-    return `SAVED MEASUREMENT GUIDE ${index + 1} (${garment.name}): ${saved}. ${placement}`;
+    return `PRODUCT PHYSICAL MEASUREMENTS ${index + 1} (${garment.name}): ${saved}. ${placement}`;
   }).filter((value): value is string => Boolean(value)).join("\n");
-  return guidance ? `${guidance}\nMEASUREMENT SAFETY: render saved measurements as visual proportion guidance only, not as an exact physical try-on, size guarantee, or measurement label in the image.` : "";
+  return guidance ? `${guidance}\nPHYSICAL SCALE AUTHORITY: entered centimeter measurements are the fixed physical dimensions of this garment. The reference photo defines design, fabric, colour, pattern, and details only; its crop, camera distance, perspective, resolution, and apparent pixel size never define garment length or width. Do not lengthen, shorten, widen, narrow, or normalize a deliberately cropped, long, oversized, narrow, or unusual garment toward conventional fashion proportions.` : "";
+}
+
+function buildRelativePhysicalFitInstructions(body: BodyMeasurements | undefined, clothing: FashionGarment[]) {
+  if (!body) return "";
+  const height = safeCentimeters(body.height);
+  return clothing.map((garment, index) => {
+    const measurements = garment.garmentMeasurements;
+    const totalLength = safeCentimeters(measurements?.totalLengthCm);
+    const inseam = safeCentimeters(measurements?.inseamCm);
+    if (garment.category === "bottom" && height && (totalLength || inseam)) {
+      const length = totalLength ?? inseam!;
+      const ratio = length / height;
+      const appearance = ratio < 0.5 ? "intentionally cropped above the ankle" : ratio < 0.57 ? "a visibly shortened / 7/8-length trouser" : ratio > 0.66 ? "a deliberately long trouser" : "the intended regular trouser length";
+      return `RELATIVE PHYSICAL FIT ${index + 1}: ${length}cm bottom on a ${height}cm model must read as ${appearance}. Preserve this measured hem placement; do not extend the hem merely because the product photo is close-cropped or aesthetically appears long.`;
+    }
+    if ((garment.category === "top" || garment.category === "outer" || garment.category === "dress") && height && totalLength) {
+      const ratio = totalLength / height;
+      const appearance = ratio < 0.31 ? "clearly cropped" : ratio > 0.52 ? "intentionally long" : "the intended regular length";
+      return `RELATIVE PHYSICAL FIT ${index + 1}: ${totalLength}cm ${garment.category} on a ${height}cm model must read as ${appearance}. Keep the measured hem position and do not turn it into a conventional length.`;
+    }
+    return `RELATIVE PHYSICAL FIT ${index + 1}: preserve the recorded garment dimensions against the fixed body dimensions; do not use the apparent scale of the reference photo as a fit input.`;
+  }).join("\n");
 }
 
 export type FashionLookRequest = {
@@ -134,10 +156,11 @@ export function buildClothingPreservationPrompt(request: FashionLookRequest) {
   const measurements = request.bodyMeasurements ? `Fixed body measurements: Height ${request.bodyMeasurements.height}cm, Shoulder width ${request.bodyMeasurements.shoulderWidth}cm, Chest ${request.bodyMeasurements.chest ?? "not provided"}cm, Waist ${request.bodyMeasurements.waist ?? "not provided"}cm, Hip ${request.bodyMeasurements.hip ?? "not provided"}cm. Maintain this original body volume and proportions; never slim, reshape, or shrink the body to make a garment fit.` : "";
   const bodyProportionGuide = buildBodyProportionGuide(request.bodyMeasurements);
   const garmentProportionGuide = buildGarmentProportionGuide(request.clothing);
+  const relativePhysicalFit = buildRelativePhysicalFitInstructions(request.bodyMeasurements, request.clothing);
   const fitNotes = request.bodyMeasurements ? request.clothing.map((garment) => assessFit({ bustCm: request.bodyMeasurements!.chest, waistCm: request.bodyMeasurements!.waist, hipCm: request.bodyMeasurements!.hip, shoulderCm: request.bodyMeasurements!.shoulderWidth }, garment.garmentMeasurements, garment.category, garment.stretchLevel ?? "low", garment.fit ?? "regular")).map((fit, index) => `Garment ${index + 1} Fit Engine: ${fit.status}. ${fit.visualInstruction}`).join("\n") : "";
   const identity = request.modelReference ? `Base model reference is supplied as the first image. Character lock: keep the same generated woman, facial geometry, ${request.modelReference.appearance?.hairLength ?? ""} ${request.modelReference.appearance?.hairStyle ?? ""} hair, ${request.modelReference.appearance?.hairColor ?? ""} hair color, ${request.modelReference.appearance?.skinTone ?? ""} skin tone, and fixed body proportions from ${request.modelReference.modelKey} v${request.modelReference.version}. Only clothing, pose, and scene may change.` : "";
   const garmentLocks = request.clothing.map((garment, index) => `GARMENT LOCK ${index + 1}: ${garment.category.toUpperCase()} — ${garment.name}. This exact selected item must be visible as its correct layer; do not omit, replace, recolor, crop away, or substitute it.${garment.category === "bottom" ? " Bottom/denim lock: preserve the supplied waist, rise, leg width, inseam, wash, pockets, hem, and silhouette exactly." : ""}`).join("\n");
-  return `A photorealistic fashion editorial of a person wearing EXACTLY these selected LESOUL products:\n${garmentDescriptions}\n${garmentLocks}\nPOSE LOCK — non-negotiable: reproduce the selected pose exactly: ${request.pose.name} — ${request.pose.promptKeyword}. Do not substitute a standing pose, crop the pose, or alter the intended body orientation.\nBACKGROUND LOCK — non-negotiable: render the selected background scene: ${request.background.name} — ${request.background.promptKeyword}. Do not replace it with a studio, blank backdrop, unrelated street, or generic scene.\n${identity}\n${measurements}\n${bodyProportionGuide}\n${garmentProportionGuide}\n${fitNotes}\nCRITICAL REFERENCE COMPLIANCE: every selected garment must remain visually identifiable from its supplied reference images, especially the selected bottom or denim. Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
+  return `A photorealistic fashion editorial of a person wearing EXACTLY these selected LESOUL products:\n${garmentDescriptions}\n${garmentLocks}\nPOSE LOCK — non-negotiable: reproduce the selected pose exactly: ${request.pose.name} — ${request.pose.promptKeyword}. Do not substitute a standing pose, crop the pose, or alter the intended body orientation.\nBACKGROUND LOCK — non-negotiable: render the selected background scene: ${request.background.name} — ${request.background.promptKeyword}. Do not replace it with a studio, blank backdrop, unrelated street, or generic scene.\n${identity}\n${measurements}\n${bodyProportionGuide}\n${garmentProportionGuide}\n${relativePhysicalFit}\n${fitNotes}\nABSOLUTE PHYSICAL FIT RULE: BODY MEASUREMENTS are fixed. PRODUCT MEASUREMENTS are fixed. PHOTO SCALE IS NOT PHYSICAL SCALE. Fit appearance must result from these two fixed physical inputs. Never reshape the body to make an item fit, and never alter the garment dimensions to make the outfit conventionally flattering.\nCRITICAL REFERENCE COMPLIANCE: every selected garment must remain visually identifiable from its supplied reference images, especially the selected bottom or denim. Clothing must look identical to the referenced product images. Preserve fabric texture, length, width, neckline, sleeves, color, pattern, buttons, seams, and construction details. ${adjustmentNote}\n${CLOTHING_NEGATIVE_PROMPT}`;
 }
 
 export function buildQuickFitPreservationPrompt(request: FashionLookRequest) {

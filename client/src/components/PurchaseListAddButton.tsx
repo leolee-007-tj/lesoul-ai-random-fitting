@@ -1,10 +1,11 @@
 import { usePurchaseList } from "@/contexts/PurchaseListContext";
 import { trpc } from "@/lib/trpc";
+import type { CatalogDisplaySettings } from "@shared/catalogDisplay";
 import { Check, ClipboardPlus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-type ProductInput = { id: number; name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; imageUrl: string; price: number; sizeOptions?: Array<{ label: string; available?: boolean }> | null; recommendedSize?: string | null; availabilityStatus?: "AVAILABLE" | "SOLD_OUT" | "PREORDER" | null; status?: string | null };
+type ProductInput = { id: number; name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; imageUrl: string; price: number; catalogDisplay?: (CatalogDisplaySettings & { effectiveScale?: number | null }) | null; sizeOptions?: Array<{ label: string; available?: boolean }> | null; recommendedSize?: string | null; availabilityStatus?: "AVAILABLE" | "SOLD_OUT" | "PREORDER" | null; status?: string | null };
 
 export default function PurchaseListAddButton({ product, source = "detail", className = "" }: { product: ProductInput; source?: "ai_fitting" | "quick_fit" | "catalog" | "detail"; className?: string }) {
   const config = trpc.purchase.config.useQuery(); const { addItem, items } = usePurchaseList(); const { i18n } = useTranslation(); const [added, setAdded] = useState(false);
@@ -15,5 +16,5 @@ export default function PurchaseListAddButton({ product, source = "detail", clas
   const availability = product.availabilityStatus ?? (product.status === "sold_out" ? "SOLD_OUT" : "AVAILABLE"); const soldOut = availability === "SOLD_OUT"; const reservation = availability === "PREORDER";
   const alreadyListed = items.some((item) => item.productId === product.id && item.selectedSize === selectedSize);
   const limitReached = !alreadyListed && items.length >= (config.data?.maxItems ?? 10);
-  return <button disabled={limitReached || soldOut} onClick={(event) => { event.stopPropagation(); addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageUrl, selectedSize, availableSizes: sizes, recommendedSize: product.recommendedSize, currentPrice: product.price, purchaseType: reservation ? "RESERVATION" : "NORMAL", source }); setAdded(true); window.setTimeout(() => setAdded(false), 1800); }} className={`inline-flex items-center justify-center gap-1 rounded-xl bg-black px-3 py-2 text-[10px] font-bold text-white transition active:scale-[.97] disabled:opacity-40 ${className}`}>{added ? <Check size={13} /> : <ClipboardPlus size={13} />}{soldOut ? copy.sold : limitReached ? copy.limit : added ? copy.added : reservation ? copy.reserve : copy.add}</button>;
+  return <button disabled={limitReached || soldOut} onClick={(event) => { event.stopPropagation(); addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize, availableSizes: sizes, recommendedSize: product.recommendedSize, currentPrice: product.price, purchaseType: reservation ? "RESERVATION" : "NORMAL", source }); setAdded(true); window.setTimeout(() => setAdded(false), 1800); }} className={`inline-flex items-center justify-center gap-1 rounded-xl bg-black px-3 py-2 text-[10px] font-bold text-white transition active:scale-[.97] disabled:opacity-40 ${className}`}>{added ? <Check size={13} /> : <ClipboardPlus size={13} />}{soldOut ? copy.sold : limitReached ? copy.limit : added ? copy.added : reservation ? copy.reserve : copy.add}</button>;
 }
