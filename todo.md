@@ -452,3 +452,8 @@
 - [x] Audit how the selected LOOK ID travels from a Stylist recommendation card into the QUICK FIT generation screen.
 - [x] Add localized selected and generating states to the recommendation card, including a high-contrast selected border and visible check badge.
 - [x] Verify keyboard, touch, mobile layout, and generation state preservation; add regression coverage, checkpoint, and publish.
+
+## QUICK FIT explicit three-step order
+- [x] Confirm the selected LOOK state, display-style controls, and generation mutation ordering after the automatic-selection change.
+- [x] Preserve the selected-card border and badge while removing automatic generation from LOOK selection.
+- [x] Make the expression-style step visibly required before the explicit generate action, then add regression coverage, checkpoint, and publish.

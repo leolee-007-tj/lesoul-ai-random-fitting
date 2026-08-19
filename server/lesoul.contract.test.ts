@@ -140,9 +140,10 @@ describe("customer-facing UX cleanup contract", () => {
     expect(result).toContain("<ProductDetailScreen productId={detailId}");
   });
 
-  it("starts QUICK FIT generation directly when a Stylist look is selected", () => {
+  it("keeps QUICK FIT in an explicit select-look, choose-display, then generate order", () => {
     const quickFit = readFileSync(new URL("../client/src/pages/QuickFit.tsx", import.meta.url), "utf8");
-    expect(quickFit).toContain("void generateQuickFit(selectedProducts, selection.selectedLookId, selection.styleName)");
+    expect(quickFit).not.toContain("void generateQuickFit(selectedProducts, selection.selectedLookId, selection.styleName)");
+    expect(quickFit).toContain("onClick={() => generateQuickFit()}");
     expect(quickFit).toContain('id="quick-fit-generate"');
     expect(quickFit).toContain('scrollIntoView({ behavior: "smooth", block: "center" })');
     expect(quickFit).toContain('aria-live="polite"');
