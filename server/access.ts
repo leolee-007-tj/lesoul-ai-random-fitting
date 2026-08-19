@@ -2,6 +2,7 @@ import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { getDb } from "./db";
 import { generationFeedback, generationLogs, redeemCodes, releaseSettings, visitorEntitlements } from "../drizzle/schema";
+import { normaliseAvailabilityStatus } from "../shared/productAvailability";
 
 export type ReleaseMode = "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE";
 export type CatalogTier = "beta" | "basic" | "full";
@@ -65,8 +66,8 @@ export async function canGenerate(visitorId: string): Promise<AccessDecision> {
   return remaining > 0 ? { allowed: true, releaseMode, catalogTier: entitlement.catalogTier, remaining, isVip: false } : { allowed: false, reason: "redeem_exhausted", releaseMode, catalogTier: entitlement.catalogTier, remaining: 0, isVip: false };
 }
 
-export function selectVisibleProducts<T extends { status: string; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number) {
-  const eligible = items.filter((item) => item.status === "in_stock" && (tier === "full" || item.catalogTier === tier || item.catalogTier === "beta"));
+export function selectVisibleProducts<T extends { status: string; isActive?: number; availabilityStatus?: "AVAILABLE" | "SOLD_OUT" | "PREORDER"; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number) {
+  const eligible = items.filter((item) => item.isActive !== 0 && normaliseAvailabilityStatus(item.availabilityStatus, item.status) === "AVAILABLE" && (tier === "full" || item.catalogTier === tier || item.catalogTier === "beta"));
   if (tier !== "beta") return eligible;
   const sorted = [...eligible].sort((a, b) => b.isFeatured - a.isFeatured || b.featuredPriority - a.featuredPriority || a.category.localeCompare(b.category));
   const categoryFirst = ["top", "bottom", "dress", "outer"].flatMap((category) => sorted.find((item) => item.category === category) ?? []);

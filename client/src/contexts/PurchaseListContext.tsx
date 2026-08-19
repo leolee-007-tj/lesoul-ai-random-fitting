@@ -12,6 +12,7 @@ export type PurchaseListItem = {
   recommendedSize?: string | null;
   quantity: number;
   currentPrice: number;
+  purchaseType?: "NORMAL" | "RESERVATION";
   source?: "ai_fitting" | "quick_fit" | "catalog" | "detail";
 };
 
@@ -51,7 +52,7 @@ export function PurchaseListProvider({ children }: { children: ReactNode }) {
     addItem: (input) => {
       const quantity = Math.max(1, input.quantity ?? 1);
       const existing = items.find((item) => item.productId === input.productId && item.selectedSize === input.selectedSize);
-      const next = existing ? items.map((item) => item === existing ? { ...item, quantity: Math.min(99, item.quantity + quantity), currentPrice: input.currentPrice } : item) : [...items, { ...input, quantity }];
+      const next = existing ? items.map((item) => item === existing ? { ...item, quantity: Math.min(99, item.quantity + quantity), currentPrice: input.currentPrice, purchaseType: input.purchaseType ?? item.purchaseType ?? "NORMAL" } : item) : [...items, { ...input, purchaseType: input.purchaseType ?? "NORMAL", quantity }];
       commit(next);
       window.dispatchEvent(new CustomEvent("lesoul-purchase", { detail: { event: "purchase_list_item_added", productId: input.productId, timestamp: Date.now() } }));
     },

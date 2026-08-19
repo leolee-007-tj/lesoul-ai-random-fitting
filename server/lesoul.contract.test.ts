@@ -164,7 +164,7 @@ describe("customer-facing UX cleanup contract", () => {
     const browse = readFileSync(new URL("../client/src/pages/BrowseProducts.tsx", import.meta.url), "utf8");
     const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
     expect(catalog).toContain("browseProducts: publicProcedure");
-    expect(catalog).toContain('product.status === "in_stock"');
+    expect(catalog).toContain("product.isActive !== 0");
     expect(browse).toContain("trpc.catalog.browseProducts.useQuery()");
     expect(browse).toContain("<ProductDetailScreen productId={detailId} browseAll");
     expect(home).toContain('navigate("/catalog")');
@@ -203,5 +203,26 @@ describe("customer-facing UX cleanup contract", () => {
     expect(card).toContain("purchaseNoticeKo");
     expect(notices).toContain("purchaseMode: config.data.purchaseMode");
     expect(notices).toContain("send it to LESOUL via WeChat");
+  });
+
+  it("separates public visibility from selling availability, supports NEW and reservation purchase, and excludes unavailable items from AI Stylist by default", () => {
+    const schema = readFileSync(new URL("../drizzle/schema.ts", import.meta.url), "utf8");
+    const manager = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx", import.meta.url), "utf8");
+    const availability = readFileSync(new URL("../shared/productAvailability.ts", import.meta.url), "utf8");
+    const purchase = readFileSync(new URL("./routers/purchase.ts", import.meta.url), "utf8");
+    const stylist = readFileSync(new URL("./routers/stylist.ts", import.meta.url), "utf8");
+    const context = readFileSync(new URL("../client/src/contexts/PurchaseListContext.tsx", import.meta.url), "utf8");
+    const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
+    expect(schema).toContain('availabilityStatus: mysqlEnum("availabilityStatus", ["AVAILABLE", "SOLD_OUT", "PREORDER"])');
+    expect(schema).toContain('isNew: int("isNew").default(0)');
+    expect(schema).toContain('stylistIncludePreorder: int("stylistIncludePreorder").default(0)');
+    expect(manager).toContain('availabilityStatus: "AVAILABLE"');
+    expect(manager).toContain('value={draft.availabilityStatus}');
+    expect(availability).toContain("NEW_BADGE_DAYS = 14");
+    expect(purchase).toContain('product.availabilityStatus === "SOLD_OUT"');
+    expect(purchase).toContain('purchaseType: product.availabilityStatus === "PREORDER"');
+    expect(stylist).toContain("getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))");
+    expect(context).toContain('purchaseType?: "NORMAL" | "RESERVATION"');
+    expect(home).toContain("NEW ARRIVALS");
   });
 });

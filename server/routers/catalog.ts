@@ -28,11 +28,11 @@ export const catalogRouter = router({
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
     return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
   }),
-  browseProducts: publicProcedure.query(async () => (await getCatalog()).products.filter((product) => product.status === "in_stock").map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
+  browseProducts: publicProcedure.query(async () => (await getCatalog()).products.filter((product) => product.isActive !== 0).map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
   productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional(), browseAll: z.boolean().optional() })).query(async ({ input }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    const visibleProducts = input.browseAll ? catalog.products.filter((item) => item.status === "in_stock") : selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit);
+    const visibleProducts = input.browseAll ? catalog.products.filter((item) => item.isActive !== 0) : selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit);
     const product = visibleProducts.find((item) => item.id === input.productId);
     if (!product) return { status: "not_found" as const, product: null };
     const purchaseStatus = getPurchaseAvailability({ exists: true, enabled: Boolean(settings.purchaseQrEnabled), status: product.status, purchaseQrUrl: product.purchaseQrUrl });
@@ -42,7 +42,7 @@ export const catalogRouter = router({
       product: {
         id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh,
         brand: product.brand, category: product.category, season: product.season, color: product.color, style: product.style,
-        status: product.status, price: product.price, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
+        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
         description: product.description, descriptionEn: product.descriptionEn, descriptionKo: product.descriptionKo, descriptionZh: product.descriptionZh,
         garmentMeasurements: product.garmentMeasurements, sizeOptions: product.sizeOptions, stretchLevel: product.stretchLevel,
       },

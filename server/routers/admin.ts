@@ -5,6 +5,7 @@ import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
+import { legacyStatusForAvailability, normaliseAvailabilityStatus } from "../../shared/productAvailability";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -17,6 +18,10 @@ const productInput = z.object({
   color: z.string().min(1).max(80),
   style: z.string().min(1).max(200),
   status: z.enum(["in_stock", "sold_out"]),
+  isActive: z.number().int().min(0).max(1).optional(),
+  availabilityStatus: z.enum(["AVAILABLE", "SOLD_OUT", "PREORDER"]).optional(),
+  isNew: z.number().int().min(0).max(1).optional(),
+  newArrivalAt: z.date().nullable().optional(),
   price: z.number().int().min(0),
   imageUrl: z.string().min(1),
   images: z.array(z.string().min(1)).max(6).optional(),
@@ -57,10 +62,10 @@ export const adminRouter = router({
   products: protectedProcedure.query(async () => (await getCatalog()).products),
   stats: ownerProcedure.query(getAdminStats),
   releaseConfig: ownerProcedure.query(getReleaseSettings),
-  updateReleaseConfig: ownerProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"]).optional(), purchaseListMaxItems: z.number().int().min(1).max(20).optional(), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional() })).mutation(async ({ input }) => {
+  updateReleaseConfig: ownerProcedure.input(z.object({ releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"]).optional(), purchaseListMaxItems: z.number().int().min(1).max(20).optional(), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional(), stylistIncludePreorder: z.number().int().min(0).max(1).optional() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("Release settings are temporarily unavailable.");
     const current = await getReleaseSettings();
-    const update = { ...input, betaFreeGenerationAllowance: input.betaFreeGenerationAllowance ?? current.betaFreeGenerationAllowance, purchaseMode: input.purchaseMode ?? current.purchaseMode, purchaseListMaxItems: input.purchaseListMaxItems ?? current.purchaseListMaxItems, purchaseQrEnabled: input.purchaseQrEnabled ?? current.purchaseQrEnabled, purchaseNoticeEn: input.purchaseNoticeEn ?? current.purchaseNoticeEn, purchaseNoticeKo: input.purchaseNoticeKo ?? current.purchaseNoticeKo, purchaseNoticeZh: input.purchaseNoticeZh ?? current.purchaseNoticeZh };
+    const update = { ...input, betaFreeGenerationAllowance: input.betaFreeGenerationAllowance ?? current.betaFreeGenerationAllowance, purchaseMode: input.purchaseMode ?? current.purchaseMode, purchaseListMaxItems: input.purchaseListMaxItems ?? current.purchaseListMaxItems, purchaseQrEnabled: input.purchaseQrEnabled ?? current.purchaseQrEnabled, purchaseNoticeEn: input.purchaseNoticeEn ?? current.purchaseNoticeEn, purchaseNoticeKo: input.purchaseNoticeKo ?? current.purchaseNoticeKo, purchaseNoticeZh: input.purchaseNoticeZh ?? current.purchaseNoticeZh, stylistIncludePreorder: input.stylistIncludePreorder ?? current.stylistIncludePreorder };
     await db.insert(releaseSettings).values({ id: 1, ...update }).onDuplicateKeyUpdate({ set: update });
     return getReleaseSettings();
   }),
@@ -87,12 +92,14 @@ export const adminRouter = router({
     return JSON.parse(content) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
-    await createAdminProduct({ ...input, brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, stretchLevel: input.stretchLevel ?? "low" });
+    const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
+    await createAdminProduct({ ...input, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
   updateProduct: protectedProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
-    await updateAdminProduct(id, { ...updates, ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
+    const availabilityStatus = updates.availabilityStatus ? normaliseAvailabilityStatus(updates.availabilityStatus, updates.status) : undefined;
+    await updateAdminProduct(id, { ...updates, ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
   }),
   deleteProduct: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {

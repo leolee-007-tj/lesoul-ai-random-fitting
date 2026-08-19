@@ -477,3 +477,12 @@
 - [x] Replace public QR payment language and direct QR checkout entry with Add to List and Purchase List actions while retaining manual WeChat inventory/final-price guidance.
 - [x] Build a vertical saveable Purchase Request Card containing visible product photos, selected size, quantity, reference price, item total, request number, and localized WeChat instructions; do not process payment or send WeChat messages automatically.
 - [x] Verify EN/KO/ZH states, F-size behavior, persisted cart/order-card data, mobile layouts, QR backward compatibility, permissions, tests, checkpoint, and publish.
+
+## Inventory status, new arrivals, and simple reservation
+- [x] Audit the attached inventory-status requirements against active/inactive catalog visibility, product CRUD, AI Stylist eligibility, public catalog, Home, purchase list, and request-card behavior.
+- [x] Add backward-compatible availability status (AVAILABLE/SOLD_OUT/PREORDER), isNew, and newArrivalAt data through the product schema, non-destructive migration, Product Manager create/update, and product seed defaults.
+- [x] Exclude SOLD_OUT and PREORDER products from new AI Stylist recommendation candidates while preserving them in prior LOOK snapshots and displaying their current status when refreshed.
+- [x] Add localized premium SOLD OUT, NEW, and PREORDER badges; disable purchase-list addition for SOLD_OUT, and add PREORDER items to the existing purchase list as reservation items.
+- [x] Add a compact Home New Arrivals horizontal section sorted by latest arrival, preserve AI Fitting/Quick Fit priority, and store a local latest-seen marker without creating a user-reading database.
+- [x] Render reservation labels in purchase list and saved Purchase Request Card with differentiated WeChat guidance; preserve normal current-price/recheck behavior and do not add payment, deposits, or a separate reservation database.
+- [x] Verify EN/KO/ZH text, Product Manager controls, active versus sold-out/preorder visibility, AI Stylist eligibility, NEW ordering, size/FREE behavior, request-card saving, mobile layout, tests, checkpoint, and publish.

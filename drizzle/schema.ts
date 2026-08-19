@@ -26,6 +26,11 @@ export const products = mysqlTable("products", {
   color: varchar("color", { length: 80 }).notNull(),
   style: varchar("style", { length: 200 }).notNull(),
   status: mysqlEnum("status", ["in_stock", "sold_out"]).default("in_stock").notNull(),
+  /** Public catalog visibility remains separate from current sales availability. */
+  isActive: int("isActive").default(1).notNull(),
+  availabilityStatus: mysqlEnum("availabilityStatus", ["AVAILABLE", "SOLD_OUT", "PREORDER"]).default("AVAILABLE").notNull(),
+  isNew: int("isNew").default(0).notNull(),
+  newArrivalAt: timestamp("newArrivalAt"),
   price: int("price").notNull(),
   imageUrl: text("imageUrl").notNull(),
   images: json("images").$type<string[]>(),
@@ -118,6 +123,7 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   purchaseNoticeEn: text("purchaseNoticeEn"),
   purchaseNoticeKo: text("purchaseNoticeKo"),
   purchaseNoticeZh: text("purchaseNoticeZh"),
+  stylistIncludePreorder: int("stylistIncludePreorder").default(0).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
