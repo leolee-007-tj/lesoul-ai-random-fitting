@@ -225,4 +225,21 @@ describe("customer-facing UX cleanup contract", () => {
     expect(context).toContain('purchaseType?: "NORMAL" | "RESERVATION"');
     expect(home).toContain("NEW ARRIVALS");
   });
+
+  it("keeps visual-reference and actual-measurement guidance concise across result, detail, list, and saved request surfaces", () => {
+    const notice = readFileSync(new URL("../client/src/components/FitReferenceNotice.tsx", import.meta.url), "utf8");
+    const result = readFileSync(new URL("../client/src/components/LookResultPanel.tsx", import.meta.url), "utf8");
+    const detail = readFileSync(new URL("../client/src/components/ProductDetailScreen.tsx", import.meta.url), "utf8");
+    const list = readFileSync(new URL("../client/src/pages/PurchaseList.tsx", import.meta.url), "utf8");
+    const card = readFileSync(new URL("../client/src/components/PurchaseRequestCard.tsx", import.meta.url), "utf8");
+    const provider = readFileSync(new URL("./fashionProvider.ts", import.meta.url), "utf8");
+    expect(notice).toContain("AI fitting images are for visual reference only");
+    expect(notice).toContain("실제 핏과 차이가 있을 수 있으니");
+    expect(notice).toContain("AI试穿效果仅供穿搭参考");
+    expect(result).toContain('context="result"');
+    expect(detail).toContain('context="detail"');
+    expect(list).toContain('context="purchase"');
+    expect(card).toContain('context="request"');
+    expect(provider).toContain("PHYSICAL SCALE AUTHORITY");
+  });
 });

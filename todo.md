@@ -495,3 +495,10 @@
 - [x] Add Product Manager controls for automatic versus manual card display scale and safe object positioning, retaining existing image uploads and product data.
 - [x] Apply the normalized container-scale presentation to public catalog, Home new arrivals, AI FITTING result cards, QUICK FIT editorial cards, and purchase-list/request-card thumbnails without pixel stretching or use in generation prompts.
 - [x] Verify EN/KO/ZH user copy, mobile and desktop cards, missing measurements, extreme cropped/long examples, physical-fit prompt priority, tests, migration, checkpoint, and publish.
+
+## Customer fit and measurement notice
+- [x] Audit existing measurement copy and entry points in AI Fitting results, product cards, product detail, purchase list, and purchase request card.
+- [x] Add a compact EN/KO/ZH visual-reference notice beneath AI Fitting results without weakening the internal measurement-first Fit Engine.
+- [x] Show only one or two category-relevant measurement values on cards with a clear detail path, and add a quiet product-detail notice above the full real-cm grid.
+- [x] Add short purchase-list and saved purchase-request-card measurement reminders, preserving WeChat manual request guidance and avoiding alert styling.
+- [x] Verify EN/KO/ZH text, result/detail/list/request-card layouts, Fit Engine physical authority, tests, checkpoint, and publish.
