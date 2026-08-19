@@ -541,14 +541,14 @@
 - [x] Audit and replace customer-facing hardcoded status, loading, empty, error, warning, and purchase-flow text in the touched catalog, detail, Style Match, and purchase surfaces with existing i18n resources.
 - [x] Add regression coverage for independent availability and new-arrival states, customer filtering, AI eligibility, locale fallbacks, and existing AI/purchase flows; verify mobile UI, build, checkpoint, and publish.
 
-## WeChat-first account, permissions, and user analytics
-- [ ] Audit the existing Manus OAuth identity, users schema, visitor entitlements, purchase-list persistence, AI usage events, role capability controller, and administrator operations dashboard against the WeChat-first specification.
-- [ ] Save a stable checkpoint before introducing the WeChat login adapter and request the official WeChat AppID, AppSecret, and callback URI through secure configuration; never simulate a successful WeChat login.
-- [ ] Extend the existing user account model and auth adapter for provider-backed WeChat identity, stable identifier deduplication, account creation or lookup, last-login and last-active tracking without fabricating personal data.
-- [ ] Enforce login before AI Style Match, VIP AI, purchase-list, and other personal flows while preserving public product browsing and the existing central ADMIN/VIP/NORMAL capability policy.
-- [ ] Link authenticated account IDs to AI usage, VIP redemption, purchase-list activity, and existing access analytics without duplicating authorization logic in screens.
-- [ ] Expand administrator user analytics and user detail views with real registered-user counts, active-user periods, VIP status, feature usage, redemption source, and purchase-list activity distinct from visitors.
-- [ ] Add complete EN/KO/ZH login, configuration, error, account, dashboard, and user-management copy; test real configured OAuth readiness, logged-out protection, role paths, analytics, existing AI/purchase regression, checkpoint, and publish.
+## WeChat-first account, permissions, and user analytics — deferred by user
+- [x] Defer the WeChat-first audit and implementation because the user explicitly selected the NORMAL `lesoul / 8888` shared-test login for the current release.
+- [x] Defer official AppID, AppSecret, and callback URI configuration until WeChat OAuth is resumed; no simulated WeChat login is present.
+- [x] Preserve the existing user model and leave provider-backed WeChat identity, account linking, migration, and related analytics as a future implementation phase.
+- [x] Deliver login protection for AI Style Match, VIP AI, purchase-list, and other personal flows through the selected test-login architecture while preserving public product browsing and central ADMIN/VIP/NORMAL policy.
+- [x] Preserve VIP redemption, account-based AI usage, and purchase activity under existing unique authenticated user IDs; no WeChat account claim has been made.
+- [x] Retain the existing administrator analytics surface without fabricating WeChat user analytics or records.
+- [x] Add complete EN/KO/ZH test-login copy and verify logged-out protection, role paths, existing AI/purchase regression, checkpoint, and publish; defer WeChat-specific copy and OAuth readiness tests.
 
 ## Shared test login with browser-scoped visitor ownership
 - [x] Stop the unconfigured WeChat OAuth implementation path and audit existing session, visitor ID, My Looks, purchase list, AI usage, recommendation history, saved-look deletion, and administrator authorization flows.
