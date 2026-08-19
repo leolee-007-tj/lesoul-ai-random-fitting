@@ -147,4 +147,13 @@ describe("customer-facing UX cleanup contract", () => {
     expect(quickFit).toContain('scrollIntoView({ behavior: "smooth", block: "center" })');
     expect(quickFit).toContain('aria-live="polite"');
   });
+
+  it("marks the selected QUICK FIT recommendation with a high-contrast border and check badge", () => {
+    const stylist = readFileSync(new URL("../client/src/components/StylistPanel.tsx", import.meta.url), "utf8");
+    expect(stylist).toContain("const [selectedLookId, setSelectedLookId]");
+    expect(stylist).toContain('setSelectedLookId(recommendation.lookId)');
+    expect(stylist).toContain('border-black ring-2 ring-black/20');
+    expect(stylist).toContain("<Check size={10}");
+    expect(stylist).toContain('aria-pressed={isSelected}');
+  });
 });

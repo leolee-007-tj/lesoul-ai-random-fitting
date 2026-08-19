@@ -447,3 +447,8 @@
 - [x] Trace the QUICK FIT ‘select this look’ click handler, recommendation state, generation mutation, and visible error/loading transitions.
 - [x] Repair the selected-look handoff so a valid recommendation always starts the corresponding product-only editorial generation or exposes a localized actionable error.
 - [x] Add regression coverage and verify the mobile selection button moves into a clear generating/result state; checkpoint and publish.
+
+## QUICK FIT selected-look visual state
+- [x] Audit how the selected LOOK ID travels from a Stylist recommendation card into the QUICK FIT generation screen.
+- [x] Add localized selected and generating states to the recommendation card, including a high-contrast selected border and visible check badge.
+- [x] Verify keyboard, touch, mobile layout, and generation state preservation; add regression coverage, checkpoint, and publish.
