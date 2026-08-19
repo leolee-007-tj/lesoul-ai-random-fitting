@@ -47,7 +47,7 @@ export async function ensureCatalog() {
   }
   await Promise.all(demoProducts.map((item) => db.insert(products).values(item).onDuplicateKeyUpdate({ set: {
     category: item.category, season: item.season, color: item.color, style: item.style, status: item.status,
-    isActive: item.isActive ?? 1, availabilityStatus: item.availabilityStatus ?? (item.status === "sold_out" ? "SOLD_OUT" : "AVAILABLE"), isNew: item.isNew ?? 0, newArrivalAt: item.newArrivalAt ?? null,
+    isActive: item.isActive ?? 1, availabilityStatus: item.availabilityStatus ?? (item.status === "sold_out" ? "SOLD_OUT" : "IN_STOCK"), isNew: item.isNew ?? 0, newArrivalAt: item.newArrivalAt ?? null,
     price: item.price, imageUrl: item.imageUrl, images: item.images, imageViews: item.imageViews, description: item.description,
     nameEn: item.nameEn, nameKo: item.nameKo, nameZh: item.nameZh,
     descriptionEn: item.descriptionEn, descriptionKo: item.descriptionKo, descriptionZh: item.descriptionZh,

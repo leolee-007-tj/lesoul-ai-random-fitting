@@ -532,3 +532,11 @@
 - [x] Add central configurable normal-user AI Style Match allowance while removing irrelevant image-generation allowance exposure from normal-user UI; preserve VIP account-bound unlimited entitlement semantics and existing redeem-code security.
 - [x] Update localized HOME/menu/product-detail calls to action for each role, keeping Product Manager, Category Manager, Purchase Management, Operations, Redeem, and AI Settings administrative only.
 - [x] Verify server-bypass rejection, Admin/VIP/Normal menus and endpoints, 李瀛 identity reference handoff, Style Match active-stock filtering, recommendation refresh non-repetition, purchase-list handoff, EN/KO/ZH mobile layout, tests, checkpoint, and publish.
+
+## Product availability, new arrivals, and global customer i18n refinement
+- [x] Audit the existing availabilityStatus, legacy publication status, isNew flag, catalog filtering, AI eligibility, purchase policy, and localized customer text without adding a duplicate state model.
+- [x] Normalize the existing product availability semantics to IN STOCK, PRE-ORDER, SOLD OUT, and UNPUBLISHED while preserving all legacy products and administrator visibility.
+- [x] Complete localized availability badges, new-arrival controls, detail messages, purchase/reservation CTAs, and purchase-list states across EN, KO, and ZH.
+- [x] Ensure AI Style Match exposes product availability, excludes SOLD OUT and UNPUBLISHED items, and optionally includes PRE-ORDER only through the existing operations setting.
+- [x] Audit and replace customer-facing hardcoded status, loading, empty, error, warning, and purchase-flow text in the touched catalog, detail, Style Match, and purchase surfaces with existing i18n resources.
+- [x] Add regression coverage for independent availability and new-arrival states, customer filtering, AI eligibility, locale fallbacks, and existing AI/purchase flows; verify mobile UI, build, checkpoint, and publish.

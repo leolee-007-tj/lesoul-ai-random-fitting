@@ -74,7 +74,7 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "pur
     ...product,
     displayCategoryId: null,
     isActive: 1,
-    availabilityStatus: product.status === "sold_out" ? "SOLD_OUT" as const : "AVAILABLE" as const,
+    availabilityStatus: product.status === "sold_out" ? "SOLD_OUT" as const : "IN_STOCK" as const,
     isNew: 0,
     newArrivalAt: null,
     catalogDisplay: null,

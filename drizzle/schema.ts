@@ -43,7 +43,7 @@ export const products = mysqlTable("products", {
   status: mysqlEnum("status", ["in_stock", "sold_out"]).default("in_stock").notNull(),
   /** Public catalog visibility remains separate from current sales availability. */
   isActive: int("isActive").default(1).notNull(),
-  availabilityStatus: mysqlEnum("availabilityStatus", ["AVAILABLE", "SOLD_OUT", "PREORDER"]).default("AVAILABLE").notNull(),
+  availabilityStatus: mysqlEnum("availabilityStatus", ["IN_STOCK", "PRE_ORDER", "SOLD_OUT"]).default("IN_STOCK").notNull(),
   isNew: int("isNew").default(0).notNull(),
   newArrivalAt: timestamp("newArrivalAt"),
   price: int("price").notNull(),

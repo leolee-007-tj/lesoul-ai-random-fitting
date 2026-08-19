@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import ko from "./locales/ko.json";
 import zh from "./locales/zh.json";
+import { commerceResources } from "./commerceResources";
 
 export const supportedLanguages = ["en", "ko", "zh"] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
@@ -19,7 +20,11 @@ function resolveInitialLanguage(): SupportedLanguage {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { en: { translation: en }, ko: { translation: ko }, zh: { translation: zh } },
+  resources: {
+    en: { translation: { ...en, product: { ...(en as any).product, ...commerceResources.en.product }, home: { ...(en as any).home, ...commerceResources.en.home }, stylist: { ...(en as any).stylist, ...commerceResources.en.stylist }, common: { ...(en as any).common, ...commerceResources.en.common } } },
+    ko: { translation: { ...ko, product: { ...(ko as any).product, ...commerceResources.ko.product }, home: { ...(ko as any).home, ...commerceResources.ko.home }, stylist: { ...(ko as any).stylist, ...commerceResources.ko.stylist }, common: { ...(ko as any).common, ...commerceResources.ko.common } } },
+    zh: { translation: { ...zh, product: { ...(zh as any).product, ...commerceResources.zh.product }, home: { ...(zh as any).home, ...commerceResources.zh.home }, stylist: { ...(zh as any).stylist, ...commerceResources.zh.stylist }, common: { ...(zh as any).common, ...commerceResources.zh.common } } },
+  },
   lng: resolveInitialLanguage(),
   fallbackLng: "en",
   interpolation: { escapeValue: false },

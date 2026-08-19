@@ -22,7 +22,7 @@ const productInput = z.object({
   style: z.string().min(1).max(200),
   status: z.enum(["in_stock", "sold_out"]),
   isActive: z.number().int().min(0).max(1).optional(),
-  availabilityStatus: z.enum(["AVAILABLE", "SOLD_OUT", "PREORDER"]).optional(),
+  availabilityStatus: z.enum(["IN_STOCK", "PRE_ORDER", "SOLD_OUT"]).optional(),
   isNew: z.number().int().min(0).max(1).optional(),
   newArrivalAt: z.date().nullable().optional(),
   price: z.number().int().min(0),

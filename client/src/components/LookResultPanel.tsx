@@ -18,7 +18,7 @@ export type ResultProduct = {
   id: number; name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null;
   description?: string; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null;
   category: string; imageUrl: string; price: number; fit?: string | null; garmentMeasurements?: import("@shared/fitEngine").GarmentMeasurements | null;
-  stretchLevel?: import("@shared/fitEngine").StretchLevel; catalogDisplay?: import("@shared/catalogDisplay").CatalogDisplaySettings & { effectiveScale?: number | null }; sizeOptions?: import("@shared/fitEngine").GarmentSizeOption[] | null; purchaseQrUrl?: string | null; purchaseUrl?: string | null; purchasePlatform?: string | null; status?: string | null; availabilityStatus?: "AVAILABLE" | "SOLD_OUT" | "PREORDER" | null; isNew?: number | boolean | null; newArrivalAt?: Date | string | null;
+  stretchLevel?: import("@shared/fitEngine").StretchLevel; catalogDisplay?: import("@shared/catalogDisplay").CatalogDisplaySettings & { effectiveScale?: number | null }; sizeOptions?: import("@shared/fitEngine").GarmentSizeOption[] | null; purchaseQrUrl?: string | null; purchaseUrl?: string | null; purchasePlatform?: string | null; status?: string | null; availabilityStatus?: "AVAILABLE" | "PREORDER" | "IN_STOCK" | "PRE_ORDER" | "SOLD_OUT" | null; isNew?: number | boolean | null; newArrivalAt?: Date | string | null;
 };
 
 type ResultProps = {

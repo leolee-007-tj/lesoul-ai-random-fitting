@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { getDb } from "./db";
 import { generationFeedback, redeemCodes, visitorEntitlements } from "../drizzle/schema";
-import { normaliseAvailabilityStatus } from "../shared/productAvailability";
+import { normaliseAvailabilityStatus, type AvailabilityStatus } from "../shared/productAvailability";
 import { type AiActor, evaluateAiAccess, getCentralEntitlement, getCentralSettings } from "./aiUsageController";
 
 export type ReleaseMode = "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE";
@@ -34,8 +34,8 @@ export async function canGenerate(visitorId: string, actor?: AiActor): Promise<A
   return { allowed: decision.allowed, ...(decision.reason ? { reason: reasonMap[decision.reason] } : {}), releaseMode: decision.releaseMode, catalogTier: decision.catalogTier, remaining: decision.remaining, isVip: decision.isVip };
 }
 
-export function selectVisibleProducts<T extends { status: string; isActive?: number; availabilityStatus?: "AVAILABLE" | "SOLD_OUT" | "PREORDER"; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number) {
-  const eligible = items.filter((item) => item.isActive !== 0 && normaliseAvailabilityStatus(item.availabilityStatus, item.status) === "AVAILABLE" && (tier === "full" || item.catalogTier === tier || item.catalogTier === "beta"));
+export function selectVisibleProducts<T extends { status: string; isActive?: number; availabilityStatus?: AvailabilityStatus; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number) {
+  const eligible = items.filter((item) => item.isActive !== 0 && normaliseAvailabilityStatus(item.availabilityStatus, item.status) === "IN_STOCK" && (tier === "full" || item.catalogTier === tier || item.catalogTier === "beta"));
   if (tier !== "beta") return eligible;
   const sorted = [...eligible].sort((a, b) => b.isFeatured - a.isFeatured || b.featuredPriority - a.featuredPriority || a.category.localeCompare(b.category));
   const categoryFirst = ["top", "bottom", "dress", "outer"].flatMap((category) => sorted.find((item) => item.category === category) ?? []);

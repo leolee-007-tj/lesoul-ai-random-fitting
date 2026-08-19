@@ -10,6 +10,10 @@ const styleKey = z.enum(STYLE_PRESET_KEYS);
 
 export const stylistRouter = router({
   presets: publicProcedure.query(getActiveStylePresets),
+  products: publicProcedure.query(async () => {
+    const settings = await getReleaseSettings();
+    return getActiveStylistProducts(Boolean(settings.stylistIncludePreorder));
+  }),
   recommend: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), locale: z.enum(["en", "ko", "zh"]).default("en"), body: z.object({ bustCm: z.number().nullable().optional(), waistCm: z.number().nullable().optional(), hipCm: z.number().nullable().optional(), shoulderCm: z.number().nullable().optional() }).nullable().optional() })).query(async ({ input, ctx }) => {
     const actor = ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null;
     const startedAt = Date.now();
