@@ -18,6 +18,7 @@ import QuickFit from "./pages/QuickFit";
 import BrowseProducts from "./pages/BrowseProducts";
 import PurchaseList from "./pages/PurchaseList";
 import OperationsDashboard from "./pages/OperationsDashboard";
+import StyleMatch from "./pages/StyleMatch";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -36,6 +37,7 @@ function Router() {
       <Route path={"/release-control"} component={ReleaseControl} />
       <Route path={"/purchase-notices"} component={PurchaseNoticeManager} />
       <Route path={"/operations"} component={OperationsDashboard} />
+      <Route path={"/style-match"} component={StyleMatch} />
       <Route path={"/result-preview"} component={ResultPreview} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

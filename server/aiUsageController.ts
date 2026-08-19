@@ -1,11 +1,19 @@
 import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { ENV } from "./_core/env";
 import { getDb } from "./db";
-import { aiAccessBlocks, aiUsageEvents, generationLogs, releaseSettings, visitorEntitlements } from "../drizzle/schema";
+import { aiAccessBlocks, aiUsageEvents, generationLogs, releaseSettings, users, visitorEntitlements } from "../drizzle/schema";
 
-export type AiFeatureType = "AI_BODY_MODEL" | "AI_FITTING" | "QUICK_FIT" | "REGENERATION" | "AI_STYLIST";
+export type AiFeatureType = "AI_BODY_MODEL" | "AI_FITTING" | "LIYING_AI" | "QUICK_FIT" | "REGENERATION" | "AI_STYLIST";
 export type AiUsageOutcome = "SUCCESS" | "FAILED" | "CANCELLED" | "BLOCKED_BY_LIMIT" | "BLOCKED_BY_BUDGET" | "PAUSED";
-export type AiBlockReason = "paused" | "budget_limit" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "quota_exhausted";
+export type AiBlockReason = "paused" | "budget_limit" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "quota_exhausted" | "role_forbidden" | "style_match_disabled" | "style_match_quota";
+export type AiRole = "ADMIN" | "VIP" | "NORMAL";
+export type AiActor = { openId: string; role: "admin" | "user" } | null | undefined;
+
+export const ROLE_AI_PERMISSIONS = {
+  ADMIN: { quickAI: true, liyingAI: true, styleMatch: true, aiFitting: true, aiBodyModel: true, regeneration: true },
+  VIP: { quickAI: false, liyingAI: true, styleMatch: true, aiFitting: false, aiBodyModel: false, regeneration: false },
+  NORMAL: { quickAI: false, liyingAI: false, styleMatch: true, aiFitting: false, aiBodyModel: false, regeneration: false },
+} as const;
 
 export type AiAccessDecision = {
   allowed: boolean;
@@ -18,7 +26,7 @@ export type AiAccessDecision = {
   estimatedCostFen: number;
 };
 
-const imageFeatures: AiFeatureType[] = ["AI_BODY_MODEL", "AI_FITTING", "QUICK_FIT", "REGENERATION"];
+const imageFeatures: AiFeatureType[] = ["AI_BODY_MODEL", "AI_FITTING", "LIYING_AI", "QUICK_FIT", "REGENERATION"];
 const successfulStatus = ["SUCCESS"] as const;
 const billableRequestStatuses = ["REQUESTED", "SUCCESS", "FAILED", "CANCELLED"] as const;
 const startOfDay = () => { const value = new Date(); value.setUTCHours(0, 0, 0, 0); return value; };
@@ -47,12 +55,41 @@ export function estimatedFeatureCost(settings: Awaited<ReturnType<typeof getCent
     case "QUICK_FIT": return settings.quickFitEstimatedCostFen;
     case "REGENERATION": return settings.regenerationEstimatedCostFen;
     case "AI_FITTING": return settings.aiFittingEstimatedCostFen;
+    case "LIYING_AI": return settings.aiFittingEstimatedCostFen;
     case "AI_STYLIST": return 0;
   }
 }
 
-function isOwnerVisitor(visitorId: string) {
-  return visitorId === `account:${ENV.ownerOpenId}`;
+function featureCapability(feature: AiFeatureType) {
+  if (feature === "QUICK_FIT") return "quickAI" as const;
+  if (feature === "LIYING_AI") return "liyingAI" as const;
+  if (feature === "AI_STYLIST") return "styleMatch" as const;
+  if (feature === "AI_BODY_MODEL") return "aiBodyModel" as const;
+  if (feature === "REGENERATION") return "regeneration" as const;
+  return "aiFitting" as const;
+}
+
+async function resolveAiRole(visitorId: string, actor?: AiActor) {
+  const accountBound = Boolean(actor?.openId && visitorId === `account:${actor.openId}`);
+  const isAdmin = Boolean(actor && (actor.role === "admin" || actor.openId === ENV.ownerOpenId));
+  const entitlement = accountBound ? await getCentralEntitlement(visitorId) : undefined;
+  const isVip = Boolean(entitlement?.isUnlimited);
+  return { role: (isAdmin ? "ADMIN" : isVip ? "VIP" : "NORMAL") as AiRole, isAdmin, isVip, entitlement };
+}
+
+/** A read-only UI projection of the same server policy used by evaluateAiAccess. */
+export async function getAiRoleCapabilities(input: { visitorId: string; actor?: AiActor }) {
+  const [settings, resolved] = await Promise.all([getCentralSettings(), resolveAiRole(input.visitorId, input.actor)]);
+  const permissions = ROLE_AI_PERMISSIONS[resolved.role];
+  return {
+    role: resolved.role,
+    quickAI: permissions.quickAI && Boolean(settings.quickAiAdminOnly),
+    liyingAI: permissions.liyingAI && (resolved.isAdmin || Boolean(settings.liyingAiVipEnabled)),
+    styleMatch: permissions.styleMatch && (resolved.isAdmin || resolved.isVip || Boolean(settings.normalStyleMatchEnabled)),
+    aiFitting: permissions.aiFitting,
+    aiBodyModel: permissions.aiBodyModel,
+    regeneration: permissions.regeneration,
+  };
 }
 
 async function successfulGenerationCount(visitorId: string) {
@@ -76,17 +113,28 @@ async function pendingReservations(visitorId: string) {
   return rows.length;
 }
 
-export async function evaluateAiAccess(input: { visitorId: string; feature: AiFeatureType; skipQuota?: boolean }): Promise<AiAccessDecision> {
+async function successfulFeatureCount(visitorId: string, feature: AiFeatureType) {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), eq(aiUsageEvents.featureType, feature), eq(aiUsageEvents.status, "SUCCESS")));
+  return rows.length;
+}
+
+export async function evaluateAiAccess(input: { visitorId: string; feature: AiFeatureType; skipQuota?: boolean; actor?: AiActor }): Promise<AiAccessDecision> {
   const db = await getDb();
   if (!db) throw new Error("AI access service is temporarily unavailable.");
   const settings = await getCentralSettings();
-  const isAdmin = isOwnerVisitor(input.visitorId);
-  const entitlement = await getCentralEntitlement(input.visitorId);
-  const isVip = Boolean(entitlement?.isUnlimited);
+  const resolvedRole = await resolveAiRole(input.visitorId, input.actor);
+  const { isAdmin, isVip, entitlement } = resolvedRole;
   const releaseMode = settings.releaseMode;
   const catalogTier = entitlement?.catalogTier ?? (releaseMode === "BETA_PUBLIC" ? "beta" : "full");
   const estimatedCostFen = estimatedFeatureCost(settings, input.feature);
   const base = { releaseMode, catalogTier, isVip, isAdmin, estimatedCostFen } as const;
+  const capability = featureCapability(input.feature);
+  if (input.feature === "AI_STYLIST" && !settings.normalStyleMatchEnabled && !isAdmin) return { allowed: false, reason: "style_match_disabled", remaining: 0, ...base };
+  if (input.feature === "QUICK_FIT" && !settings.quickAiAdminOnly && resolvedRole.role !== "ADMIN") return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
+  if (input.feature === "LIYING_AI" && !settings.liyingAiVipEnabled && !isAdmin) return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
+  if (!ROLE_AI_PERMISSIONS[resolvedRole.role][capability]) return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
   const activeBlock = (await db.select().from(aiAccessBlocks).where(eq(aiAccessBlocks.visitorId, input.visitorId)).limit(1))[0];
   if (activeBlock?.isActive) return { allowed: false, reason: "paused", remaining: null, ...base };
   if (!settings.generationEnabled && input.feature !== "AI_STYLIST") return { allowed: false, reason: "paused", remaining: null, ...base };
@@ -101,7 +149,14 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   if (input.feature !== "AI_STYLIST" && settings.monthlyGenerationLimit > 0 && monthlyEvents.length >= settings.monthlyGenerationLimit) return { allowed: false, reason: "monthly_limit", remaining: null, ...base };
   const monthlyEstimatedCostFen = monthlyEvents.reduce((total, item) => total + item.estimatedCostFen, 0);
   if (input.feature !== "AI_STYLIST" && settings.stopAiAtBudgetLimit && settings.monthlyAiBudgetFen > 0 && monthlyEstimatedCostFen + estimatedCostFen > settings.monthlyAiBudgetFen) return { allowed: false, reason: "budget_limit", remaining: null, ...base };
-  if (input.feature === "AI_STYLIST" || input.skipQuota || isAdmin || isVip) return { allowed: true, remaining: isVip ? null : settings.normalAiGenerationLimit, ...base };
+  if (input.feature === "AI_STYLIST") {
+    if (isAdmin || isVip || input.skipQuota) return { allowed: true, remaining: null, ...base };
+    const used = await successfulFeatureCount(input.visitorId, "AI_STYLIST");
+    const remaining = Math.max(0, settings.normalStyleMatchLimit - used);
+    if (settings.normalStyleMatchLimit > 0 && remaining <= 0) return { allowed: false, reason: "style_match_quota", remaining: 0, ...base };
+    return { allowed: true, remaining: settings.normalStyleMatchLimit > 0 ? remaining : null, ...base };
+  }
+  if (input.skipQuota || isAdmin || isVip) return { allowed: true, remaining: isVip ? null : settings.normalAiGenerationLimit, ...base };
   if (releaseMode === "REDEEM_CODE" && !entitlement) return { allowed: false, reason: "redeem_required", remaining: 0, ...base };
 
   const [completed, reserved] = await Promise.all([successfulGenerationCount(input.visitorId), pendingReservations(input.visitorId)]);
@@ -110,8 +165,8 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   return { allowed: true, remaining, ...base };
 }
 
-export async function beginAiUsage(input: { visitorId: string; feature: AiFeatureType; generationId?: string | null; provider: string; model?: string | null; skipQuota?: boolean }) {
-  const access = await evaluateAiAccess({ visitorId: input.visitorId, feature: input.feature, skipQuota: input.skipQuota });
+export async function beginAiUsage(input: { visitorId: string; feature: AiFeatureType; generationId?: string | null; provider: string; model?: string | null; skipQuota?: boolean; actor?: AiActor }) {
+  const access = await evaluateAiAccess({ visitorId: input.visitorId, feature: input.feature, skipQuota: input.skipQuota, actor: input.actor });
   const db = await getDb();
   if (!db) throw new Error("AI usage service is temporarily unavailable.");
   if (!access.allowed) {

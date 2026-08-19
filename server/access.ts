@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { getDb } from "./db";
 import { generationFeedback, redeemCodes, visitorEntitlements } from "../drizzle/schema";
 import { normaliseAvailabilityStatus } from "../shared/productAvailability";
-import { evaluateAiAccess, getCentralEntitlement, getCentralSettings } from "./aiUsageController";
+import { type AiActor, evaluateAiAccess, getCentralEntitlement, getCentralSettings } from "./aiUsageController";
 
 export type ReleaseMode = "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE";
 export type CatalogTier = "beta" | "basic" | "full";
@@ -11,7 +11,7 @@ export type AccessSource = "wechat_moments" | "direct" | "admin_test";
 
 export type AccessDecision = {
   allowed: boolean;
-  reason?: "generation_disabled" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "budget_limit";
+  reason?: "generation_disabled" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "budget_limit" | "role_forbidden" | "style_match_disabled" | "style_match_quota";
   releaseMode: ReleaseMode;
   catalogTier: CatalogTier;
   remaining: number | null;
@@ -28,9 +28,9 @@ export async function getCurrentEntitlement(visitorId: string) {
 
 export const remainingLookAllowance = (allowance: number, used: number, isUnlimited = false) => isUnlimited ? null : Math.max(0, allowance - used);
 
-export async function canGenerate(visitorId: string): Promise<AccessDecision> {
-  const decision = await evaluateAiAccess({ visitorId, feature: "AI_FITTING" });
-  const reasonMap = { paused: "generation_disabled", budget_limit: "budget_limit", daily_limit: "global_limit", global_limit: "global_limit", monthly_limit: "monthly_limit", redeem_required: "redeem_required", redeem_exhausted: "redeem_exhausted", quota_exhausted: "daily_limit" } as const;
+export async function canGenerate(visitorId: string, actor?: AiActor): Promise<AccessDecision> {
+  const decision = await evaluateAiAccess({ visitorId, feature: "AI_FITTING", actor });
+  const reasonMap = { paused: "generation_disabled", budget_limit: "budget_limit", daily_limit: "global_limit", global_limit: "global_limit", monthly_limit: "monthly_limit", redeem_required: "redeem_required", redeem_exhausted: "redeem_exhausted", quota_exhausted: "daily_limit", role_forbidden: "role_forbidden", style_match_disabled: "style_match_disabled", style_match_quota: "style_match_quota" } as const;
   return { allowed: decision.allowed, ...(decision.reason ? { reason: reasonMap[decision.reason] } : {}), releaseMode: decision.releaseMode, catalogTier: decision.catalogTier, remaining: decision.remaining, isVip: decision.isVip };
 }
 

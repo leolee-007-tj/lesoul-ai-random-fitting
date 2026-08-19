@@ -15,7 +15,7 @@ const startFor = (range: z.infer<typeof rangeSchema>) => {
   return null;
 };
 const billableStatuses = ["REQUESTED", "SUCCESS", "FAILED", "CANCELLED"] as const;
-const featureLabel = (feature: string) => ({ AI_BODY_MODEL: "AI Body Model", AI_FITTING: "AI Fitting", QUICK_FIT: "Quick Fit", REGENERATION: "Regeneration", AI_STYLIST: "AI Stylist" }[feature] ?? feature);
+const featureLabel = (feature: string) => ({ AI_BODY_MODEL: "AI Body Model", AI_FITTING: "AI Fitting", LIYING_AI: "李瀛 AI", QUICK_FIT: "Quick AI", REGENERATION: "Regeneration", AI_STYLIST: "AI Style Match" }[feature] ?? feature);
 
 export const operationsRouter = router({
   dashboard: ownerProcedure.input(z.object({ range: rangeSchema })).query(async ({ input }) => {
@@ -85,7 +85,7 @@ export const operationsRouter = router({
     const settings = await getCentralSettings();
     return { ...settings, estimatedCostsAreConfigOnly: true };
   }),
-  updateSettings: ownerProcedure.input(z.object({ generationEnabled: z.boolean().optional(), normalAiGenerationLimit: z.number().int().min(0).max(100).optional(), dailyAiRequestLimit: z.number().int().min(0).max(100_000).optional(), monthlyAiBudgetFen: cnyFen.optional(), stopAiAtBudgetLimit: z.boolean().optional(), monthlyActualAiCostFen: cnyFen.nullable().optional(), aiBodyModelEstimatedCostFen: cnyFen.optional(), aiFittingEstimatedCostFen: cnyFen.optional(), quickFitEstimatedCostFen: cnyFen.optional(), regenerationEstimatedCostFen: cnyFen.optional() })).mutation(async ({ input }) => {
+  updateSettings: ownerProcedure.input(z.object({ generationEnabled: z.boolean().optional(), normalAiGenerationLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchEnabled: z.boolean().optional(), quickAiAdminOnly: z.boolean().optional(), liyingAiVipEnabled: z.boolean().optional(), dailyAiRequestLimit: z.number().int().min(0).max(100_000).optional(), monthlyAiBudgetFen: cnyFen.optional(), stopAiAtBudgetLimit: z.boolean().optional(), monthlyActualAiCostFen: cnyFen.nullable().optional(), aiBodyModelEstimatedCostFen: cnyFen.optional(), aiFittingEstimatedCostFen: cnyFen.optional(), quickFitEstimatedCostFen: cnyFen.optional(), regenerationEstimatedCostFen: cnyFen.optional() })).mutation(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
     const set: Record<string, unknown> = {};

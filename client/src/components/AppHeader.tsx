@@ -1,5 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
+import { getVisitorId } from "@/lib/visitor";
+import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
@@ -12,6 +14,9 @@ export default function AppHeader() {
   const [, navigate] = useLocation();
   const { i18n } = useTranslation();
   const { user, isAuthenticated, loading, logout } = useAuth();
+  const [anonymousVisitorId] = useState(() => getVisitorId());
+  const visitorId = user?.openId ? `account:${user.openId}` : anonymousVisitorId;
+  const access = trpc.access.status.useQuery({ visitorId });
   const [open, setOpen] = useState(false);
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
@@ -19,10 +24,10 @@ export default function AppHeader() {
     ko: { home: "LESOUL AI LOOK 홈", newLook: "새 LOOK", newHint: "모델 선택부터 시작", menu: "메뉴", close: "메뉴 닫기", explore: "탐색", manage: "관리", homeItem: "홈", homeHint: "LESOUL 여정 시작", fitting: "AI 피팅", fittingHint: "나만의 LOOK 만들기", quick: "퀵 핏", quickHint: "상품만으로 룩 만들기", looks: "내 룩", looksHint: "저장한 룩 확인", products: "상품 관리 · 옷 추가", productsHint: "옷을 등록·수정·삭제", fit: "상품 핏", fitHint: "실측과 사이즈 관리", release: "출시 제어", releaseHint: "베타·접근 설정", notices: "구매 주의사항", noticesHint: "결제 카드 정책", operations: "AI 운영", operationsHint: "사용량·비용·접근·사용자", login: "로그인", loginHint: "LESOUL 관리 계정으로 로그인", logout: "로그아웃", signedIn: "로그인됨" },
     zh: { home: "LESOUL AI LOOK 首页", newLook: "新建 LOOK", newHint: "从选择模特开始", menu: "菜单", close: "关闭菜单", explore: "探索", manage: "管理", homeItem: "首页", homeHint: "开始 LESOUL 体验", fitting: "AI 试穿", fittingHint: "创建你的 LOOK", quick: "快速搭配", quickHint: "仅用商品创建造型", looks: "我的造型", looksHint: "查看已保存造型", products: "商品管理 · 添加服装", productsHint: "登记、编辑或删除服装", fit: "商品版型", fitHint: "管理实测和尺码", release: "发布控制", releaseHint: "Beta 与访问设置", notices: "购买须知", noticesHint: "支付卡政策", operations: "AI 运营", operationsHint: "用量、成本、访问和用户", login: "登录", loginHint: "登录 LESOUL 管理账户", logout: "退出登录", signedIn: "已登录" },
   }[locale];
-  const explore: MenuItem[] = [{ label: copy.newLook, hint: copy.newHint, path: "/body-model", icon: Sparkles }, { label: copy.homeItem, hint: copy.homeHint, path: "/", icon: Home }, { label: copy.fitting, hint: copy.fittingHint, path: "/body-model", icon: Sparkles }, { label: copy.quick, hint: copy.quickHint, path: "/quick-fit", icon: ShoppingBag }, { label: copy.looks, hint: copy.looksHint, path: "/history", icon: Archive }];
+  const explore: MenuItem[] = [{ label: copy.newLook, hint: copy.newHint, path: access.data?.capabilities.aiFitting || access.data?.capabilities.liyingAI ? "/body-model" : "/style-match", icon: Sparkles }, { label: copy.homeItem, hint: copy.homeHint, path: "/", icon: Home }, { label: copy.fitting, hint: copy.fittingHint, path: access.data?.capabilities.aiFitting || access.data?.capabilities.liyingAI ? "/body-model" : "/style-match", icon: Sparkles }, ...(access.data?.capabilities.quickAI ? [{ label: copy.quick, hint: copy.quickHint, path: "/quick-fit", icon: ShoppingBag }] : []), { label: copy.looks, hint: copy.looksHint, path: "/history", icon: Archive }];
   const manage: MenuItem[] = [{ label: copy.products, hint: copy.productsHint, path: "/products", icon: PackagePlus }, { label: copy.fit, hint: copy.fitHint, path: "/product-fit", icon: Ruler }, { label: copy.notices, hint: copy.noticesHint, path: "/purchase-notices", icon: Store }, { label: copy.release, hint: copy.releaseHint, path: "/release-control", icon: Settings2 }, { label: copy.operations, hint: copy.operationsHint, path: "/operations", icon: BarChart3 }];
   const showAdminManage = user?.role === "admin";
-  const showCatalogManage = isAuthenticated;
+  const showCatalogManage = showAdminManage;
   const choose = (path: string) => { setOpen(false); navigate(path); };
   const handleLogout = async () => { await logout(); setOpen(false); };
   const renderItem = (entry: MenuItem) => { const Icon = entry.icon; return <button key={entry.label} onClick={() => choose(entry.path)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-[#f4f1eb]"><span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#efebe4] text-[#37332f]"><Icon size={15} aria-hidden="true" /></span><span className="min-w-0"><span className="block text-sm font-semibold text-[#25211e]">{entry.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#77716a]">{entry.hint}</span></span></button>; };

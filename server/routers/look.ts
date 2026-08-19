@@ -7,7 +7,7 @@ import { beginAiUsage, evaluateAiAccess, finishAiUsage, type AiFeatureType } fro
 import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { getFixedModel } from "../../shared/fixedModels";
+import { getFixedModel, LIYING_FIXED_MODEL_KEY } from "../../shared/fixedModels";
 
 const lookRequest = z.object({
   visitorId: z.string().min(1).max(96),
@@ -29,7 +29,7 @@ const lookRequest = z.object({
 });
 
 export const lookRouter = router({
-  generate: publicProcedure.input(lookRequest).mutation(async ({ input }) => {
+  generate: publicProcedure.input(lookRequest).mutation(async ({ input, ctx }) => {
     const existing = await getGenerationLog(input.generationId);
     if (existing?.resultImageUrl && existing.status === "completed") {
       return { generatedImage: existing.resultImageUrl, generationStatus: "completed" as const, provider: "external" as const, metadata: { pose: input.pose.name, background: input.background.name, style: input.style, clothingCount: input.clothing.length, generatedAt: existing.completedAt?.toISOString() ?? existing.updatedAt.toISOString(), preservationPrompt: "Reused completed generation", negativePrompt: "Reused completed generation" }, generationId: input.generationId, validation: validationNotEnabled(), reused: true };
@@ -38,10 +38,12 @@ export const lookRouter = router({
     const retryParent = input.retryOfGenerationId ? await getGenerationLog(input.retryOfGenerationId) : undefined;
     const retryCount = (retryParent?.retryCount ?? -1) + 1;
     const isQuickFit = input.generationMode === "QUICK_FIT";
-    const feature: AiFeatureType = input.retryOfGenerationId ? "REGENERATION" : isQuickFit ? "QUICK_FIT" : "AI_FITTING";
-    const access = await evaluateAiAccess({ visitorId: input.visitorId, feature });
+    const isLiying = !isQuickFit && input.fixedModelKey === LIYING_FIXED_MODEL_KEY;
+    const feature: AiFeatureType = input.retryOfGenerationId ? "REGENERATION" : isQuickFit ? "QUICK_FIT" : isLiying ? "LIYING_AI" : "AI_FITTING";
+    const actor = ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null;
+    const access = await evaluateAiAccess({ visitorId: input.visitorId, feature, actor });
     if (!access.allowed) {
-      await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2" });
+      await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor });
       throw new Error(`GENERATION_ACCESS_DENIED:${access.reason}`);
     }
     const { created } = await createGenerationLog({ requestId: input.generationId, retryOfRequestId: input.retryOfGenerationId ?? null, retryCount: Math.max(0, retryCount), userImageUrl: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, poseId: input.pose.id, style: input.style, productIds: input.clothing.map((item) => item.id), backgroundId: input.background.id, provider: "manus_gpt_image_2", visitorId: input.visitorId, releaseMode: access.releaseMode, source: input.source, generationMode: input.generationMode, tryOnMode: isQuickFit ? "quick_fit" : input.tryOnMode, bodyModelId: input.bodyModelId ?? null });
@@ -62,7 +64,7 @@ export const lookRouter = router({
         modelReference = { imageUrl: row.imageUrl, modelKey: row.modelKey, version: row.version, appearance: { hairLength: row.hairLength, hairStyle: row.hairStyle, hairColor: row.hairColor, skinTone: row.skinTone } };
       }
       const request = { ...input, userImage: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, modelReference };
-      const usage = await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2" });
+      const usage = await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2", actor });
       usageEventId = usage.eventId;
       const response = isQuickFit ? await generateQuickFitEditorial(request) : await generateFashionLook(request);
       const validation = isQuickFit ? validationNotEnabled() : await validateGeneratedLook({ resultImageUrl: response.generatedImage, userImageUrl: request.userImage, productIds: input.clothing.map((item) => item.id), poseId: input.pose.id, backgroundId: input.background.id });

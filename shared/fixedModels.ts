@@ -30,4 +30,6 @@ export const FIXED_MODELS: readonly FixedModel[] = [
   },
 ] as const;
 
+/** The established balanced reference remains the fixed 李瀛 AI identity; only its role-specific presentation changes. */
+export const LIYING_FIXED_MODEL_KEY: FixedModelKey = "balanced";
 export const getFixedModel = (key?: string | null) => FIXED_MODELS.find((model) => model.key === key) ?? null;

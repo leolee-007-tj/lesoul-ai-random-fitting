@@ -112,7 +112,8 @@ describe("customer-facing UX cleanup contract", () => {
     expect(header).toContain('onClick={() => startLogin()}');
     expect(header).toContain("await logout()");
     expect(header).toContain("상품 관리 · 옷 추가");
-    expect(header).toContain("const showCatalogManage = isAuthenticated");
+    expect(header).toContain("const showCatalogManage = showAdminManage");
+    expect(header).toContain("capabilities.quickAI");
     expect(dbSource).toContain('user.openId === ENV.ownerOpenId ? "admin"');
   });
 
