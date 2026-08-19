@@ -134,6 +134,16 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   globalDailyGenerationLimit: int("globalDailyGenerationLimit").default(120).notNull(),
   monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
   generationEnabled: int("generationEnabled").default(1).notNull(),
+  /** Central AI policy settings. Monetary values are CNY fen and are always shown as estimates unless provider metadata supplies an actual amount. */
+  normalAiGenerationLimit: int("normalAiGenerationLimit").default(3).notNull(),
+  dailyAiRequestLimit: int("dailyAiRequestLimit").default(0).notNull(),
+  monthlyAiBudgetFen: int("monthlyAiBudgetFen").default(0).notNull(),
+  stopAiAtBudgetLimit: int("stopAiAtBudgetLimit").default(1).notNull(),
+  monthlyActualAiCostFen: int("monthlyActualAiCostFen"),
+  aiBodyModelEstimatedCostFen: int("aiBodyModelEstimatedCostFen").default(0).notNull(),
+  aiFittingEstimatedCostFen: int("aiFittingEstimatedCostFen").default(0).notNull(),
+  quickFitEstimatedCostFen: int("quickFitEstimatedCostFen").default(0).notNull(),
+  regenerationEstimatedCostFen: int("regenerationEstimatedCostFen").default(0).notNull(),
   purchaseMode: mysqlEnum("purchaseMode", ["PURCHASE_LIST", "QR", "DISABLED"]).default("PURCHASE_LIST").notNull(),
   purchaseListMaxItems: int("purchaseListMaxItems").default(10).notNull(),
   purchaseQrEnabled: int("purchaseQrEnabled").default(1).notNull(),
@@ -282,6 +292,42 @@ export const generationLogs = mysqlTable("generationLogs", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/**
+ * A request-level audit trail created only when the server is about to call an AI provider
+ * (or when the existing rule-only Stylist completes). This is the source of truth for
+ * cost estimation and the central access controller; UI button clicks are never written here.
+ */
+export const aiUsageEvents = mysqlTable("aiUsageEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  userId: int("userId").references(() => users.id),
+  entitlementId: int("entitlementId").references(() => visitorEntitlements.id),
+  generationId: varchar("generationId", { length: 96 }),
+  featureType: mysqlEnum("featureType", ["AI_BODY_MODEL", "AI_FITTING", "QUICK_FIT", "REGENERATION", "AI_STYLIST"]).notNull(),
+  requestType: mysqlEnum("requestType", ["IMAGE_GENERATION", "RULE_ENGINE"]).notNull(),
+  provider: varchar("provider", { length: 80 }).notNull(),
+  model: varchar("model", { length: 120 }),
+  status: mysqlEnum("status", ["REQUESTED", "SUCCESS", "FAILED", "CANCELLED", "BLOCKED_BY_LIMIT", "BLOCKED_BY_BUDGET", "PAUSED"]).default("REQUESTED").notNull(),
+  estimatedCostFen: int("estimatedCostFen").default(0).notNull(),
+  providerUsageMetadata: json("providerUsageMetadata").$type<Record<string, unknown> | null>(),
+  durationMs: int("durationMs"),
+  errorMessage: text("errorMessage"),
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Owner-controlled AI access pause for a concrete signed-in account or anonymous visitor ID. */
+export const aiAccessBlocks = mysqlTable("aiAccessBlocks", {
+  visitorId: varchar("visitorId", { length: 96 }).primaryKey(),
+  userId: int("userId").references(() => users.id),
+  reason: varchar("reason", { length: 240 }),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Product = typeof products.$inferSelect;
@@ -291,3 +337,5 @@ export type Generation = typeof generations.$inferSelect;
 export type StylePreset = typeof stylePresets.$inferSelect;
 export type StylistFeedback = typeof stylistFeedback.$inferSelect;
 export type GenerationLog = typeof generationLogs.$inferSelect;
+export type AiUsageEvent = typeof aiUsageEvents.$inferSelect;
+export type AiAccessBlock = typeof aiAccessBlocks.$inferSelect;

@@ -3,7 +3,7 @@ import { generateFashionLook, generateQuickFitEditorial } from "../fashionProvid
 import { publicProcedure, router } from "../_core/trpc";
 import { completeGenerationLog, createGenerationLog, getGenerationLog, getGenerationPerformance, markGenerationLogGenerating } from "../db";
 import { validateGeneratedLook, validationNotEnabled } from "../../shared/generationValidation";
-import { canGenerate, consumeRedeemAllowance } from "../access";
+import { beginAiUsage, evaluateAiAccess, finishAiUsage, type AiFeatureType } from "../aiUsageController";
 import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../db";
@@ -35,14 +35,19 @@ export const lookRouter = router({
       return { generatedImage: existing.resultImageUrl, generationStatus: "completed" as const, provider: "external" as const, metadata: { pose: input.pose.name, background: input.background.name, style: input.style, clothingCount: input.clothing.length, generatedAt: existing.completedAt?.toISOString() ?? existing.updatedAt.toISOString(), preservationPrompt: "Reused completed generation", negativePrompt: "Reused completed generation" }, generationId: input.generationId, validation: validationNotEnabled(), reused: true };
     }
     if (existing && (existing.status === "preparing" || existing.status === "generating")) throw new Error("This generation is already in progress.");
-    const access = await canGenerate(input.visitorId);
-    if (!access.allowed) throw new Error(`GENERATION_ACCESS_DENIED:${access.reason}`);
     const retryParent = input.retryOfGenerationId ? await getGenerationLog(input.retryOfGenerationId) : undefined;
     const retryCount = (retryParent?.retryCount ?? -1) + 1;
     const isQuickFit = input.generationMode === "QUICK_FIT";
+    const feature: AiFeatureType = input.retryOfGenerationId ? "REGENERATION" : isQuickFit ? "QUICK_FIT" : "AI_FITTING";
+    const access = await evaluateAiAccess({ visitorId: input.visitorId, feature });
+    if (!access.allowed) {
+      await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2" });
+      throw new Error(`GENERATION_ACCESS_DENIED:${access.reason}`);
+    }
     const { created } = await createGenerationLog({ requestId: input.generationId, retryOfRequestId: input.retryOfGenerationId ?? null, retryCount: Math.max(0, retryCount), userImageUrl: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, poseId: input.pose.id, style: input.style, productIds: input.clothing.map((item) => item.id), backgroundId: input.background.id, provider: "manus_gpt_image_2", visitorId: input.visitorId, releaseMode: access.releaseMode, source: input.source, generationMode: input.generationMode, tryOnMode: isQuickFit ? "quick_fit" : input.tryOnMode, bodyModelId: input.bodyModelId ?? null });
     if (!created) throw new Error("Unable to reserve a unique generation request.");
     const startedAt = Date.now();
+    let usageEventId: number | null = null;
     try {
       await markGenerationLogGenerating(input.generationId);
       let modelReference: { imageUrl: string; modelKey: string; version: number; appearance: { hairLength: string; hairStyle: string; hairColor: string; skinTone: string } } | null = null;
@@ -57,14 +62,17 @@ export const lookRouter = router({
         modelReference = { imageUrl: row.imageUrl, modelKey: row.modelKey, version: row.version, appearance: { hairLength: row.hairLength, hairStyle: row.hairStyle, hairColor: row.hairColor, skinTone: row.skinTone } };
       }
       const request = { ...input, userImage: input.userImage ?? `quick-fit://products/${input.clothing.map((item) => item.id).join("-")}`, modelReference };
+      const usage = await beginAiUsage({ visitorId: input.visitorId, feature, generationId: input.generationId, provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2" });
+      usageEventId = usage.eventId;
       const response = isQuickFit ? await generateQuickFitEditorial(request) : await generateFashionLook(request);
       const validation = isQuickFit ? validationNotEnabled() : await validateGeneratedLook({ resultImageUrl: response.generatedImage, userImageUrl: request.userImage, productIds: input.clothing.map((item) => item.id), poseId: input.pose.id, backgroundId: input.background.id });
       await completeGenerationLog({ requestId: input.generationId, status: response.provider === "external" ? "completed" : "fallback", resultImageUrl: response.generatedImage, durationMs: Date.now() - startedAt, validation });
-      if (response.provider === "external" && access.releaseMode === "REDEEM_CODE") await consumeRedeemAllowance(input.visitorId);
+      await finishAiUsage(usageEventId, "SUCCESS", { durationMs: Date.now() - startedAt });
       return { ...response, generationId: input.generationId, validation, reused: false, access };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Generation failed.";
       await completeGenerationLog({ requestId: input.generationId, status: "failed", errorMessage: message, durationMs: Date.now() - startedAt, validation: validationNotEnabled() });
+      if (usageEventId) await finishAiUsage(usageEventId, "FAILED", { durationMs: Date.now() - startedAt, errorMessage: message });
       throw error;
     }
   }),

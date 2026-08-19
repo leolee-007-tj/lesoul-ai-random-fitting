@@ -5,6 +5,8 @@ import type { StylePresetKey } from "@shared/stylist";
 import { localizedProductName } from "@shared/productCommerce";
 import { useTranslation } from "react-i18next";
 import { readBodyMeasurements } from "@/lib/bodyMeasurements";
+import { getVisitorId } from "@/lib/visitor";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Check, LoaderCircle, Sparkles } from "lucide-react";
 
 export type StylistProduct = { id: number; name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; imageUrl: string; category: string; status: string; garmentMeasurements?: import("@shared/fitEngine").GarmentMeasurements | null; catalogDisplay?: import("@shared/catalogDisplay").CatalogDisplaySettings & { effectiveScale?: number | null } };
@@ -12,6 +14,9 @@ export type StylistRecommendation = { lookId: string; productIds: number[]; scor
 
 export default function StylistPanel({ products, onUseLook, onError }: { products: StylistProduct[]; onUseLook: (selection: { products: StylistProduct[]; styleName: string; selectedLookId: string; recommendations: StylistRecommendation[] }) => void; onError: (message: string) => void }) {
   const { i18n } = useTranslation();
+  const { user } = useAuth();
+  const [anonymousVisitorId] = useState(() => getVisitorId());
+  const visitorId = user?.openId ? `account:${user.openId}` : anonymousVisitorId;
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
     en: { title: "AI STYLIST", pin: "STYLE THIS ITEM", pinBody: "Keep one item in every recommendation.", clear: "Clear", use: "CHOOSE THIS LOOK", selected: "SELECTED", unavailable: "The recommended products are no longer available. Please refresh your recommendations.", loading: "Finding your LOOKs…" },
@@ -23,7 +28,7 @@ export default function StylistPanel({ products, onUseLook, onError }: { product
   const [selectedLookId, setSelectedLookId] = useState<string | null>(null);
   const [fitBody] = useState(() => { const measurements = readBodyMeasurements(); return { bustCm: measurements.chest, waistCm: measurements.waist, hipCm: measurements.hip, shoulderCm: measurements.shoulderWidth }; });
   const presets = trpc.stylist.presets.useQuery();
-  const recommendations = trpc.stylist.recommend.useQuery({ styleKey, anchorProductId, locale, body: fitBody });
+  const recommendations = trpc.stylist.recommend.useQuery({ visitorId, styleKey, anchorProductId, locale, body: fitBody });
   const activeProducts = products.filter((product) => product.status === "in_stock");
   const activePreset = presets.data?.find((preset) => preset.key === styleKey);
   const presetLabel = (key: string) => ({ en: { quiet_luxury: "QUIET LUXURY", elegant: "ELEGANT", minimal: "MINIMAL", chic: "CHIC", casual: "CASUAL", office: "OFFICE", date: "DATE", street: "STREET", ai_choice: "AI CHOICE" }, ko: { quiet_luxury: "콰이어트 럭셔리", elegant: "엘레강트", minimal: "미니멀", chic: "시크", casual: "캐주얼", office: "오피스", date: "데이트", street: "스트리트", ai_choice: "AI 추천" }, zh: { quiet_luxury: "静奢风", elegant: "优雅", minimal: "极简", chic: "摩登", casual: "休闲", office: "通勤", date: "约会", street: "街头", ai_choice: "AI 推荐" } }[locale] as Record<string, string>)[key] ?? key.toUpperCase();

@@ -169,6 +169,20 @@
       "when": 1787139055781,
       "tag": "0023_pink_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1787156293841,
+      "tag": "0024_messy_hex",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1787156953877,
+      "tag": "0025_lucky_texas_twister",
+      "breakpoints": true
     }
   ]
 }

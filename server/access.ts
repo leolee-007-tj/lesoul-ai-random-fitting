@@ -1,8 +1,9 @@
-import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { getDb } from "./db";
-import { generationFeedback, generationLogs, redeemCodes, releaseSettings, visitorEntitlements } from "../drizzle/schema";
+import { generationFeedback, redeemCodes, visitorEntitlements } from "../drizzle/schema";
 import { normaliseAvailabilityStatus } from "../shared/productAvailability";
+import { evaluateAiAccess, getCentralEntitlement, getCentralSettings } from "./aiUsageController";
 
 export type ReleaseMode = "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE";
 export type CatalogTier = "beta" | "basic" | "full";
@@ -10,7 +11,7 @@ export type AccessSource = "wechat_moments" | "direct" | "admin_test";
 
 export type AccessDecision = {
   allowed: boolean;
-  reason?: "generation_disabled" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted";
+  reason?: "generation_disabled" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "budget_limit";
   releaseMode: ReleaseMode;
   catalogTier: CatalogTier;
   remaining: number | null;
@@ -18,52 +19,19 @@ export type AccessDecision = {
 };
 
 export async function getReleaseSettings() {
-  const db = await getDb();
-  if (!db) throw new Error("Release settings are temporarily unavailable.");
-  const existing = (await db.select().from(releaseSettings).where(eq(releaseSettings.id, 1)).limit(1))[0];
-  if (existing) return existing;
-  await db.insert(releaseSettings).values({ id: 1 });
-  return (await db.select().from(releaseSettings).where(eq(releaseSettings.id, 1)).limit(1))[0]!;
+  return getCentralSettings();
 }
 
 export async function getCurrentEntitlement(visitorId: string) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const now = new Date();
-  const rows = await db.select().from(visitorEntitlements).where(eq(visitorEntitlements.visitorId, visitorId)).orderBy(desc(visitorEntitlements.createdAt));
-  return rows.find((row) => !row.expiresAt || row.expiresAt > now);
+  return getCentralEntitlement(visitorId);
 }
 
-const startOfDay = () => { const value = new Date(); value.setUTCHours(0, 0, 0, 0); return value; };
-const startOfMonth = () => { const value = new Date(); value.setUTCDate(1); value.setUTCHours(0, 0, 0, 0); return value; };
-const billableStatuses = ["completed"] as const;
 export const remainingLookAllowance = (allowance: number, used: number, isUnlimited = false) => isUnlimited ? null : Math.max(0, allowance - used);
 
 export async function canGenerate(visitorId: string): Promise<AccessDecision> {
-  const db = await getDb();
-  if (!db) throw new Error("Access service is temporarily unavailable.");
-  const settings = await getReleaseSettings();
-  const releaseMode = settings.releaseMode;
-  if (!settings.generationEnabled) return { allowed: false, reason: "generation_disabled", releaseMode, catalogTier: "full", remaining: null, isVip: false };
-
-  const daily = startOfDay(); const monthly = startOfMonth();
-  const [dailyRows, monthlyRows] = await Promise.all([
-    db.select({ id: generationLogs.id }).from(generationLogs).where(and(gte(generationLogs.createdAt, daily), inArray(generationLogs.status, billableStatuses))),
-    db.select({ id: generationLogs.id }).from(generationLogs).where(and(gte(generationLogs.createdAt, monthly), inArray(generationLogs.status, billableStatuses))),
-  ]);
-  if (dailyRows.length >= settings.globalDailyGenerationLimit) return { allowed: false, reason: "global_limit", releaseMode, catalogTier: "full", remaining: null, isVip: false };
-  if (monthlyRows.length >= settings.monthlyGenerationLimit) return { allowed: false, reason: "monthly_limit", releaseMode, catalogTier: "full", remaining: null, isVip: false };
-  const entitlement = await getCurrentEntitlement(visitorId);
-  if (entitlement?.isUnlimited) return { allowed: true, releaseMode, catalogTier: "full", remaining: null, isVip: true };
-  if (releaseMode === "PRIVATE") return { allowed: true, releaseMode, catalogTier: "full", remaining: null, isVip: false };
-  if (releaseMode === "BETA_PUBLIC") {
-    const visitorRows = await db.select({ id: generationLogs.id }).from(generationLogs).where(and(eq(generationLogs.visitorId, visitorId), inArray(generationLogs.status, billableStatuses)));
-    const remaining = remainingLookAllowance(settings.betaFreeGenerationAllowance, visitorRows.length) ?? 0;
-    return remaining > 0 ? { allowed: true, releaseMode, catalogTier: "beta", remaining, isVip: false } : { allowed: false, reason: "daily_limit", releaseMode, catalogTier: "beta", remaining: 0, isVip: false };
-  }
-  if (!entitlement) return { allowed: false, reason: "redeem_required", releaseMode, catalogTier: "basic", remaining: 0, isVip: false };
-  const remaining = remainingLookAllowance(entitlement.generationAllowance, entitlement.generationUsed) ?? 0;
-  return remaining > 0 ? { allowed: true, releaseMode, catalogTier: entitlement.catalogTier, remaining, isVip: false } : { allowed: false, reason: "redeem_exhausted", releaseMode, catalogTier: entitlement.catalogTier, remaining: 0, isVip: false };
+  const decision = await evaluateAiAccess({ visitorId, feature: "AI_FITTING" });
+  const reasonMap = { paused: "generation_disabled", budget_limit: "budget_limit", daily_limit: "global_limit", global_limit: "global_limit", monthly_limit: "monthly_limit", redeem_required: "redeem_required", redeem_exhausted: "redeem_exhausted", quota_exhausted: "daily_limit" } as const;
+  return { allowed: decision.allowed, ...(decision.reason ? { reason: reasonMap[decision.reason] } : {}), releaseMode: decision.releaseMode, catalogTier: decision.catalogTier, remaining: decision.remaining, isVip: decision.isVip };
 }
 
 export function selectVisibleProducts<T extends { status: string; isActive?: number; availabilityStatus?: "AVAILABLE" | "SOLD_OUT" | "PREORDER"; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number) {
@@ -79,11 +47,8 @@ export function selectVisibleProducts<T extends { status: string; isActive?: num
 }
 
 export async function consumeRedeemAllowance(visitorId: string) {
-  const db = await getDb();
-  if (!db) return;
-  const entitlement = await getCurrentEntitlement(visitorId);
-  if (!entitlement || entitlement.isUnlimited) return;
-  await db.update(visitorEntitlements).set({ generationUsed: sql`${visitorEntitlements.generationUsed} + 1` }).where(and(eq(visitorEntitlements.id, entitlement.id), lt(visitorEntitlements.generationUsed, entitlement.generationAllowance)));
+  // Quota is now derived from successful centrally-recorded usage events. Kept as a no-op compatibility export.
+  void visitorId;
 }
 
 export async function redeemAccessCode(visitorId: string, code: string) {

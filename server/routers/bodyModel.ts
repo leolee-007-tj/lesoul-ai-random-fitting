@@ -5,6 +5,7 @@ import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { publicProcedure, router } from "../_core/trpc";
+import { beginAiUsage, finishAiUsage } from "../aiUsageController";
 
 export const profileInput = z.object({
   visitorId: z.string().min(1).max(96),
@@ -54,13 +55,23 @@ export const bodyModelRouter = router({
     const profile = (await db.select().from(bodyProfiles).where(eq(bodyProfiles.id, Number(insertProfile[0].insertId))).limit(1))[0]!;
     const modelInsert = await db.insert(aiBodyModels).values({ bodyProfileId: profile.id, profileHash, modelKey, version, approved: 0, status: "preparing" });
     const modelId = Number(modelInsert[0].insertId);
+    let usageEventId: number | null = null;
+    const startedAt = Date.now();
     try {
+      const usage = await beginAiUsage({ visitorId: input.visitorId, feature: "AI_BODY_MODEL", provider: "manus_gpt_image_2", model: "MODEL_GPT_IMAGE_2" });
+      usageEventId = usage.eventId;
       const result = await generateImage({ prompt: modelPrompt(input), model: "MODEL_GPT_IMAGE_2", quality: "high" });
       if (!result.url) throw new Error("AI Body Model image was not returned.");
       await db.update(aiBodyModels).set({ status: "ready", imageUrl: result.url }).where(eq(aiBodyModels.id, modelId));
+      await finishAiUsage(usageEventId, "SUCCESS", { durationMs: Date.now() - startedAt });
       const model = (await db.select().from(aiBodyModels).where(eq(aiBodyModels.id, modelId)).limit(1))[0]!;
       return toResult(model, profile, false);
-    } catch (error) { await db.update(aiBodyModels).set({ status: "failed" }).where(eq(aiBodyModels.id, modelId)); throw error; }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "AI Body Model generation failed.";
+      await db.update(aiBodyModels).set({ status: "failed" }).where(eq(aiBodyModels.id, modelId));
+      if (usageEventId) await finishAiUsage(usageEventId, "FAILED", { durationMs: Date.now() - startedAt, errorMessage: message });
+      throw error;
+    }
   }),
   approve: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96), modelId: z.number().int().positive() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
