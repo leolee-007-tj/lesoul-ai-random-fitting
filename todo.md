@@ -502,3 +502,12 @@
 - [x] Show only one or two category-relevant measurement values on cards with a clear detail path, and add a quiet product-detail notice above the full real-cm grid.
 - [x] Add short purchase-list and saved purchase-request-card measurement reminders, preserving WeChat manual request guidance and avoiding alert styling.
 - [x] Verify EN/KO/ZH text, result/detail/list/request-card layouts, Fit Engine physical authority, tests, checkpoint, and publish.
+
+## Administrator-managed display categories
+- [ ] Preserve every existing product category while auditing current product category fields, category-aware sizing, public catalog, AI Stylist, QUICK FIT, AI FITTING, and generation prompt mapping.
+- [ ] Add a small category-management data model containing KO/ZH/EN display names, stable Base Category, active state, and sort order; generate a non-destructive migration and seed mappings for all existing categories.
+- [ ] Add authenticated administrator category list, create, update, and usage-count procedures; prohibit destructive deletion and support inactive status for categories used by existing products.
+- [ ] Add a localized Category Management panel and inline Add Category option in Product Manager; ensure a newly added active category becomes selectable immediately without page reload.
+- [ ] Link products to the managed display category while retaining their stable Base Category, so existing sizing, AI Stylist, Quick Fit, AI Fitting, measurements, availability, and purchasing behavior remain compatible.
+- [ ] Display the managed localized category name in customer surfaces with Base Category fallback; include both display and Base Category in AI fitting generation context.
+- [ ] Verify custom Cropped Pants/PANTS creation, product assignment, rename, used-category inactivation, KO/ZH/EN display, stylist and generation handoff, legacy product regression, tests, checkpoint, and publish.
