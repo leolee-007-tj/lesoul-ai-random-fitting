@@ -522,3 +522,13 @@
 - [x] Add owner/admin User Management for current signed-in accounts, visitor aggregates, VIP/normal status, redemption history, and safe disable controls without fabricating user identities or exposing private body/photos/generation images.
 - [x] Add owner/admin AI Cost Settings and Redeem Code panels, retaining the existing hashed account-bound redemption behavior and showing plaintext code only at issuance.
 - [x] Verify server enforcement bypass attempts, quota recovery on failed validation/provider errors, VIP behavior, budget pause behavior, analytics actual-request semantics, dashboard time filters, EN/KO/ZH mobile/admin layout, full tests, checkpoint, and publish.
+
+## Role-based AI experience restructure
+- [ ] Save a stable rollback checkpoint and audit fixed models, Quick Fit, AI Fitting, Style This Item, central AI access policy, entitlement data, menu visibility, and existing purchase-list handoff.
+- [ ] Extend the central Access/Usage Controller with server-authoritative ADMIN/VIP/NORMAL capability checks for Quick AI, 李瀛 AI, AI Fitting, AI Body Model, regeneration, and AI Style Match; do not add duplicated UI-only policy checks.
+- [ ] Restrict Quick AI / Quick Fit to ADMIN through server protection and hide its customer entry for VIP/NORMAL while preserving all existing four display styles and the established content-generation pipeline.
+- [ ] Designate the existing fixed 李瀛 reference-model path as the VIP/ADMIN AI Fitting experience, enforce fixed identity preservation with changing product/pose/background only, and keep normal users out of the endpoint.
+- [ ] Reframe normal-user AI as AI Style Match by reusing STYLE THIS ITEM, active inventory validation, current compatibility scoring, fixed-item retention, short localized reasons, replacement candidates, and complete-look purchase-list addition.
+- [ ] Add central configurable normal-user AI Style Match allowance while removing irrelevant image-generation allowance exposure from normal-user UI; preserve VIP account-bound unlimited entitlement semantics and existing redeem-code security.
+- [ ] Update localized HOME/menu/product-detail calls to action for each role, keeping Product Manager, Category Manager, Purchase Management, Operations, Redeem, and AI Settings administrative only.
+- [ ] Verify server-bypass rejection, Admin/VIP/Normal menus and endpoints, 李瀛 identity reference handoff, Style Match active-stock filtering, recommendation refresh non-repetition, purchase-list handoff, EN/KO/ZH mobile layout, tests, checkpoint, and publish.
