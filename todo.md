@@ -567,3 +567,11 @@
 - [x] Update My Looks, outfit details, saved look history, editorial preview, purchase product cards, and shared product/detail components to prioritize current localized product data, then localized snapshots, then legacy text.
 - [x] Ensure background/location names and descriptions, pose labels, style labels, status, fit/purchase guidance, and AI recommendation reasons follow the active EN/KO/ZH locale without triggering extra AI calls for saved looks.
 - [x] Add regression tests for legacy and new saved looks, location/pose/product resolver fallbacks, locale switching EN→KO→ZH, mixed-language prevention, and unaffected AI matching, generation, purchase, VIP, and login flows; verify mobile UI, checkpoint, and publish.
+
+## My Looks selective delete and persistent deletion integrity
+- [ ] Audit the current localStorage, saved-look API, query cache, in-memory state, locale migration behavior, and any legacy look keys before changing deletion behavior.
+- [ ] Make one versioned, locale-independent My Looks storage authority with lookId-based deletion, one-time legacy-key migration and safe tombstone protection so deleted looks cannot be revived.
+- [ ] Add server-authorized individual and batch saved-look deletion that preserves NORMAL visitorId ownership and VIP·OWNER/ADMIN unique userId ownership, then invalidate/refetch local query cache after success.
+- [ ] Add localized individual delete, selection mode, selected-count, selection cancel, delete-selected, and confirmed delete-all controls without changing AI generation, matching, product, purchase, VIP, or login behavior.
+- [ ] Add clear localized confirmation dialogs and empty state; after any deletion reset selected IDs, exit selection mode when appropriate, and update visible count without optimistic ghost restoration.
+- [ ] Verify individual, multi-select, and all deletion across EN→KO→ZH, refresh, logout/login, navigation, legacy migration, NORMAL/VIP/ADMIN ownership boundaries, tests, mobile UI, checkpoint, and publish.
