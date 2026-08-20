@@ -682,3 +682,12 @@
 - [x] Allow Korean purchase-notice input to populate EN and ZH customer notices through server-side automatic translation while preserving administrator edits and safe fallbacks.
 - [x] Replace the product-detail reference notice with localized guidance covering reference-only product/AI-worn images, real garment measurements, and possible lighting-related color variation.
 - [x] Verify purchase-card and product-detail EN/KO/ZH copy, translation failure handling, tests, checkpoint, and publish.
+
+## Full app QA, UI cleanup, and visual consistency pass
+- [ ] Save a fresh stable rollback checkpoint and inventory all live routes, role gates, QA fixtures, and current test coverage before modifications.
+- [ ] Exercise NORMAL customer login, Home, New Arrivals, catalog, product detail, Style This Item, AI Style Match, My Looks, purchase list, and purchase request flows at the target viewport widths.
+- [ ] Exercise VIP AI and saved-look flow plus ADMIN operations, products, Fit Data, curated outfits, user/usage/cost/settings, category management, AI switch, and Quick AI flows.
+- [ ] Audit EN/KO/ZH dynamic content, navigation, empty/loading/error states, role visibility, product card hierarchy, direct-purchase remnants, status/sale badge behavior, and My Looks deletion persistence.
+- [ ] Audit 390px, 430px, 768px, 820px, and 1440px layouts for safe areas, header/bottom-nav clearance, modal overflow, keyboard safety, horizontal scroll, card/CTA alignment, text clipping, images, and administrative desktop width.
+- [ ] Fix P0/P1/P2/P3 defects found without changing established AI generation, fit engine, auth, pricing, product data, purchase-list, curated-outfit, product-status, discount, or My Looks policy unless a verified defect requires it.
+- [ ] Add targeted regression tests for behavioral fixes and verify tests, production build, mobile layouts, EN/KO/ZH states, and NORMAL/VIP/ADMIN access before the final QA checkpoint and report.
