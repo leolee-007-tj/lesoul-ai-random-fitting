@@ -665,3 +665,9 @@
 - [x] Replace the second NORMAL/VIP bottom-navigation My Looks item with localized Browse Products using the existing `/catalog` route, while preserving Home, Match, Purchase List, active-state handling, and ADMIN console navigation.
 - [x] Replace oversized product purchase controls with a compact full-width horizontal black Add to List button immediately below each product card content so small thumbnails and garment images remain visible.
 - [x] Preserve current inventory availability, sale pricing, purchase-list count, product-detail navigation, and EN/KO/ZH button states; verify the corrected mobile catalog route, small-card layout, tests, checkpoint, and publish.
+
+## Remove duplicate product measurements from product editor
+- [x] Audit Product Manager measurement inputs, Product Fit Manager edit flow, product save payload, stored garment measurements, and fit-engine/customer display consumers.
+- [x] Remove actual-garment measurement fields and duplicate fit copy from Product Manager create/edit UI while retaining non-measurement product setup fields.
+- [x] Preserve existing stored garment measurements on product save when Product Manager omits them, and keep Product Fit Manager as the sole administrator UI for editing actual measurements.
+- [x] Verify product edit/save, Fit Manager measurement edit, fit engine, product detail measurements, EN/KO/ZH UI, tests, checkpoint, and publish.
