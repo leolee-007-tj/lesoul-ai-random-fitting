@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldRetryStylistRecommendation, stylistErrorMessage } from "./StylistPanel";
+import { shouldRetryStylistRecommendation, shouldShowStylistStatusBadge, stylistErrorMessage } from "./StylistPanel";
 
 describe("Style This Item error guidance", () => {
   it("shows the localized quota explanation instead of a blank recommendation area", () => {
@@ -18,5 +18,10 @@ describe("Style This Item error guidance", () => {
     expect(shouldRetryStylistRecommendation(0, new Error("GENERATION_ACCESS_DENIED:style_match_quota"))).toBe(false);
     expect(shouldRetryStylistRecommendation(0, new Error("network unavailable"))).toBe(true);
     expect(shouldRetryStylistRecommendation(1, new Error("network unavailable"))).toBe(false);
+  });
+
+  it("hides purchase-availability badges in the fixed-item picker only", () => {
+    expect(shouldShowStylistStatusBadge("picker")).toBe(false);
+    expect(shouldShowStylistStatusBadge("recommendation")).toBe(true);
   });
 });

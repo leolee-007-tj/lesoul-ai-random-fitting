@@ -691,3 +691,8 @@
 - [x] Audit 390px, 430px, 768px, 820px, and 1440px layouts for safe areas, header/bottom-nav clearance, modal overflow, keyboard safety, horizontal scroll, card/CTA alignment, text clipping, images, and administrative desktop width.
 - [x] Fix P0/P1/P2/P3 defects found without changing established AI generation, fit engine, auth, pricing, product data, purchase-list, curated-outfit, product-status, discount, or My Looks policy unless a verified defect requires it.
 - [x] Add targeted regression tests for behavioral fixes and verify tests, production build, mobile layouts, EN/KO/ZH states, and NORMAL/VIP/ADMIN access before the final QA checkpoint and report.
+
+## Hide availability badge from Style This Item product picker
+- [x] Audit the Style Match fixed-item picker and shared product-status badge rendering scope.
+- [x] Remove the purchase-availability badge from fixed-item picker thumbnails while preserving product images, names, selection state, and all catalog/detail availability badges.
+- [x] Add regression coverage, verify the mobile Style This Item view and catalog status surfaces, then checkpoint and publish.
