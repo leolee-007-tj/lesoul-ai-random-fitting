@@ -719,3 +719,9 @@
 - [x] Replace the Product Manager QR upload slot with a second detail-shot slot so each product has Front, Back, Detail 1, and Detail 2 uploads only.
 - [x] Preserve previously stored payment QR URLs and all purchase-card behavior while preventing new QR values from being changed in Product Manager.
 - [x] Add regression tests for four-image serialization and gallery ordering; verify product create/edit, EN/KO/ZH labels, gallery display, purchase QR behavior, checkpoint, and publish.
+
+## Localized anonymous nicknames in user management
+- [x] Audit Operations user-management cards, visitor/user identifiers, role labels, and customer-count data to identify every exposed numeric or device-style identifier.
+- [x] Add a deterministic alias generator that maps the same internal identity to a stable, friendly two-word EN/KO/ZH nickname without changing authentication, role, ownership, or analytics identifiers.
+- [x] Replace administrator-visible numeric/device identifier labels with the localized nickname while retaining an unobtrusive internal reference only where operationally required.
+- [x] Add alias stability and locale tests; verify NORMAL/VIP/ADMIN management views, EN/KO/ZH labels, tests, checkpoint, and publish.

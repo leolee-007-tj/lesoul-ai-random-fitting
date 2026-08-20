@@ -22,7 +22,7 @@ export default function OperationsDashboard() {
   const [saved, setSaved] = useState(false);
   const dashboard = trpc.operations.dashboard.useQuery({ range });
   const settingsQuery = trpc.operations.settings.useQuery();
-  const people = trpc.operations.users.useQuery();
+  const people = trpc.operations.users.useQuery({ locale });
   const updateSettings = trpc.operations.updateSettings.useMutation({ onSuccess: () => { setSaved(true); void settingsQuery.refetch(); void dashboard.refetch(); window.setTimeout(() => setSaved(false), 2200); } });
   const setUserAccess = trpc.operations.setUserAccess.useMutation({ onSuccess: () => void people.refetch() });
   const config = settingsQuery.data;
