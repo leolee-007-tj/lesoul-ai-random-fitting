@@ -707,3 +707,9 @@
 - [x] Audit the Outfit Manager list, localized product data, and existing item-to-outfit relationship fields for an in-browser included-product filter.
 - [x] Add a localized product selector, selected-filter indicator, matching count, and clear action so administrators can show only curated outfits containing one chosen product.
 - [x] Add regression coverage and verify filtering does not affect creating, editing, duplicating, or activating curated outfits; validate EN/KO/ZH UI, checkpoint, and publish.
+
+## Korean-only administrator input with automatic EN/ZH translation
+- [x] Inventory all administrator forms that currently require EN/KO/ZH manual content: curated outfits, managed product categories, product names/descriptions, and customer purchase notices; preserve fields that are identifiers rather than customer copy.
+- [x] Replace Curated Outfit name and recommendation-reason triple inputs with Korean-only input, server-side structured EN/ZH translation, preview/failure handling, and atomic save of all locales.
+- [x] Convert every remaining administrator customer-copy form that still asks for three manual languages to Korean-only input and existing/new server translation procedures without changing stored schema or customer locale resolvers.
+- [x] Add translation payload and fallback tests; verify Korean input saves EN/KO/ZH values and customers see locale-specific values across curated outfits, products, categories, and purchase notices; checkpoint and publish.

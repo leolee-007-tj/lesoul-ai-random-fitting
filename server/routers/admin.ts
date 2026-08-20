@@ -9,6 +9,7 @@ import { legacyStatusForAvailability, normaliseAvailabilityStatus } from "../../
 import { validDisplayScale } from "../../shared/catalogDisplay";
 import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
+import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -149,6 +150,41 @@ export const adminRouter = router({
     if (typeof content !== "string") throw new Error("Purchase notice translation response was empty.");
     const translated = JSON.parse(content) as { noticeEn: string; noticeZh: string };
     return { noticeKo: input.noticeKo, noticeEn: translated.noticeEn.trim(), noticeZh: translated.noticeZh.trim() };
+  }),
+  translateCuratedOutfit: ownerProcedure.input(z.object({ nameKo: z.string().trim().min(1).max(160), reasonKo: z.string().trim().max(2000).nullable().optional() })).mutation(async ({ input }) => {
+    const nameKo = requiredKoreanCustomerCopy(input.nameKo);
+    const reasonKo = optionalKoreanCustomerCopy(input.reasonKo);
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: "You translate Korean customer-facing names and recommendation reasons for a premium fashion styling app. Translate faithfully into natural English and Simplified Chinese. Preserve LESOUL, garment names, style names, product claims, tone, and factual meaning. Do not add products, prices, policies, or claims. Return only the requested JSON object." },
+        { role: "user", content: JSON.stringify({ nameKo, reasonKo: reasonKo ?? "" }) },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "curated_outfit_translation", strict: true, schema: { type: "object", properties: { nameEn: { type: "string" }, nameZh: { type: "string" }, reasonEn: { type: "string" }, reasonZh: { type: "string" } }, required: ["nameEn", "nameZh", "reasonEn", "reasonZh"], additionalProperties: false } },
+      },
+    });
+    const content = response.choices?.[0]?.message?.content;
+    if (typeof content !== "string") throw new Error("Curated outfit translation response was empty.");
+    const translated = JSON.parse(content) as { nameEn: string; nameZh: string; reasonEn: string; reasonZh: string };
+    return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim(), reasonKo, reasonEn: optionalKoreanCustomerCopy(translated.reasonEn), reasonZh: optionalKoreanCustomerCopy(translated.reasonZh) };
+  }),
+  translateProductCategory: ownerProcedure.input(z.object({ nameKo: z.string().trim().min(1).max(120) })).mutation(async ({ input }) => {
+    const nameKo = requiredKoreanCustomerCopy(input.nameKo);
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: "You translate Korean customer-facing fashion catalog category names into natural English and Simplified Chinese. Preserve garment-category meaning exactly and return only the requested JSON object." },
+        { role: "user", content: nameKo },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "product_category_translation", strict: true, schema: { type: "object", properties: { nameEn: { type: "string" }, nameZh: { type: "string" } }, required: ["nameEn", "nameZh"], additionalProperties: false } },
+      },
+    });
+    const content = response.choices?.[0]?.message?.content;
+    if (typeof content !== "string") throw new Error("Product category translation response was empty.");
+    const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
+    return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
