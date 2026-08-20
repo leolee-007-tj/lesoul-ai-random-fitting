@@ -645,3 +645,12 @@
 - [x] Apply the shared price display to catalog, product detail, AI Style Match, result/purchase cards, purchase list, and saved request cards; SOLD OUT remains the primary status and NEW/PRE-ORDER remain independent.
 - [x] Re-fetch latest sale state before purchase-list request generation so sale changes or expiry never use a stale price; retain final-price-confirmation notice and existing manual WeChat flow.
 - [x] Add regression coverage for CNY rounding, manual overrides, sale-enabled gating, status/badge ordering, current purchase-list price, EN/KO/ZH copy, existing discount helpers, tests, mobile UI, checkpoint, and publish.
+
+## Curated outfits and ranked LESOUL recommendations
+- [x] Audit the full curated-outfit specification, existing style presets, compatibility scorer, stylist router, Style Match, product-card CTA variants, active/sale status policy, and ADMIN operations navigation.
+- [x] Add non-destructive Curated Outfit and Curated Outfit Item storage using real productId references, item ordering and anchor eligibility, active state, style preset, localized name/reasons, and an extensible record structure for future cover-image metadata.
+- [x] Add administrator Outfit Management for create, edit, product-order preservation, activate/deactivate, localized reasons, preview from actual product cards, and input validation that requires two or more real catalog products.
+- [x] Build one shared curated recommendation query: anchor product or style preset filter, active product/availability validation, existing compatibility scoring as ranking signal, stable Top 3 ordering, and rule-template reason fallback without request-time AI calls.
+- [x] Make Style Match and AI Stylist prefer eligible curated outfits, preserve the current dynamic recommendation engine as a fallback when no curated result exists, and never recommend nonexistent or inactive/sold-out products.
+- [x] Remove oversized customer-facing 바로 구매 CTAs from recommendation results; standardize recommendation/result product-card bottoms around fixed image areas, local names, effective price, availability state, and compact black Add to List actions.
+- [x] Add the localized ADMIN Outfit Management navigation, keep all product/purchase/AI policies intact, and verify EN/KO/ZH reasons, statuses, dynamic fallback, purchase-list handoff, tests, mobile UI, checkpoint, and publish.

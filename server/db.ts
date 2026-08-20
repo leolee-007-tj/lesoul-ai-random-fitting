@@ -1,6 +1,6 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, generationLogs, generations, InsertUser, poses, productCategories, products, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
+import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -167,6 +167,92 @@ export async function saveStylistFeedback(input: { visitorId: string; stylePrese
   await db.insert(stylistFeedback).values({ ...input, anchorProductId: input.anchorProductId ?? null });
 }
 
+export type CuratedOutfitWrite = {
+  nameEn: string; nameKo: string; nameZh: string;
+  reasonEn?: string | null; reasonKo?: string | null; reasonZh?: string | null;
+  stylePresetKey: StylePresetKey; isActive?: number; sortOrder?: number;
+  items: Array<{ productId: number; isAnchor?: number; sortOrder?: number }>;
+};
+
+export type CuratedOutfitRead = Awaited<ReturnType<typeof listCuratedOutfits>>[number];
+
+export async function listCuratedOutfits(includeInactive = true) {
+  const db = await getDb();
+  if (!db) throw new Error("Curated outfits are temporarily unavailable.");
+  await ensureCatalog();
+  const [outfits, items, catalog] = await Promise.all([db.select().from(curatedOutfits), db.select().from(curatedOutfitItems), getCatalog()]);
+  const productById = new Map(catalog.products.map((product) => [product.id, product]));
+  return outfits
+    .filter((outfit) => includeInactive || outfit.isActive === 1)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+    .map((outfit) => {
+      const outfitItems = items.filter((item) => item.outfitId === outfit.id).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+      return {
+        ...outfit,
+        items: outfitItems.map((item) => ({ ...item, product: productById.get(item.productId) ?? null })),
+        anchorProductIds: outfitItems.filter((item) => item.isAnchor === 1).map((item) => item.productId),
+      };
+    });
+}
+
+export async function getEligibleCuratedOutfits(input: { stylePresetKey: StylePresetKey; anchorProductId?: number | null; includePreorder?: boolean }) {
+  const outfits = await listCuratedOutfits(false);
+  return outfits.filter((outfit) => {
+    if (outfit.stylePresetKey !== input.stylePresetKey || outfit.items.length < 2) return false;
+    if (input.anchorProductId && !outfit.items.some((item) => item.productId === input.anchorProductId)) return false;
+    return outfit.items.every((item) => item.product && isStylistEligible(item.product, Boolean(input.includePreorder)));
+  });
+}
+
+function normaliseCuratedItems(items: CuratedOutfitWrite["items"]) {
+  const deduped = new Map<number, { productId: number; isAnchor: number; sortOrder: number }>();
+  items.forEach((item, index) => {
+    if (!deduped.has(item.productId)) deduped.set(item.productId, { productId: item.productId, isAnchor: item.isAnchor === 0 ? 0 : 1, sortOrder: item.sortOrder ?? index + 1 });
+  });
+  const normalized = Array.from(deduped.values());
+  if (normalized.length < 2) throw new Error("CURATED_OUTFIT_NEEDS_TWO_PRODUCTS");
+  return normalized;
+}
+
+async function assertCuratedProducts(productIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Curated outfits are temporarily unavailable.");
+  const found = await db.select({ id: products.id }).from(products).where(inArray(products.id, productIds));
+  if (found.length !== productIds.length) throw new Error("CURATED_OUTFIT_PRODUCT_NOT_FOUND");
+}
+
+export async function createCuratedOutfit(input: CuratedOutfitWrite) {
+  const db = await getDb();
+  if (!db) throw new Error("Curated outfits are temporarily unavailable.");
+  const items = normaliseCuratedItems(input.items);
+  await assertCuratedProducts(items.map((item) => item.productId));
+  const result = await db.transaction(async (tx) => {
+    const insert = await tx.insert(curatedOutfits).values({ nameEn: input.nameEn, nameKo: input.nameKo, nameZh: input.nameZh, reasonEn: input.reasonEn ?? null, reasonKo: input.reasonKo ?? null, reasonZh: input.reasonZh ?? null, stylePresetKey: input.stylePresetKey, isActive: input.isActive ?? 1, sortOrder: input.sortOrder ?? 100 });
+    const outfitId = Number(insert[0].insertId);
+    await tx.insert(curatedOutfitItems).values(items.map((item) => ({ outfitId, ...item })));
+    return outfitId;
+  });
+  return (await listCuratedOutfits(true)).find((outfit) => outfit.id === result);
+}
+
+export async function updateCuratedOutfit(id: number, input: Partial<Omit<CuratedOutfitWrite, "items">> & { items?: CuratedOutfitWrite["items"] }) {
+  const db = await getDb();
+  if (!db) throw new Error("Curated outfits are temporarily unavailable.");
+  const existing = (await listCuratedOutfits(true)).find((outfit) => outfit.id === id);
+  if (!existing) throw new Error("CURATED_OUTFIT_NOT_FOUND");
+  const items = input.items ? normaliseCuratedItems(input.items) : null;
+  if (items) await assertCuratedProducts(items.map((item) => item.productId));
+  await db.transaction(async (tx) => {
+    const { items: _items, ...updates } = input;
+    if (Object.keys(updates).length) await tx.update(curatedOutfits).set(updates).where(eq(curatedOutfits.id, id));
+    if (items) {
+      await tx.delete(curatedOutfitItems).where(eq(curatedOutfitItems.outfitId, id));
+      await tx.insert(curatedOutfitItems).values(items.map((item) => ({ outfitId: id, ...item })));
+    }
+  });
+  return (await listCuratedOutfits(true)).find((outfit) => outfit.id === id);
+}
+
 type GenerationLogInput = { requestId: string; retryOfRequestId?: string | null; retryCount?: number; userImageUrl: string; poseId: number; style: string; productIds: number[]; backgroundId: number; provider: string; visitorId?: string; releaseMode?: "PRIVATE" | "BETA_PUBLIC" | "REDEEM_CODE"; source?: "wechat_moments" | "direct" | "admin_test"; generationMode?: "AI_FITTING" | "QUICK_FIT"; tryOnMode?: "my_photo" | "ai_body_model" | "quick_fit"; bodyModelId?: number | null; };
 
 export async function getGenerationLog(requestId: string) {
@@ -285,6 +371,7 @@ export async function deleteAdminProducts(ids: number[]) {
     await tx.update(generations).set({ outerProductId: null }).where(inArray(generations.outerProductId, existingIds));
     await tx.update(generations).set({ dressProductId: null }).where(inArray(generations.dressProductId, existingIds));
     await tx.update(stylistFeedback).set({ anchorProductId: null }).where(inArray(stylistFeedback.anchorProductId, existingIds));
+    await tx.delete(curatedOutfitItems).where(inArray(curatedOutfitItems.productId, existingIds));
     await tx.delete(products).where(inArray(products.id, existingIds));
     await tx.insert(releaseSettings).values({ id: 1, catalogInitialized: 1 }).onDuplicateKeyUpdate({ set: { catalogInitialized: 1 } });
   });

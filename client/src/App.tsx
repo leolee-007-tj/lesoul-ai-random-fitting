@@ -23,6 +23,7 @@ import OperationsDashboard from "./pages/OperationsDashboard";
 import StyleMatch from "./pages/StyleMatch";
 import Login from "./pages/Login";
 import AdminSetup from "./pages/AdminSetup";
+import OutfitManager from "./pages/OutfitManager";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -43,6 +44,7 @@ function Router() {
       <Route path={"/release-control"} component={() => <AdminGate><ReleaseControl /></AdminGate>} />
       <Route path={"/purchase-notices"} component={() => <AdminGate><PurchaseNoticeManager /></AdminGate>} />
       <Route path={"/operations"} component={() => <AdminGate><OperationsDashboard /></AdminGate>} />
+      <Route path={"/outfit-management"} component={() => <AdminGate><OutfitManager /></AdminGate>} />
       <Route path={"/style-match"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/result-preview"} component={() => <CustomerGate><ResultPreview /></CustomerGate>} />
       <Route path={"/404"} component={NotFound} />

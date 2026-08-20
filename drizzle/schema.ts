@@ -165,6 +165,7 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   purchaseNoticeKo: text("purchaseNoticeKo"),
   purchaseNoticeZh: text("purchaseNoticeZh"),
   stylistIncludePreorder: int("stylistIncludePreorder").default(0).notNull(),
+  curatedOutfitsPriority: int("curatedOutfitsPriority").default(1).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
@@ -276,6 +277,32 @@ export const stylistFeedback = mysqlTable("stylistFeedback", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+/** Administrator-validated real-product looks. Customer ranking always rechecks current product availability. */
+export const curatedOutfits = mysqlTable("curatedOutfits", {
+  id: int("id").autoincrement().primaryKey(),
+  nameEn: varchar("nameEn", { length: 160 }).notNull(),
+  nameKo: varchar("nameKo", { length: 160 }).notNull(),
+  nameZh: varchar("nameZh", { length: 160 }).notNull(),
+  reasonEn: text("reasonEn"),
+  reasonKo: text("reasonKo"),
+  reasonZh: text("reasonZh"),
+  stylePresetKey: varchar("stylePresetKey", { length: 64 }).notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  sortOrder: int("sortOrder").default(100).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Flexible actual product composition. Any included product may be an anchor for Style This Item. */
+export const curatedOutfitItems = mysqlTable("curatedOutfitItems", {
+  id: int("id").autoincrement().primaryKey(),
+  outfitId: int("outfitId").notNull().references(() => curatedOutfits.id),
+  productId: int("productId").notNull().references(() => products.id),
+  isAnchor: int("isAnchor").default(1).notNull(),
+  sortOrder: int("sortOrder").default(100).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const generationLogs = mysqlTable("generationLogs", {
   id: int("id").autoincrement().primaryKey(),
   requestId: varchar("requestId", { length: 96 }).notNull().unique(),
@@ -352,6 +379,8 @@ export type Background = typeof backgrounds.$inferSelect;
 export type Generation = typeof generations.$inferSelect;
 export type StylePreset = typeof stylePresets.$inferSelect;
 export type StylistFeedback = typeof stylistFeedback.$inferSelect;
+export type CuratedOutfit = typeof curatedOutfits.$inferSelect;
+export type CuratedOutfitItem = typeof curatedOutfitItems.$inferSelect;
 export type GenerationLog = typeof generationLogs.$inferSelect;
 export type AiUsageEvent = typeof aiUsageEvents.$inferSelect;
 export type AiAccessBlock = typeof aiAccessBlocks.$inferSelect;

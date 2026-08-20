@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createAdminProduct, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateProductCategory } from "../db";
+import { createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
@@ -8,6 +8,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { legacyStatusForAvailability, normaliseAvailabilityStatus } from "../../shared/productAvailability";
 import { validDisplayScale } from "../../shared/catalogDisplay";
 import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
+import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -67,6 +68,19 @@ const productInput = z.object({
   stylistMetadata: z.object({ mainColor: z.string().max(80).optional(), secondaryColor: z.string().max(80).optional(), pattern: z.string().max(80).optional(), materialAppearance: z.string().max(120).optional(), silhouette: z.string().max(120).optional(), formality: z.number().int().min(1).max(5).optional(), fashionMood: z.array(z.string().max(64)).max(8).optional(), recommendedStyles: z.array(z.enum(["quiet_luxury", "elegant", "minimal", "chic", "casual", "office", "date", "street", "ai_choice"])).max(9).optional(), compatibleColors: z.array(z.string().max(80)).max(8).optional(), layeringSuitability: z.enum(["base", "layer", "outer", "complete", "accessory"]).optional(), source: z.enum(["manual", "vision"]).optional() }).nullable().optional(),
 });
 
+const curatedOutfitInput = z.object({
+  nameEn: z.string().trim().min(1).max(160),
+  nameKo: z.string().trim().min(1).max(160),
+  nameZh: z.string().trim().min(1).max(160),
+  reasonEn: z.string().trim().max(2000).nullable().optional(),
+  reasonKo: z.string().trim().max(2000).nullable().optional(),
+  reasonZh: z.string().trim().max(2000).nullable().optional(),
+  stylePresetKey: z.enum(STYLE_PRESET_KEYS),
+  isActive: z.number().int().min(0).max(1).optional(),
+  sortOrder: z.number().int().min(0).max(9999).optional(),
+  items: z.array(z.object({ productId: z.number().int().positive(), isAnchor: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).min(2).max(12),
+});
+
 type SaleCandidate = { price?: number; priceOriginal?: number | null; discountRate?: number | null; priceSale?: number | null; saleEnabled?: number | null };
 
 function resolveSaleFields(input: SaleCandidate, existing?: SaleCandidate) {
@@ -84,6 +98,12 @@ function resolveSaleFields(input: SaleCandidate, existing?: SaleCandidate) {
 
 export const adminRouter = router({
   products: protectedProcedure.query(async () => (await getCatalog()).products),
+  curatedOutfits: ownerProcedure.query(async () => listCuratedOutfits(true)),
+  createCuratedOutfit: ownerProcedure.input(curatedOutfitInput).mutation(async ({ input }) => createCuratedOutfit(input)),
+  updateCuratedOutfit: ownerProcedure.input(curatedOutfitInput.partial().extend({ id: z.number().int().positive(), items: curatedOutfitInput.shape.items.optional() })).mutation(async ({ input }) => {
+    const { id, ...updates } = input;
+    return updateCuratedOutfit(id, updates);
+  }),
   productCategories: protectedProcedure.query(async () => listProductCategories(true)),
   createProductCategory: ownerProcedure.input(z.object({ nameEn: z.string().trim().min(1).max(120), nameKo: z.string().trim().min(1).max(120), nameZh: z.string().trim().min(1).max(120), baseCategory: z.enum(BASE_CATEGORY_OPTIONS), isActive: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).mutation(async ({ input }) => createProductCategory(input)),
   updateProductCategory: ownerProcedure.input(z.object({ id: z.number().int().positive(), nameEn: z.string().trim().min(1).max(120).optional(), nameKo: z.string().trim().min(1).max(120).optional(), nameZh: z.string().trim().min(1).max(120).optional(), baseCategory: z.enum(BASE_CATEGORY_OPTIONS).optional(), isActive: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).mutation(async ({ input }) => { const { id, ...updates } = input; return updateProductCategory(id, updates); }),

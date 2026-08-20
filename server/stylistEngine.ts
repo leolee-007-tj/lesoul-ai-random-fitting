@@ -5,6 +5,7 @@ import { assessFit, type FitBody } from "../shared/fitEngine";
 export type ScoreBreakdown = { style: number; color: number; silhouette: number; season: number; material: number; formality: number; fit: number };
 export type StylistRecommendation = { lookId: string; productIds: number[]; score: number; scoreBreakdown: ScoreBreakdown; reason: string; styleKey: StylePresetKey; anchorProductId: number | null };
 export type ActiveStylePreset = { key: string; name: string; matchingTags: string[]; weights: CompatibilityWeights };
+export type CuratedRecommendationCandidate = { id: number; sortOrder: number; reasonEn: string | null; reasonKo: string | null; reasonZh: string | null; items: Array<{ productId: number; product: Product | null }> };
 
 const NEUTRALS = new Set(["black", "white", "ivory", "beige", "gray", "grey", "brown", "navy", "블랙", "화이트", "아이보리", "베이지", "그레이", "브라운", "네이비"]);
 const COLOR_COMPATIBILITY: Record<string, string[]> = {
@@ -122,4 +123,29 @@ export function recommendTopLooks(input: { activeProducts: Product[]; preset: Ac
     return [{ products, productIds, score, raw }];
   });
   return candidates.sort((first, second) => second.score - first.score || first.productIds.join("-").localeCompare(second.productIds.join("-"))).slice(0, input.limit ?? 3).map((candidate, index) => ({ lookId: `LOOK_${String(index + 1).padStart(2, "0")}`, productIds: candidate.productIds, score: candidate.score, scoreBreakdown: candidate.raw, reason: createReason(input.preset, input.locale ?? "en"), styleKey: presetKey(input.preset.key), anchorProductId: input.anchorProductId ?? null } satisfies StylistRecommendation));
+}
+
+function curatedReason(candidate: CuratedRecommendationCandidate, preset: ActiveStylePreset, locale: OutputLocale) {
+  const stored = locale === "ko" ? candidate.reasonKo : locale === "zh" ? candidate.reasonZh : candidate.reasonEn;
+  return stored?.trim() || createReason(preset, locale);
+}
+
+/**
+ * Ranking only: no provider or image generation call. The caller has already excluded
+ * inactive and unavailable products, so this preserves the same score logic as fallback.
+ */
+export function recommendCuratedTopLooks(input: { curatedOutfits: CuratedRecommendationCandidate[]; activeProducts: Product[]; preset: ActiveStylePreset; anchorProductId?: number | null; limit?: number; body?: FitBody | null; locale?: OutputLocale }) {
+  const activeById = new Map(input.activeProducts.filter((product) => product.status === "in_stock").map((product) => [product.id, product]));
+  const candidates = input.curatedOutfits.flatMap((outfit) => {
+    const productIds = outfit.items.map((item) => item.productId);
+    const products = productIds.map((id) => activeById.get(id)).filter((product): product is Product => Boolean(product));
+    if (products.length !== productIds.length || productIds.length < 2) return [];
+    if (input.anchorProductId && !productIds.includes(input.anchorProductId)) return [];
+    const { score, raw } = scoreOutfit(products, input.preset, input.body);
+    return [{ outfit, productIds, score, raw }];
+  });
+  return candidates
+    .sort((first, second) => second.score - first.score || first.outfit.sortOrder - second.outfit.sortOrder || first.outfit.id - second.outfit.id)
+    .slice(0, input.limit ?? 3)
+    .map((candidate, index) => ({ lookId: `CURATED_${candidate.outfit.id}_${String(index + 1).padStart(2, "0")}`, productIds: candidate.productIds, score: candidate.score, scoreBreakdown: candidate.raw, reason: curatedReason(candidate.outfit, input.preset, input.locale ?? "en"), styleKey: presetKey(input.preset.key), anchorProductId: input.anchorProductId ?? null } satisfies StylistRecommendation));
 }
