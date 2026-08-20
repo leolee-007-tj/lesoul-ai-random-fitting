@@ -17,6 +17,7 @@ export const commerceResources = {
     history: { manage: { select: "Select", cancel: "Cancel", delete: "Delete", deleteSelected: "Delete Selected", deleteAll: "Delete All", selected: "{{count}} selected", confirmSelected: "Delete the selected looks?", confirmAll: "Delete all saved looks?", empty: "No saved looks yet.", savedLookAlt: "Saved fashion look" } },
     vipAdmin: { title: "VIP ACCOUNT MANAGEMENT", create: "Create VIP", id: "VIP ID", password: "Password", displayName: "Display name (optional)", active: "Active", inactive: "Inactive", resetPassword: "Reset password", save: "Save VIP account", created: "VIP account created", updated: "VIP account updated", duplicate: "This VIP ID already exists.", usage: "AI usage", lastActive: "Last active", noAccounts: "No VIP accounts yet." },
     adminAccounts: { title: "ADMIN ACCOUNT MANAGEMENT", create: "Create administrator", id: "ADMIN ID", password: "Password", displayName: "Display name (optional)", active: "Active", inactive: "Inactive", resetPassword: "Reset password", save: "Save administrator", created: "Administrator account created", updated: "Administrator account updated", duplicate: "This administrator ID already exists.", noAccounts: "No separate administrator accounts yet." },
+    adminSetup: { eyebrow: "OWNER RECOVERY", title: "Create First Administrator", body: "Use the private one-time setup code to create the first separate administrator account.", code: "SETUP CODE", id: "ADMIN ID", password: "PASSWORD", displayName: "DISPLAY NAME (OPTIONAL)", submit: "CREATE ADMINISTRATOR", invalid: "The setup code is invalid.", used: "A separate administrator account already exists.", duplicate: "This administrator ID is already in use.", unavailable: "Administrator setup is temporarily unavailable." },
   },
   ko: {
     product: {
@@ -36,6 +37,7 @@ export const commerceResources = {
     history: { manage: { select: "선택", cancel: "취소", delete: "삭제", deleteSelected: "선택 삭제", deleteAll: "전체 삭제", selected: "{{count}}개 선택됨", confirmSelected: "선택한 룩을 삭제하시겠습니까?", confirmAll: "저장된 모든 룩을 삭제하시겠습니까?", empty: "저장된 룩이 없습니다.", savedLookAlt: "저장된 패션 룩" } },
     vipAdmin: { title: "VIP 계정 관리", create: "VIP 추가", id: "VIP ID", password: "비밀번호", displayName: "표시 이름 (선택)", active: "활성", inactive: "비활성", resetPassword: "비밀번호 재설정", save: "VIP 계정 저장", created: "VIP 계정이 생성되었습니다", updated: "VIP 계정이 수정되었습니다", duplicate: "이미 사용 중인 VIP ID입니다.", usage: "AI 사용량", lastActive: "최근 활동", noAccounts: "아직 VIP 계정이 없습니다." },
     adminAccounts: { title: "관리자 계정 관리", create: "관리자 추가", id: "관리자 ID", password: "비밀번호", displayName: "표시 이름 (선택)", active: "활성", inactive: "비활성", resetPassword: "비밀번호 재설정", save: "관리자 저장", created: "관리자 계정이 생성되었습니다", updated: "관리자 계정이 수정되었습니다", duplicate: "이미 사용 중인 관리자 ID입니다.", noAccounts: "별도 관리자 계정이 없습니다." },
+    adminSetup: { eyebrow: "소유자 복구", title: "최초 관리자 생성", body: "비공개 일회성 설정 코드로 첫 별도 관리자 계정을 생성합니다.", code: "설정 코드", id: "관리자 ID", password: "비밀번호", displayName: "표시 이름 (선택)", submit: "관리자 계정 생성", invalid: "설정 코드가 올바르지 않습니다.", used: "별도 관리자 계정이 이미 존재합니다.", duplicate: "이미 사용 중인 관리자 ID입니다.", unavailable: "현재 관리자 설정을 사용할 수 없습니다." },
   },
   zh: {
     product: {
@@ -55,5 +57,6 @@ export const commerceResources = {
     history: { manage: { select: "选择", cancel: "取消", delete: "删除", deleteSelected: "删除所选", deleteAll: "全部删除", selected: "已选择 {{count}} 项", confirmSelected: "确定删除所选搭配吗？", confirmAll: "确定删除所有已保存的搭配吗？", empty: "暂无保存的搭配。", savedLookAlt: "已保存的时尚造型" } },
     vipAdmin: { title: "VIP 账户管理", create: "添加 VIP", id: "VIP ID", password: "密码", displayName: "显示名称（可选）", active: "启用", inactive: "停用", resetPassword: "重设密码", save: "保存 VIP 账户", created: "VIP 账户已创建", updated: "VIP 账户已更新", duplicate: "该 VIP ID 已存在。", usage: "AI 使用量", lastActive: "最近活动", noAccounts: "暂无 VIP 账户。" },
     adminAccounts: { title: "管理员账户管理", create: "添加管理员", id: "管理员 ID", password: "密码", displayName: "显示名称（可选）", active: "启用", inactive: "停用", resetPassword: "重设密码", save: "保存管理员", created: "管理员账户已创建", updated: "管理员账户已更新", duplicate: "该管理员 ID 已存在。", noAccounts: "暂无独立管理员账户。" },
+    adminSetup: { eyebrow: "所有者恢复", title: "创建首个管理员", body: "使用私有的一次性设置代码创建首个独立管理员账户。", code: "设置代码", id: "管理员 ID", password: "密码", displayName: "显示名称（可选）", submit: "创建管理员", invalid: "设置代码无效。", used: "独立管理员账户已存在。", duplicate: "该管理员 ID 已被使用。", unavailable: "管理员设置暂时不可用。" },
   },
 } as const;

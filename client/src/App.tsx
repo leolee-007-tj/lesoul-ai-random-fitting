@@ -21,12 +21,14 @@ import PurchaseList from "./pages/PurchaseList";
 import OperationsDashboard from "./pages/OperationsDashboard";
 import StyleMatch from "./pages/StyleMatch";
 import Login from "./pages/Login";
+import AdminSetup from "./pages/AdminSetup";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/login"} component={Login} />
+      <Route path={"/setup-admin"} component={AdminSetup} />
       <Route path={"/"} component={() => <CustomerGate><Home /></CustomerGate>} />
       <Route path={"/studio"} component={() => <CustomerGate><Studio /></CustomerGate>} />
       <Route path={"/quick-fit"} component={() => <CustomerGate><QuickFit /></CustomerGate>} />

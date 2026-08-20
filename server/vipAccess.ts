@@ -15,6 +15,11 @@ function equal(left: string, right: string) {
   const leftBytes = Buffer.from(left); const rightBytes = Buffer.from(right);
   return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
 }
+
+export function verifyBootstrapSecret(candidate: string) {
+  const expected = process.env.LESOUL_OWNER_BOOTSTRAP_SECRET ?? "";
+  return Boolean(expected) && equal(candidate, expected);
+}
 function sign(payload: string) {
   const key = secret();
   if (!key) throw new Error("VIP_SESSION_UNAVAILABLE");

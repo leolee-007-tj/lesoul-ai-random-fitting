@@ -3,10 +3,11 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { createTestAccessToken, TEST_ACCESS_COOKIE, TEST_ACCESS_MAX_AGE_MS, verifyTestLogin } from "./testAccess";
-import { ADMIN_ACCESS_COOKIE, ADMIN_ACCESS_MAX_AGE_MS, createAdminAccessToken, createVipAccessToken, normalizeVipUsername, verifyVipPassword, VIP_ACCESS_COOKIE, VIP_ACCESS_MAX_AGE_MS } from "./vipAccess";
+import { ADMIN_ACCESS_COOKIE, ADMIN_ACCESS_MAX_AGE_MS, createAdminAccessToken, createVipAccessToken, hashVipPassword, normalizeVipUsername, verifyBootstrapSecret, verifyVipPassword, VIP_ACCESS_COOKIE, VIP_ACCESS_MAX_AGE_MS } from "./vipAccess";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { catalogRouter, generationRouter } from "./routers/catalog";
 import { uploadRouter } from "./routers/uploads";
@@ -51,6 +52,21 @@ export const appRouter = router({
       if (!account.isActive) return { success: false as const, reason: "inactive" as const };
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
+      return { success: true as const };
+    }),
+    bootstrapAdmin: publicProcedure.input(z.object({ setupCode: z.string().min(12).max(256), username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), password: z.string().min(8).max(128), displayName: z.string().trim().max(120).optional() })).mutation(async ({ ctx, input }) => {
+      if (!verifyBootstrapSecret(input.setupCode)) return { success: false as const, reason: "invalid" as const };
+      const db = await getDb(); if (!db) throw new Error("ADMIN_BOOTSTRAP_UNAVAILABLE");
+      const existingAdmin = (await db.select({ id: users.id }).from(users).where(and(eq(users.role, "admin"), eq(users.loginMethod, "admin_password"))).limit(1))[0];
+      if (existingAdmin) return { success: false as const, reason: "used" as const };
+      const username = normalizeVipUsername(input.username);
+      const duplicate = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
+      if (duplicate) return { success: false as const, reason: "duplicate" as const };
+      const openId = `admin:${randomUUID()}`;
+      const inserted = await db.insert(users).values({ openId, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "admin_password", role: "admin", isActive: 1 });
+      const userId = Number((inserted as any).insertId);
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId, openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
       return { success: true as const };
     }),
     logout: publicProcedure.mutation(({ ctx }) => {

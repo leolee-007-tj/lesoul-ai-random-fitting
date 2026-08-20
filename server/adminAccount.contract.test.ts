@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { verifyBootstrapSecret } from "./vipAccess";
 
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
@@ -24,5 +25,12 @@ describe("owner-managed ADMIN password accounts", () => {
     expect(context).toContain("readAdminAccessSession");
     expect(context).toContain('eq(users.role, "admin")');
     expect(context).toContain("eq(users.isActive, 1)");
+  });
+
+  it("validates the configured server-only first-ADMIN recovery code and rejects an incorrect value", () => {
+    const configured = process.env.LESOUL_OWNER_BOOTSTRAP_SECRET ?? "";
+    expect(configured.length).toBeGreaterThanOrEqual(12);
+    expect(verifyBootstrapSecret(configured)).toBe(true);
+    expect(verifyBootstrapSecret(`${configured}-incorrect`)).toBe(false);
   });
 });

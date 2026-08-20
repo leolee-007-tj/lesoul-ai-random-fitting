@@ -598,3 +598,9 @@
 - [x] Audit all Home route product image, new-arrival, catalog-thumbnail, and decorative image rendering while preserving the existing text-based AI Style Match and Browse Products entries.
 - [x] Remove product photography from the first-screen home composition and retain a calm brand-first LESOUL title, localized explanations, and clear CTA hierarchy without altering the product catalog.
 - [x] Verify mobile and desktop Home rendering, existing route navigation, TypeScript, checkpoint, and publish.
+
+## Emergency first-ADMIN bootstrap recovery
+- [x] Audit existing password account creation, owner-only management, session cookies, login routes, and environment configuration for an owner-OAuth recovery path.
+- [x] Add a one-time server-side bootstrap secret that is never embedded in client code and is invalid once a standalone ADMIN account has been created.
+- [x] Add a public but tightly validated setup page that accepts the configured bootstrap secret plus new ADMIN ID/password, rejects reuse or duplicate IDs, and creates only one active ADMIN account.
+- [x] Add EN/KO/ZH setup and failure messages, prevent bootstrap access from managing VIP or existing ADMIN accounts, and verify invalid secret, reuse rejection, password safety, login, tests, checkpoint, and publish.

@@ -31,6 +31,7 @@ describe("LESOUL v2 locale resources", () => {
       "look.backgrounds.paris.name", "look.backgrounds.paris.description", "look.backgrounds.studio.name", "look.backgrounds.studio.description", "look.styles.QUIET_LUXURY", "look.styles.MINIMAL",
       "vipAdmin.title", "vipAdmin.create", "vipAdmin.id", "vipAdmin.password", "vipAdmin.active", "vipAdmin.inactive", "vipAdmin.resetPassword", "vipAdmin.usage",
       "adminAccounts.title", "adminAccounts.create", "adminAccounts.id", "adminAccounts.password", "adminAccounts.active", "adminAccounts.inactive", "adminAccounts.resetPassword",
+      "adminSetup.eyebrow", "adminSetup.title", "adminSetup.body", "adminSetup.code", "adminSetup.id", "adminSetup.password", "adminSetup.submit", "adminSetup.invalid", "adminSetup.used",
     ];
     for (const locale of [commerceResources.en, commerceResources.ko, commerceResources.zh]) {
       for (const key of commerceKeys) expect(readPath(locale, key)).toEqual(expect.any(String));
@@ -45,6 +46,7 @@ describe("LESOUL v2 locale resources", () => {
     expect(i18n.t("product.status.preOrder")).toBe("预售");
     expect(i18n.t("stylist.recommendation")).toBe("AI 搭配推荐");
     expect(i18n.t("auth.submit")).toBe("继续");
+    expect(i18n.t("adminSetup.title")).toBe("创建首个管理员");
     await i18n.changeLanguage("en");
   });
 });

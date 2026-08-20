@@ -1,0 +1,16 @@
+import MobileScreen from "@/components/MobileScreen";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { trpc } from "@/lib/trpc";
+import { KeyRound } from "lucide-react";
+import { FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation } from "wouter";
+
+export default function AdminSetup() {
+  const { t } = useTranslation(); const [, navigate] = useLocation(); const utils = trpc.useUtils();
+  const [setupCode, setSetupCode] = useState(""); const [username, setUsername] = useState(""); const [password, setPassword] = useState(""); const [displayName, setDisplayName] = useState(""); const [message, setMessage] = useState("");
+  const bootstrap = trpc.auth.bootstrapAdmin.useMutation();
+  async function submit(event: FormEvent) { event.preventDefault(); setMessage(""); try { const result = await bootstrap.mutateAsync({ setupCode, username, password, displayName: displayName || undefined }); if (!result.success) return setMessage(result.reason === "used" ? t("adminSetup.used") : result.reason === "duplicate" ? t("adminSetup.duplicate") : t("adminSetup.invalid")); await utils.auth.me.invalidate(); navigate("/operations"); } catch { setMessage(t("adminSetup.unavailable")); } }
+  return <MobileScreen><main className="mx-auto flex min-h-[72svh] w-full max-w-md items-center px-5 pb-14"><section className="w-full rounded-[2rem] border border-[#dfd9cf] bg-[#fffdf9] p-6 shadow-[0_18px_60px_rgba(37,30,24,.09)]"><span className="grid size-11 place-items-center rounded-full bg-[#1d1a17] text-white"><KeyRound size={18} /></span><p className="mt-5 text-[10px] font-bold tracking-[.2em] text-[#786f65]">{t("adminSetup.eyebrow")}</p><h1 className="mt-2 font-serif text-3xl text-[#201c18]">{t("adminSetup.title")}</h1><p className="mt-3 text-sm leading-6 text-[#71685f]">{t("adminSetup.body")}</p><form onSubmit={submit} className="mt-5 grid gap-3"><label className="grid gap-1.5 text-[11px] font-bold text-[#5f574f]">{t("adminSetup.code")}<Input type="password" value={setupCode} onChange={event => setSetupCode(event.target.value)} required minLength={12} autoComplete="one-time-code" /></label><label className="grid gap-1.5 text-[11px] font-bold text-[#5f574f]">{t("adminSetup.id")}<Input value={username} onChange={event => setUsername(event.target.value)} required minLength={3} autoComplete="username" /></label><label className="grid gap-1.5 text-[11px] font-bold text-[#5f574f]">{t("adminSetup.password")}<Input type="password" value={password} onChange={event => setPassword(event.target.value)} required minLength={8} autoComplete="new-password" /></label><label className="grid gap-1.5 text-[11px] font-bold text-[#5f574f]">{t("adminSetup.displayName")}<Input value={displayName} onChange={event => setDisplayName(event.target.value)} /></label>{message && <p role="alert" className="rounded-xl bg-[#f9eee8] px-3 py-2 text-xs text-[#8b3d25]">{message}</p>}<Button type="submit" disabled={bootstrap.isPending} className="mt-2 h-11 rounded-xl bg-[#1d1a17] text-xs font-bold tracking-[.08em] hover:bg-black">{bootstrap.isPending ? t("common.loading") : t("adminSetup.submit")}</Button></form></section></main></MobileScreen>;
+}
