@@ -624,3 +624,15 @@
 - [x] Redirect standalone ADMIN sessions to the operations console after login and block or redirect customer-only Home, AI Fitting, AI Style Match, My Looks, catalog purchase-list, and customer checkout routes while retaining ADMIN Quick AI.
 - [x] Preserve owner access to all operations and retain NORMAL/VIP customer journeys with their distinct bottom navigation, saved data ownership, AI policy, products, and purchase flows.
 - [x] Verify ADMIN/owner versus VIP/NORMAL route visibility, direct URL handling, management routes, tests, mobile/desktop console layout, checkpoint, and publish.
+
+## Resumed interrupted work audit
+- [x] Review the current TODO history, latest checkpoint, and project state; the user clarified the resumed work as NORMAL/VIP Home CTA and customer bottom navigation alignment.
+- [x] Resume the identified feature without altering completed NORMAL/VIP/ADMIN ownership, AI access, catalog, purchase, or administrator-console behavior.
+- [x] Run targeted and full regression verification, save a checkpoint, and report the resumed work outcome.
+
+## NORMAL and VIP home CTA distinction
+- [x] Audit current Home CTA capability branching and MobileBottomNav item sets against the requested NORMAL/VIP customer navigation matrix.
+- [x] Render exactly two central Home CTAs for NORMAL and three for VIP, adding the 李瀛 AI person/model entry only for VIP while retaining ADMIN-only Quick AI.
+- [x] Keep NORMAL and VIP bottom navigation identical as Home, My Looks, Match, and Purchase List, and remove the VIP-only bottom model item.
+- [x] Make Browse Products visually stronger than secondary text actions while retaining its existing product-browsing route and localized EN/KO/ZH copy.
+- [x] Verify NORMAL/VIP/ADMIN route visibility, 390px mobile Home and bottom navigation, Quick AI server protection, tests, checkpoint, and publish.

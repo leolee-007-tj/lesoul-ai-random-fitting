@@ -64,11 +64,14 @@ describe("Studio generation-status contract", () => {
 });
 
 describe("customer-facing UX cleanup contract", () => {
-  it("keeps Home focused on two primary entries and prioritizes personal model creation", () => {
+  it("gives NORMAL two Home actions, VIP a 李瀛 model action, and keeps Quick AI out of customer Home", () => {
     const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
     const bodyModel = readFileSync(new URL("../client/src/pages/BodyModel.tsx", import.meta.url), "utf8");
     expect(home).toContain('navigate("/body-model")');
-    expect(home).toContain('navigate("/quick-fit")');
+    expect(home).toContain('navigate("/style-match")');
+    expect(home).toContain('navigate("/catalog")');
+    expect(home).not.toContain('navigate("/quick-fit")');
+    expect(home).toContain('const isVip = user?.role === "vip"');
     expect(home).toContain("return <MobileScreen>");
     expect(home).not.toContain('features: [');
     expect(bodyModel).toContain("CREATE MY AI MODEL");
@@ -107,7 +110,8 @@ describe("customer-facing UX cleanup contract", () => {
     expect(bottomNav).toContain('href: "/quick-fit"');
     expect(bottomNav).toContain('href: "/products"');
     expect(bottomNav).toContain('href: "/purchase-list"');
-    expect(bottomNav).toContain('const isVip = user?.role === "vip"');
+    expect(bottomNav).not.toContain('href: "/body-model"');
+    expect(app).toContain('<CustomerGate allowAdmin><QuickFit /></CustomerGate>');
     expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
     expect(adminGate).toContain('user?.role !== "admin"');
   });
