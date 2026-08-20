@@ -21,8 +21,8 @@ export const commerceResources = {
   },
   ko: {
     product: {
-      status: { inStock: "바로 구매", preOrder: "예약 주문", soldOut: "품절", unpublished: "비공개" },
-      newArrival: "NEW",
+      status: { inStock: "구매 가능", preOrder: "예약 주문", soldOut: "품절", unpublished: "비공개" },
+      newArrival: "신상품",
       addToPurchaseList: "구매 목록에 담기",
       addedToPurchaseList: "구매 목록에 담겼습니다",
       reserve: "예약 신청",
@@ -42,7 +42,7 @@ export const commerceResources = {
   zh: {
     product: {
       status: { inStock: "现货", preOrder: "预售", soldOut: "售罄", unpublished: "未上架" },
-      newArrival: "NEW",
+      newArrival: "新品",
       addToPurchaseList: "加入购买清单",
       addedToPurchaseList: "已加入购买清单",
       reserve: "申请预订",

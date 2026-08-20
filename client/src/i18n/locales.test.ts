@@ -40,10 +40,12 @@ describe("LESOUL v2 locale resources", () => {
 
   it("switches status and purchase copy immediately with the global language setting", async () => {
     await i18n.changeLanguage("ko");
-    expect(i18n.t("product.status.inStock")).toBe("바로 구매");
+    expect(i18n.t("product.status.inStock")).toBe("구매 가능");
+    expect(i18n.t("product.newArrival")).toBe("신상품");
     expect(i18n.t("product.reserve")).toBe("예약 신청");
     await i18n.changeLanguage("zh");
     expect(i18n.t("product.status.preOrder")).toBe("预售");
+    expect(i18n.t("product.newArrival")).toBe("新品");
     expect(i18n.t("stylist.recommendation")).toBe("AI 搭配推荐");
     expect(i18n.t("auth.submit")).toBe("继续");
     expect(i18n.t("adminSetup.title")).toBe("创建首个管理员");

@@ -32,9 +32,12 @@ describe("AI Stylist compatibility recommendations", () => {
   });
 
   it("locks customer-facing recommendation reasons to the requested locale", () => {
-    expect(recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "ko" })[0]?.reason).toContain("LESOUL 룩");
-    expect(recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "zh" })[0]?.reason).toContain("LESOUL 造型");
-    expect(recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "en" })[0]?.reason).toMatch(/^A /);
+    const koReason = recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "ko" })[0]?.reason ?? "";
+    const zhReason = recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "zh" })[0]?.reason ?? "";
+    const enReason = recommendTopLooks({ activeProducts, preset: quietLuxury, locale: "en" })[0]?.reason ?? "";
+    expect(koReason).toContain("콰이어트 럭셔리 LESOUL 룩");
+    expect(zhReason).toContain("静奢风 LESOUL 造型");
+    expect(enReason).toContain("Quiet Luxury LESOUL");
   });
 
   it("ranks verified curated outfits with the existing scorer and returns their localized reason", () => {

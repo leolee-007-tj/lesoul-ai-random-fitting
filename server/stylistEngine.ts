@@ -85,8 +85,20 @@ function scoreOutfit(products: Product[], preset: ActiveStylePreset, body?: FitB
 
 type OutputLocale = "en" | "ko" | "zh";
 
+const PRESET_REASON_LABELS: Record<string, Record<OutputLocale, string>> = {
+  quiet_luxury: { en: "Quiet Luxury", ko: "콰이어트 럭셔리", zh: "静奢风" },
+  minimal: { en: "Minimal", ko: "미니멀", zh: "极简" },
+  elegant: { en: "Elegant", ko: "엘레강스", zh: "优雅" },
+  chic: { en: "Chic", ko: "시크", zh: "摩登" },
+  casual: { en: "Casual", ko: "캐주얼", zh: "休闲" },
+  office: { en: "Office", ko: "오피스", zh: "通勤" },
+  date: { en: "Date", ko: "데이트", zh: "约会" },
+  street: { en: "Street", ko: "스트리트", zh: "街头" },
+  ai_choice: { en: "AI Choice", ko: "AI 선택", zh: "AI 推荐" },
+};
+
 function createReason(preset: ActiveStylePreset, locale: OutputLocale) {
-  const name = preset.name.toUpperCase();
+  const name = PRESET_REASON_LABELS[preset.key.toLowerCase()]?.[locale] ?? preset.name;
   if (locale === "ko") return `차분한 톤과 자연스러운 실루엣을 조합한 ${name} LESOUL 룩입니다.`;
   if (locale === "zh") return `以平衡色调和自然轮廓打造的 ${name} LESOUL 造型。`;
   return `A ${name} LESOUL look with balanced tones and an effortless silhouette.`;

@@ -9,6 +9,8 @@ import { resolveCatalogDisplay } from "../shared/catalogDisplay";
 import { baseCategoryToCoreCategory, DEFAULT_MANAGED_CATEGORIES, type BaseCategory } from "../shared/productCategories";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _catalogEnsurePromise: Promise<boolean> | null = null;
+let _catalogEnsured = false;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -31,7 +33,7 @@ export async function getUserByOpenId(openId: string) {
   return (await db.select().from(users).where(eq(users.openId, openId)).limit(1))[0];
 }
 
-export async function ensureCatalog() {
+async function ensureCatalogOnce() {
   const db = await getDb();
   if (!db) return false;
   const [settingsRows, [{ productCount }]] = await Promise.all([
@@ -71,6 +73,16 @@ export async function ensureCatalog() {
   return true;
 }
 
+export async function ensureCatalog() {
+  if (_catalogEnsured) return true;
+  if (!_catalogEnsurePromise) {
+    _catalogEnsurePromise = ensureCatalogOnce()
+      .then((ready) => { if (ready) _catalogEnsured = true; return ready; })
+      .finally(() => { _catalogEnsurePromise = null; });
+  }
+  return _catalogEnsurePromise;
+}
+
 export async function getCatalog() {
   const db = await getDb();
   if (!db) throw new Error("The catalog is temporarily unavailable.");
@@ -84,15 +96,15 @@ export async function getCatalog() {
 async function ensureManagedProductCategories() {
   const db = await getDb();
   if (!db) return [];
-  for (const category of DEFAULT_MANAGED_CATEGORIES) {
-    const existing = await db.select().from(productCategories).where(eq(productCategories.baseCategory, category.baseCategory)).limit(1);
-    if (!existing[0]) await db.insert(productCategories).values(category);
-  }
-  const categories = await db.select().from(productCategories);
-  for (const category of categories) {
+  const existing = await db.select().from(productCategories);
+  const knownBaseCategories = new Set(existing.map((category) => category.baseCategory));
+  const missing = DEFAULT_MANAGED_CATEGORIES.filter((category) => !knownBaseCategories.has(category.baseCategory));
+  if (missing.length) await db.insert(productCategories).values(missing);
+  const categories = missing.length ? await db.select().from(productCategories) : existing;
+  await Promise.all(categories.map(async (category) => {
     const coreCategory = baseCategoryToCoreCategory(category.baseCategory);
     await db.update(products).set({ displayCategoryId: category.id }).where(sql`${products.displayCategoryId} IS NULL AND ${products.category} = ${coreCategory}`);
-  }
+  }));
   return categories;
 }
 

@@ -40,6 +40,34 @@ export function localizedProductDescription(product: LocalizedProduct, language:
   return (locale === "ko" ? product.descriptionKo : locale === "zh" ? product.descriptionZh : product.descriptionEn) || product.description || "";
 }
 
+const productMetaTranslations: Record<string, Record<ProductLocale, string>> = {
+  "深蓝": { en: "Deep Blue", ko: "딥 블루", zh: "深蓝" },
+  "浅灰色": { en: "Light Grey", ko: "라이트 그레이", zh: "浅灰色" },
+  "灰棕": { en: "Taupe Grey", ko: "토프 그레이", zh: "灰棕" },
+  "炭灰": { en: "Charcoal", ko: "차콜", zh: "炭灰" },
+  "白色": { en: "White", ko: "화이트", zh: "白色" },
+  "黑色": { en: "Black", ko: "블랙", zh: "黑色" },
+  "멜란지": { en: "Melange", ko: "멜란지", zh: "混色" },
+  "夏": { en: "Summer", ko: "여름", zh: "夏" },
+  "夏天": { en: "Summer", ko: "여름", zh: "夏" },
+  "여름": { en: "Summer", ko: "여름", zh: "夏" },
+  "夏天 秋天": { en: "Summer · Autumn", ko: "여름 · 가을", zh: "夏 · 秋" },
+  "夏天，秋天": { en: "Summer · Autumn", ko: "여름 · 가을", zh: "夏 · 秋" },
+  "春 夏 秋": { en: "Spring · Summer · Autumn", ko: "봄 · 여름 · 가을", zh: "春 · 夏 · 秋" },
+  "春，夏，秋，冬": { en: "All Seasons", ko: "사계절", zh: "四季" },
+  "日常": { en: "Everyday", ko: "데일리", zh: "日常" },
+  "城市": { en: "City", ko: "시티", zh: "都市" },
+  "minimal": { en: "Minimal", ko: "미니멀", zh: "极简" },
+  "简约 /休闲 / 松弛感 / 韩系 / 百搭 / 通勤 / 舒适": { en: "Minimal · Casual · Relaxed · Korean-inspired · Versatile · Office · Comfortable", ko: "미니멀 · 캐주얼 · 릴랙스드 · 한국적 무드 · 활용도 높음 · 오피스 · 편안함", zh: "简约 · 休闲 · 松弛感 · 韩系 · 百搭 · 通勤 · 舒适" },
+};
+
+/** Resolves seeded and manually entered merchandising metadata at display time without changing source product data. */
+export function localizedProductMeta(value: string | null | undefined, language: string) {
+  const source = value?.trim() ?? "";
+  if (!source || ["color", "season", "style"].includes(source.toLowerCase())) return "";
+  return productMetaTranslations[source]?.[toProductLocale(language)] ?? source;
+}
+
 export function getOriginalPrice(product: LocalizedProduct) {
   const explicit = Number(product.priceOriginal ?? 0);
   return Number.isFinite(explicit) && explicit > 0 ? Math.round(explicit) : Math.max(0, Math.round(product.price ?? 0));

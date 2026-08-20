@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateDiscountedPrice, calculateSalePrice, formatSaleDiscount, getEffectivePrice, getQuantityDiscountPercent, getSalePriceState, localizedProductDescription, localizedProductName } from "../shared/productCommerce";
+import { calculateDiscountedPrice, calculateSalePrice, formatSaleDiscount, getEffectivePrice, getQuantityDiscountPercent, getSalePriceState, localizedProductDescription, localizedProductMeta, localizedProductName } from "../shared/productCommerce";
 
 const product = {
   name: "Legacy name",
@@ -43,6 +43,13 @@ describe("product commerce helpers", () => {
     expect(localizedProductName(chineseSourceProduct, "ko")).toBe("울 트렌치코트");
     expect(localizedProductName(chineseSourceProduct, "en")).toBe("Wool Trench Coat");
     expect(localizedProductDescription(chineseSourceProduct, "ko")).toBe("더블브레스트 울 트렌치코트입니다.");
+  });
+
+  it("localizes known merchandising metadata and hides malformed legacy field labels", () => {
+    expect(localizedProductMeta("深蓝", "en")).toBe("Deep Blue");
+    expect(localizedProductMeta("春 夏 秋", "ko")).toBe("봄 · 여름 · 가을");
+    expect(localizedProductMeta("minimal", "zh-CN")).toBe("极简");
+    expect(localizedProductMeta("season", "en")).toBe("");
   });
 
   it("applies the configured quantity discount ladder", () => {
