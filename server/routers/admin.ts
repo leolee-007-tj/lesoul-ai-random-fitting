@@ -120,6 +120,19 @@ export const adminRouter = router({
   createRedeemCode: ownerProcedure.input(z.object({ code: z.string().min(4).max(64).optional(), generationAllowance: z.number().int().min(1).max(1000), isUnlimited: z.boolean().optional(), catalogTier: z.enum(["basic", "full"]), maxUses: z.number().int().min(1).max(100000), expiresAt: z.date().nullable().optional(), campaign: z.string().max(120).nullable().optional(), note: z.string().max(4000).nullable().optional() })).mutation(async () => {
     throw new Error("REDEEM_DISABLED_USE_VIP_ACCOUNT");
   }),
+  translateCustomerText: ownerProcedure.input(z.object({ context: z.enum(["product", "outfit", "category", "purchase_notice"]), title: z.string().trim().min(1).max(2000), body: z.string().trim().max(4000).nullable().optional() })).mutation(async ({ input }) => {
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: "You are a premium fashion-commerce localization service. Detect whether the supplied source text is English, Korean, or Simplified Chinese. Preserve the original source exactly (apart from surrounding whitespace) and translate it faithfully into the other two languages. Do not add products, prices, claims, policy, or details. Return all EN, KO, and Simplified Chinese values plus the detected source locale in the required JSON." },
+        { role: "user", content: JSON.stringify(input) },
+      ],
+      response_format: { type: "json_schema", json_schema: { name: "localized_customer_text", strict: true, schema: { type: "object", properties: { sourceLanguage: { type: "string", enum: ["en", "ko", "zh"] }, titleEn: { type: "string" }, titleKo: { type: "string" }, titleZh: { type: "string" }, bodyEn: { type: "string" }, bodyKo: { type: "string" }, bodyZh: { type: "string" } }, required: ["sourceLanguage", "titleEn", "titleKo", "titleZh", "bodyEn", "bodyKo", "bodyZh"], additionalProperties: false } } },
+    });
+    const content = response.choices?.[0]?.message?.content;
+    if (typeof content !== "string") throw new Error("Translation response was empty.");
+    const translated = JSON.parse(content) as { sourceLanguage: "en" | "ko" | "zh"; titleEn: string; titleKo: string; titleZh: string; bodyEn: string; bodyKo: string; bodyZh: string };
+    return { sourceLanguage: translated.sourceLanguage, titleEn: translated.titleEn.trim(), titleKo: translated.titleKo.trim(), titleZh: translated.titleZh.trim(), bodyEn: translated.bodyEn.trim(), bodyKo: translated.bodyKo.trim(), bodyZh: translated.bodyZh.trim() };
+  }),
   translateProduct: protectedProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [

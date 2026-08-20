@@ -731,3 +731,9 @@
 - [x] Remove Quick AI from ADMIN navigation and route availability while retaining administrator operations, product, fit, curated-outfit, access, and purchase-notice management.
 - [x] Add a NORMAL/VIP customer profile entry with localized welcome copy, role-appropriate display name, saved looks, interested products, and previous purchase-request sections using existing isolated customer data.
 - [x] Verify NORMAL and VIP profiles remain separate by visitorId/userId, ADMIN cannot access customer profile or Quick AI, EN/KO/ZH states, tests, checkpoint, and publish.
+
+## Any-language administrator input with automatic locale detection
+- [x] Audit all customer-facing administrator text inputs and existing Korean-only translation calls across products, curated outfits, categories, and purchase notices.
+- [x] Add a server-side structured language-detection and EN/KO/ZH translation procedure that returns the detected source locale plus all three locale values with safe fallback handling.
+- [x] Replace Korean-only input labels and source-language assumptions so each administrator form accepts Korean, Simplified Chinese, or English text and saves localized results atomically.
+- [x] Add detected-language, non-source translation, source preservation, and fallback tests; verify product, outfit, category, and purchase-notice customer display in EN/KO/ZH, checkpoint, and publish.

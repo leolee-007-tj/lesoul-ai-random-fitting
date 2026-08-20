@@ -9,14 +9,14 @@ const emptyDraft = (): Draft => ({ nameEn: "", nameKo: "", nameZh: "", baseCateg
 
 export default function CategoryManagementPanel({ locale, categories, open, onOpenChange, onCreated }: { locale: Locale; categories: ManagedCategory[]; open: boolean; onOpenChange: (next: boolean) => void; onCreated?: (category: ManagedCategory) => void }) {
   const copy = locale === "ko"
-    ? { title: "상품 종류 관리", add: "상품 종류 추가", korean: "한국어 이름", auto: "한국어로 입력하면 영어와 중국어 이름이 자동으로 저장됩니다.", base: "기본 대분류", active: "활성", inactive: "비활성", order: "정렬 순서", save: "저장 및 자동 번역", cancel: "취소", edit: "수정", used: "이 분류를 사용하는 상품 {{count}}개", inactiveNote: "사용 중인 분류는 삭제하지 않고 비활성화합니다.", empty: "등록된 상품 종류가 없습니다.", required: "한국어 이름을 입력하세요." }
+    ? { title: "상품 종류 관리", add: "상품 종류 추가", korean: "상품 종류 이름", auto: "한국어·중국어·영어 중 어느 언어로 입력해도 나머지 언어가 자동 저장됩니다.", base: "기본 대분류", active: "활성", inactive: "비활성", order: "정렬 순서", save: "저장 및 자동 번역", cancel: "취소", edit: "수정", used: "이 분류를 사용하는 상품 {{count}}개", inactiveNote: "사용 중인 분류는 삭제하지 않고 비활성화합니다.", empty: "등록된 상품 종류가 없습니다.", required: "상품 종류 이름을 입력하세요." }
     : locale === "zh"
-      ? { title: "商品分类管理", add: "添加分类", korean: "韩文名称", auto: "输入韩文后会自动保存英文和中文名称。", base: "基础分类", active: "启用", inactive: "停用", order: "排序", save: "保存并自动翻译", cancel: "取消", edit: "编辑", used: "有 {{count}} 件商品使用此分类", inactiveNote: "已使用的分类不会删除，只能停用。", empty: "还没有分类。", required: "请输入韩文名称。" }
-      : { title: "CATEGORY MANAGEMENT", add: "ADD CATEGORY", korean: "Korean name", auto: "Enter Korean once; English and Chinese names are saved automatically.", base: "Base category", active: "Active", inactive: "Inactive", order: "Sort order", save: "SAVE & TRANSLATE", cancel: "Cancel", edit: "Edit", used: "{{count}} product(s) use this category", inactiveNote: "Used categories are never deleted; they can be made inactive.", empty: "No categories have been added.", required: "Enter a Korean name." };
+      ? { title: "商品分类管理", add: "添加分类", korean: "分类名称", auto: "可使用韩文、中文或英文输入，系统会自动保存其余语言。", base: "基础分类", active: "启用", inactive: "停用", order: "排序", save: "保存并自动翻译", cancel: "取消", edit: "编辑", used: "有 {{count}} 件商品使用此分类", inactiveNote: "已使用的分类不会删除，只能停用。", empty: "还没有分类。", required: "请输入分类名称。" }
+      : { title: "CATEGORY MANAGEMENT", add: "ADD CATEGORY", korean: "Category name", auto: "Enter Korean, Chinese, or English; the other locales are saved automatically.", base: "Base category", active: "Active", inactive: "Inactive", order: "Sort order", save: "SAVE & TRANSLATE", cancel: "Cancel", edit: "Edit", used: "{{count}} product(s) use this category", inactiveNote: "Used categories are never deleted; they can be made inactive.", empty: "No categories have been added.", required: "Enter a category name." };
   const utils = trpc.useUtils();
   const create = trpc.admin.createProductCategory.useMutation({ onSuccess: () => utils.admin.productCategories.invalidate() });
   const update = trpc.admin.updateProductCategory.useMutation({ onSuccess: () => utils.admin.productCategories.invalidate() });
-  const translate = trpc.admin.translateProductCategory.useMutation();
+  const translate = trpc.admin.translateCustomerText.useMutation();
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -28,8 +28,8 @@ export default function CategoryManagementPanel({ locale, categories, open, onOp
   const save = async () => {
     if (!draft.nameKo.trim()) return setMessage(copy.required);
     try {
-      const localized = await translate.mutateAsync({ nameKo: draft.nameKo.trim() });
-      const payload = { ...draft, ...localized };
+      const translated = await translate.mutateAsync({ context: "category", title: draft.nameKo.trim() });
+      const payload = { ...draft, nameEn: translated.titleEn, nameKo: translated.titleKo, nameZh: translated.titleZh };
       if (editingId) await update.mutateAsync({ id: editingId, ...payload });
       else {
         const category = await create.mutateAsync(payload);

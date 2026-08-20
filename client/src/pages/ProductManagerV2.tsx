@@ -16,7 +16,6 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 type Category = "top" | "bottom" | "outer" | "dress" | "shoes" | "bag";
-type SourceLanguage = "en" | "ko" | "zh";
 type FieldKey = "name" | "price";
 type DeleteIntent = { scope: "one" | "selected" | "all"; ids: number[] };
 type ProductDraft = {
@@ -72,12 +71,11 @@ export default function ProductManagerV2() {
   const update = trpc.admin.updateProduct.useMutation({ onSuccess: () => utils.admin.products.invalidate() });
   const deleteProducts = trpc.admin.deleteProducts.useMutation({ onSuccess: () => utils.admin.products.invalidate() });
   const deleteAllProducts = trpc.admin.deleteAllProducts.useMutation({ onSuccess: () => utils.admin.products.invalidate() });
-  const translate = trpc.admin.translateProduct.useMutation();
+  const translate = trpc.admin.translateCustomerText.useMutation();
   const upload = trpc.uploads.productImage.useMutation();
   const [categoryPanelOpen, setCategoryPanelOpen] = useState(false);
   const [draft, setDraft] = useState<ProductDraft | null>(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("new") === "1" ? initialDraft() : null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const sourceLanguage: SourceLanguage = "ko";
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -136,7 +134,8 @@ export default function ProductManagerV2() {
     setFieldErrors({});
     const description = draft.description.trim() || draft.name.trim();
     try {
-      const localized = await translate.mutateAsync({ sourceLanguage, name: draft.name.trim(), description });
+      const translated = await translate.mutateAsync({ context: "product", title: draft.name.trim(), body: description });
+      const localized = { nameEn: translated.titleEn, nameKo: translated.titleKo, nameZh: translated.titleZh, descriptionEn: translated.bodyEn, descriptionKo: translated.bodyKo, descriptionZh: translated.bodyZh };
       const detailUrls = normalizeProductDetailUrls(draft.detailUrls);
       const imageViews: ProductImageViews = { front: asset(draft.frontUrl), ...(draft.backUrl ? { back: asset(draft.backUrl) } : {}), ...(detailUrls.length ? { detail: detailUrls.map(asset) } : {}) };
       const payload = { name: draft.name.trim(), ...localized, brand: draft.brand.trim() || null, displayCategoryId: draft.displayCategoryId, category: draft.category, season: draft.season.trim() || "all_season", color: draft.color.trim() || "unspecified", style: draft.style.trim() || "minimal", status: draft.availabilityStatus === "SOLD_OUT" ? "sold_out" as const : "in_stock" as const, isActive: draft.isActive ? 1 : 0, availabilityStatus: draft.availabilityStatus, isNew: draft.isNew ? 1 : 0, newArrivalAt: draft.isNew ? draft.newArrivalAt ?? new Date() : null, price: Math.round(confirmedPrice), priceOriginal: Math.round(confirmedPrice), discountRate: draft.saleEnabled ? draft.discountRate : null, priceSale: draft.saleEnabled ? Math.round(Number(draft.priceSale)) : null, saleEnabled: draft.saleEnabled ? 1 : 0, imageUrl: draft.frontUrl, images: buildProductGalleryUrls({ frontUrl: draft.frontUrl, backUrl: draft.backUrl, detailUrls }), imageViews, description, purchaseQrUrl: draft.qrUrl || null, sizeOptions: draft.sizeOptions.filter((option) => option.label.trim()), catalogDisplay: draft.catalogDisplay, stylistMetadata: { mainColor: draft.color.trim() || "unspecified", formality: 3, fashionMood: [] as string[], recommendedStyles: ["minimal"] as ("minimal")[], compatibleColors: [] as string[], source: "manual" as const } };
