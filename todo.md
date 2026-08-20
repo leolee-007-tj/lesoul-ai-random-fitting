@@ -659,3 +659,9 @@
 - [x] Audit ProductPrice and all shared sale badge surfaces to identify the single localization point for Chinese discount notation.
 - [x] Display active sale discounts as Chinese 折 notation in ZH locale (for example, 20% off → 8折) while preserving EN/KO percentage-off text, sale price calculation, and SOLD OUT priority.
 - [x] Add notation regression coverage, verify customer mobile price rendering, checkpoint, and publish.
+
+## Browse Products bottom navigation and compact product CTA
+- [x] Audit NORMAL/VIP MobileBottomNav item order, Browse Products route, product-card image/container layout, and PurchaseListAddButton sizing across catalog, detail, recommendation, result, and purchase surfaces.
+- [x] Replace the second NORMAL/VIP bottom-navigation My Looks item with localized Browse Products using the existing `/catalog` route, while preserving Home, Match, Purchase List, active-state handling, and ADMIN console navigation.
+- [x] Replace oversized product purchase controls with a compact full-width horizontal black Add to List button immediately below each product card content so small thumbnails and garment images remain visible.
+- [x] Preserve current inventory availability, sale pricing, purchase-list count, product-detail navigation, and EN/KO/ZH button states; verify the corrected mobile catalog route, small-card layout, tests, checkpoint, and publish.
