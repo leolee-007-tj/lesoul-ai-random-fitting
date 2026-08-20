@@ -702,3 +702,8 @@
 - [x] Improve Outfit Manager so an administrator can select real active products by garment category, assemble a complete combination, and save another curated outfit without searching an unfiltered large catalog.
 - [x] Make customer Style This Item return unique administrator-curated combinations containing the fixed product first, then only fill remaining slots with existing dynamic recommendations, capped at three completed looks.
 - [x] Add tests for category filtering, fixed-product inclusion, combination uniqueness, curated-first ordering, fallback completion, and the three-look maximum; verify EN/KO/ZH admin and customer flows, checkpoint, and publish.
+
+## Filter curated outfit list by included product
+- [x] Audit the Outfit Manager list, localized product data, and existing item-to-outfit relationship fields for an in-browser included-product filter.
+- [x] Add a localized product selector, selected-filter indicator, matching count, and clear action so administrators can show only curated outfits containing one chosen product.
+- [x] Add regression coverage and verify filtering does not affect creating, editing, duplicating, or activating curated outfits; validate EN/KO/ZH UI, checkpoint, and publish.
