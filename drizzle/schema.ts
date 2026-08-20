@@ -25,6 +25,8 @@ export const productCategories = mysqlTable("productCategories", {
   nameKo: varchar("nameKo", { length: 120 }).notNull(),
   nameZh: varchar("nameZh", { length: 120 }).notNull(),
   baseCategory: mysqlEnum("baseCategory", ["TOP", "PANTS", "JACKET", "DRESS", "SHOES", "BAG"]).notNull(),
+  /** Enabled real-garment measurements, ordered for the administrator Fit Manager. */
+  measurementFields: json("measurementFields").$type<import("../shared/categoryMeasurementFields").MeasurementFieldKey[]>(),
   isActive: int("isActive").default(1).notNull(),
   sortOrder: int("sortOrder").default(100).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

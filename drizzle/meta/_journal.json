@@ -225,6 +225,13 @@
       "when": 1787195623956,
       "tag": "0031_gorgeous_drax",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1787222635190,
+      "tag": "0032_last_namor",
+      "breakpoints": true
     }
   ]
 }

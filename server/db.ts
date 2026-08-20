@@ -7,6 +7,7 @@ import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
 import { isStylistEligible } from "../shared/productAvailability";
 import { resolveCatalogDisplay } from "../shared/catalogDisplay";
 import { baseCategoryToCoreCategory, DEFAULT_MANAGED_CATEGORIES, type BaseCategory } from "../shared/productCategories";
+import { normalizeMeasurementFields, type MeasurementFieldKey } from "../shared/categoryMeasurementFields";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _catalogEnsurePromise: Promise<boolean> | null = null;
@@ -115,7 +116,7 @@ export async function listProductCategories(includeInactive = false) {
   const visible = includeInactive ? categories : categories.filter((category) => category.isActive === 1);
   const usage = await db.select({ displayCategoryId: products.displayCategoryId, usageCount: count() }).from(products).groupBy(products.displayCategoryId);
   const usageById = new Map(usage.filter((row) => row.displayCategoryId !== null).map((row) => [row.displayCategoryId as number, Number(row.usageCount)]));
-  return visible.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id).map((category) => ({ ...category, usageCount: usageById.get(category.id) ?? 0 }));
+  return visible.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id).map((category) => ({ ...category, measurementFields: normalizeMeasurementFields(category.measurementFields, category.baseCategory), usageCount: usageById.get(category.id) ?? 0 }));
 }
 
 export async function getProductCategory(id: number) {
@@ -125,22 +126,23 @@ export async function getProductCategory(id: number) {
   return (await db.select().from(productCategories).where(eq(productCategories.id, id)).limit(1))[0];
 }
 
-export async function createProductCategory(input: { nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; isActive?: number; sortOrder?: number }) {
+export async function createProductCategory(input: { nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; measurementFields?: MeasurementFieldKey[]; isActive?: number; sortOrder?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Category management is temporarily unavailable.");
-  const result = await db.insert(productCategories).values({ ...input, isActive: input.isActive ?? 1, sortOrder: input.sortOrder ?? 100 });
+  const result = await db.insert(productCategories).values({ ...input, measurementFields: normalizeMeasurementFields(input.measurementFields, input.baseCategory), isActive: input.isActive ?? 1, sortOrder: input.sortOrder ?? 100 });
   return getProductCategory(Number(result[0].insertId));
 }
 
-export async function updateProductCategory(id: number, input: Partial<{ nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; isActive: number; sortOrder: number }>) {
+export async function updateProductCategory(id: number, input: Partial<{ nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; measurementFields: MeasurementFieldKey[]; isActive: number; sortOrder: number }>) {
   const db = await getDb();
   if (!db) throw new Error("Category management is temporarily unavailable.");
   const existing = await getProductCategory(id);
   if (!existing) throw new Error("The selected category no longer exists.");
   const usage = (await db.select({ usageCount: count() }).from(products).where(eq(products.displayCategoryId, id)))[0]?.usageCount ?? 0;
   if (input.baseCategory && input.baseCategory !== existing.baseCategory && Number(usage) > 0) throw new Error("The Base Category cannot change while products use this category.");
+  const normalizedInput = input.measurementFields ? { ...input, measurementFields: normalizeMeasurementFields(input.measurementFields, input.baseCategory ?? existing.baseCategory) } : input;
   await db.transaction(async (tx) => {
-    await tx.update(productCategories).set(input).where(eq(productCategories.id, id));
+    await tx.update(productCategories).set(normalizedInput).where(eq(productCategories.id, id));
   });
   return getProductCategory(id);
 }

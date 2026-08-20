@@ -737,3 +737,10 @@
 - [x] Add a server-side structured language-detection and EN/KO/ZH translation procedure that returns the detected source locale plus all three locale values with safe fallback handling.
 - [x] Replace Korean-only input labels and source-language assumptions so each administrator form accepts Korean, Simplified Chinese, or English text and saves localized results atomically.
 - [x] Add detected-language, non-source translation, source preservation, and fallback tests; verify product, outfit, category, and purchase-notice customer display in EN/KO/ZH, checkpoint, and publish.
+
+## Product category creation and category-specific measurement fields
+- [x] Diagnose and repair the administrator product-category add control, including its open state, mutation feedback, authorization, and localized validation path.
+- [x] Define reusable category-specific garment measurement field templates using the existing Fit Manager data model; preserve existing garment measurements and default presets.
+- [x] Add an administrator measurement-field manager where each product category can enable, order, relabel, or reset its necessary actual-garment measurements.
+- [x] Make Fit Manager use the configured category measurement fields, with safe fallback presets for legacy categories and products.
+- [x] Add creation, field-template, legacy fallback, EN/KO/ZH, and fit-save regression tests; verify desktop/mobile flows, checkpoint, and publish.
