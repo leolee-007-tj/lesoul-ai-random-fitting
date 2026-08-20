@@ -1,9 +1,11 @@
 import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { aiAccessBlocks, aiUsageEvents, redeemCodes, releaseSettings, users, visitorEntitlements } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getCentralEntitlement, getCentralSettings } from "../aiUsageController";
 import { ownerProcedure, router } from "../_core/trpc";
+import { hashVipPassword, normalizeVipUsername } from "../vipAccess";
 
 const rangeSchema = z.enum(["today", "7d", "30d", "all"]).default("30d");
 const cnyFen = z.number().int().min(0).max(10_000_000_00);
@@ -59,7 +61,7 @@ export const operationsRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
     const [registered, events, blocks] = await Promise.all([
-      db.select({ id: users.id, openId: users.openId, name: users.name, email: users.email, role: users.role, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
+      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
       db.select().from(aiUsageEvents).orderBy(desc(aiUsageEvents.startedAt)),
       db.select().from(aiAccessBlocks),
     ]);
@@ -68,7 +70,8 @@ export const operationsRouter = router({
     const blockByVisitor = new Map(blocks.map((block) => [block.visitorId, block]));
     const accounts = await Promise.all(registered.map(async (account) => {
       const visitorId = `account:${account.openId}`; const usage = usageByVisitor.get(visitorId) ?? []; const entitlement = await getCentralEntitlement(visitorId);
-      return { kind: "account" as const, visitorId, user: account, aiRequestCount: usage.length, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: Boolean(entitlement?.isUnlimited), generationAllowance: entitlement?.generationAllowance ?? null, generationUsed: entitlement?.generationUsed ?? null, entitlementExpiresAt: entitlement?.expiresAt ?? null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null };
+      const usageByFeature = Object.fromEntries(Array.from(new Set(usage.map((event) => event.featureType))).map((feature) => [feature, usage.filter((event) => event.featureType === feature).length]));
+      return { kind: "account" as const, visitorId, user: account, aiRequestCount: usage.length, usageByFeature, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: account.role === "vip", generationAllowance: entitlement?.generationAllowance ?? null, generationUsed: entitlement?.generationUsed ?? null, entitlementExpiresAt: entitlement?.expiresAt ?? null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null };
     }));
     const visitorAggregates = Array.from(usageByVisitor.entries()).filter(([visitorId]) => !visitorId.startsWith("account:")).map(([visitorId, usage]) => ({ kind: "visitor" as const, visitorId, user: null, aiRequestCount: usage.length, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: false, generationAllowance: null, generationUsed: null, entitlementExpiresAt: null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null }));
     return { accounts, visitors: visitorAggregates };
@@ -79,6 +82,28 @@ export const operationsRouter = router({
     const existing = (await db.select().from(aiAccessBlocks).where(eq(aiAccessBlocks.visitorId, input.visitorId)).limit(1))[0];
     if (existing) await db.update(aiAccessBlocks).set({ isActive: input.isBlocked ? 1 : 0, reason: input.reason ?? null }).where(eq(aiAccessBlocks.visitorId, input.visitorId));
     else await db.insert(aiAccessBlocks).values({ visitorId: input.visitorId, isActive: input.isBlocked ? 1 : 0, reason: input.reason ?? null });
+    return { success: true };
+  }),
+  createVipAccount: ownerProcedure.input(z.object({ username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), password: z.string().min(8).max(128), displayName: z.string().trim().max(120).optional() })).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("VIP_ACCOUNT_SERVICE_UNAVAILABLE");
+    const username = normalizeVipUsername(input.username);
+    const existing = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
+    if (existing) throw new Error("VIP_ID_ALREADY_EXISTS");
+    const openId = `vip:${randomUUID()}`;
+    await db.insert(users).values({ openId, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "vip_password", role: "vip", isActive: 1 });
+    return { success: true, username };
+  }),
+  updateVipAccount: ownerProcedure.input(z.object({ userId: z.number().int().positive(), isActive: z.boolean().optional(), displayName: z.string().trim().max(120).nullable().optional(), newPassword: z.string().min(8).max(128).optional() })).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("VIP_ACCOUNT_SERVICE_UNAVAILABLE");
+    const account = (await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
+    if (!account || account.role !== "vip") throw new Error("VIP_ACCOUNT_NOT_FOUND");
+    const set: Record<string, unknown> = {};
+    if (input.isActive !== undefined) set.isActive = input.isActive ? 1 : 0;
+    if (input.displayName !== undefined) set.name = input.displayName;
+    if (input.newPassword) set.passwordHash = hashVipPassword(input.newPassword);
+    if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
     return { success: true };
   }),
   settings: ownerProcedure.query(async () => {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { canGenerate, getReleaseSettings, redeemAccessCode, saveGenerationFeedback } from "../access";
+import { canGenerate, getReleaseSettings, saveGenerationFeedback } from "../access";
 import { getAiRoleCapabilities } from "../aiUsageController";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 
@@ -11,7 +11,9 @@ export const accessRouter = router({
     const [access, settings, capabilities] = await Promise.all([canGenerate(input.visitorId, actor), getReleaseSettings(), getAiRoleCapabilities({ visitorId: input.visitorId, actor })]);
     return { ...access, capabilities, betaCatalogLimit: settings.betaCatalogLimit, betaDailyVisitorLimit: settings.betaDailyVisitorLimit };
   }),
-  redeem: protectedProcedure.input(z.object({ code: z.string().min(3).max(64) })).mutation(async ({ ctx, input }) => redeemAccessCode(`account:${ctx.user.openId}`, input.code)),
+  redeem: protectedProcedure.input(z.object({ code: z.string().min(3).max(64) })).mutation(async () => {
+    throw new Error("REDEEM_DISABLED_USE_VIP_ACCOUNT");
+  }),
   generationFeedback: publicProcedure.input(z.object({ visitorId: visitor, generationRequestId: z.string().uuid(), feedback: z.enum(["love", "okay", "not_like_me", "garment_inaccurate"]) })).mutation(async ({ input }) => {
     await saveGenerationFeedback(input);
     return { success: true };

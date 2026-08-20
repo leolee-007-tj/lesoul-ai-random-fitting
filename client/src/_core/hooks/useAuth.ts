@@ -1,4 +1,5 @@
 import { startLogin } from "@/const";
+import { setHistoryScope } from "@/lib/mvpStore";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -62,9 +63,12 @@ export function useAuth(options?: UseAuthOptions) {
       "manus-runtime-user-info",
       JSON.stringify(meQuery.data)
     );
+    const account = meQuery.data ?? null;
+    const testAccess = testSessionQuery.data?.active ? testSessionQuery.data : null;
+    setHistoryScope(account ? `account:${account.openId}` : testAccess?.visitorId ? `visitor:${testAccess.visitorId}` : "normal:legacy");
     return {
-      user: meQuery.data ?? null,
-      testAccess: testSessionQuery.data?.active ? testSessionQuery.data : null,
+      user: account,
+      testAccess,
       loading: meQuery.isLoading || testSessionQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? testSessionQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(meQuery.data || testSessionQuery.data?.active),

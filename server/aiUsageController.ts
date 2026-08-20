@@ -7,7 +7,7 @@ export type AiFeatureType = "AI_BODY_MODEL" | "AI_FITTING" | "LIYING_AI" | "QUIC
 export type AiUsageOutcome = "SUCCESS" | "FAILED" | "CANCELLED" | "BLOCKED_BY_LIMIT" | "BLOCKED_BY_BUDGET" | "PAUSED";
 export type AiBlockReason = "paused" | "budget_limit" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "quota_exhausted" | "role_forbidden" | "style_match_disabled" | "style_match_quota";
 export type AiRole = "ADMIN" | "VIP" | "NORMAL";
-export type AiActor = { openId: string; role: "admin" | "user" } | null | undefined;
+export type AiActor = { openId: string; role: "admin" | "vip" | "user" } | null | undefined;
 
 export const ROLE_AI_PERMISSIONS = {
   ADMIN: { quickAI: true, liyingAI: true, styleMatch: true, aiFitting: true, aiBodyModel: true, regeneration: true },
@@ -73,7 +73,8 @@ async function resolveAiRole(visitorId: string, actor?: AiActor) {
   const accountBound = Boolean(actor?.openId && visitorId === `account:${actor.openId}`);
   const isAdmin = Boolean(actor && (actor.role === "admin" || actor.openId === ENV.ownerOpenId));
   const entitlement = accountBound ? await getCentralEntitlement(visitorId) : undefined;
-  const isVip = Boolean(entitlement?.isUnlimited);
+  // VIP is an account role. Historical redeem rows remain readable but do not grant new VIP access.
+  const isVip = Boolean(accountBound && actor?.role === "vip");
   return { role: (isAdmin ? "ADMIN" : isVip ? "VIP" : "NORMAL") as AiRole, isAdmin, isVip, entitlement };
 }
 
@@ -157,7 +158,7 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
     return { allowed: true, remaining: settings.normalStyleMatchLimit > 0 ? remaining : null, ...base };
   }
   if (input.skipQuota || isAdmin || isVip) return { allowed: true, remaining: isVip ? null : settings.normalAiGenerationLimit, ...base };
-  if (releaseMode === "REDEEM_CODE" && !entitlement) return { allowed: false, reason: "redeem_required", remaining: 0, ...base };
+  // Historical release modes and entitlement rows remain queryable, but access is no longer granted by redeem code.
 
   const [completed, reserved] = await Promise.all([successfulGenerationCount(input.visitorId), pendingReservations(input.visitorId)]);
   const remaining = Math.max(0, settings.normalAiGenerationLimit - completed - reserved);

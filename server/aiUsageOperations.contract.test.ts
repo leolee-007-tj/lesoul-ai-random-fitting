@@ -25,6 +25,9 @@ describe("Central AI Access/Usage Controller contract", () => {
     expect(schema).toContain('"LIYING_AI"');
     expect(schema).toContain("quickAiAdminOnly");
     expect(schema).toContain("liyingAiVipEnabled");
+    expect(schema).toContain('"user", "vip", "admin"');
+    expect(controller).toContain('actor?.role === "vip"');
+    expect(controller).toContain("Historical redeem rows remain readable but do not grant new VIP access");
   });
 
   it("records real image provider lifecycle in Look and Body Model routes without UI-side allowance consumption", () => {

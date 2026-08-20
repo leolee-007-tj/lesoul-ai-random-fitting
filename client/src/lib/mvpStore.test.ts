@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearHistory, readHistory, removeHistoryByIds, replaceHistory, saveHistory, type LookHistory } from "./mvpStore";
+import { clearHistory, readHistory, removeHistoryByIds, replaceHistory, saveHistory, setHistoryScope, type LookHistory } from "./mvpStore";
 
 class MemoryStorage {
   private values = new Map<string, string>();
@@ -12,7 +12,7 @@ class MemoryStorage {
 const look = (id: string): LookHistory => ({ id, imageUrl: `https://example.invalid/${id}.jpg`, pose: "Natural Standing", background: "Paris Cafe", style: "MINIMAL", productNames: [id], products: [], createdAt: "2026-08-19T00:00:00.000Z", language: "en", adjustmentParams: {}, shareUrl: null, selectedStylistLookId: null, stylistCandidates: [] });
 
 describe("My Looks locale-independent storage", () => {
-  beforeEach(() => vi.stubGlobal("localStorage", new MemoryStorage()));
+  beforeEach(() => { vi.stubGlobal("localStorage", new MemoryStorage()); setHistoryScope("normal:legacy"); });
 
   it("migrates legacy locale keys only once and deduplicates by lookId", () => {
     localStorage.setItem("myLooks_ko", JSON.stringify([look("LOOK_A"), look("LOOK_B")]));
@@ -35,5 +35,14 @@ describe("My Looks locale-independent storage", () => {
     expect(readHistory().map((item) => item.id)).toEqual(["LOOK_B"]);
     clearHistory();
     expect(readHistory()).toEqual([]);
+  });
+
+  it("never migrates NORMAL browser looks into a VIP or administrator account scope", () => {
+    saveHistory(look("NORMAL_LOOK"));
+    setHistoryScope("account:vip:unique-account");
+    expect(readHistory()).toEqual([]);
+    saveHistory(look("VIP_LOOK"));
+    setHistoryScope("normal:legacy");
+    expect(readHistory().map((item) => item.id)).toEqual(["NORMAL_LOOK"]);
   });
 });

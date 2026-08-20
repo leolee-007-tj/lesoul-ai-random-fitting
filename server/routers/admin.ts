@@ -77,12 +77,8 @@ export const adminRouter = router({
     await db.insert(releaseSettings).values({ id: 1, ...update }).onDuplicateKeyUpdate({ set: update });
     return getReleaseSettings();
   }),
-  createRedeemCode: ownerProcedure.input(z.object({ code: z.string().min(4).max(64).optional(), generationAllowance: z.number().int().min(1).max(1000), isUnlimited: z.boolean().optional(), catalogTier: z.enum(["basic", "full"]), maxUses: z.number().int().min(1).max(100000), expiresAt: z.date().nullable().optional(), campaign: z.string().max(120).nullable().optional(), note: z.string().max(4000).nullable().optional() })).mutation(async ({ input }) => {
-    const db = await getDb(); if (!db) throw new Error("Redeem service is temporarily unavailable.");
-    const code = (input.code?.trim().toUpperCase() || `LESOUL-${randomBytes(4).toString("hex").toUpperCase()}`);
-    const codeHash = createHash("sha256").update(code).digest("hex");
-    await db.insert(redeemCodes).values({ codeHash, generationAllowance: input.generationAllowance, isUnlimited: input.isUnlimited ? 1 : 0, catalogTier: input.catalogTier, maxUses: input.maxUses, expiresAt: input.expiresAt ?? null, campaign: input.campaign ?? null, note: input.note ?? null });
-    return { code };
+  createRedeemCode: ownerProcedure.input(z.object({ code: z.string().min(4).max(64).optional(), generationAllowance: z.number().int().min(1).max(1000), isUnlimited: z.boolean().optional(), catalogTier: z.enum(["basic", "full"]), maxUses: z.number().int().min(1).max(100000), expiresAt: z.date().nullable().optional(), campaign: z.string().max(120).nullable().optional(), note: z.string().max(4000).nullable().optional() })).mutation(async () => {
+    throw new Error("REDEEM_DISABLED_USE_VIP_ACCOUNT");
   }),
   translateProduct: protectedProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
     const response = await invokeLLM({

@@ -4,6 +4,7 @@ import FitReferenceNotice from "@/components/FitReferenceNotice";
 import NormalizedProductImage from "@/components/NormalizedProductImage";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import { getVisitorId } from "@/lib/visitor";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { buildShareCard, downloadBlob, updateSocialMeta } from "@/lib/shareCard";
 import { formatPrice } from "@/lib/localeFormat";
@@ -35,8 +36,9 @@ function copyFor(language: string) {
 
 export default function LookResultPanel({ imageUrl, lookCode, products, measurements, shareUrl }: ResultProps) {
   const { i18n } = useTranslation(); const language = i18n.language; const copy = copyFor(language);
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false); const [detailId, setDetailId] = useState<number | null>(null);
-  const access = trpc.access.status.useQuery({ visitorId: getVisitorId() });
+  const access = trpc.access.status.useQuery({ visitorId: user?.openId ? `account:${user.openId}` : getVisitorId() });
   useEffect(() => { updateSocialMeta(lookCode, `${window.location.origin}/api/og/look?code=${encodeURIComponent(lookCode)}`); }, [lookCode]);
   const download = async () => { setSaving(true); try { const card = await buildShareCard(imageUrl, lookCode); downloadBlob(card, `${lookCode.toLowerCase()}-lesoul-look.jpg`); } finally { setSaving(false); } };
   const allowance = access.data?.isVip ? (language.startsWith("ko") ? "LESOUL VIP · 무제한 LOOK 생성" : language.startsWith("zh") ? "LESOUL VIP · 无限生成 LOOK" : "LESOUL VIP · UNLIMITED LOOKS") : access.data?.remaining !== null && access.data?.remaining !== undefined ? (language.startsWith("ko") ? `LOOK 생성 ${access.data.remaining}회 남음` : language.startsWith("zh") ? `还可以生成 ${access.data.remaining} 次 LOOK` : `${access.data.remaining} LOOKS REMAINING`) : null;
