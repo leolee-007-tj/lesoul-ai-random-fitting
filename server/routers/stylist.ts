@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, saveStylistFeedback } from "../db";
 import { getReleaseSettings } from "../access";
 import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
-import { recommendCuratedTopLooks, recommendTopLooks, validateRecommendedProductIds } from "../stylistEngine";
+import { prioritizeCuratedTopLooks, recommendCuratedTopLooks, recommendTopLooks, validateRecommendedProductIds } from "../stylistEngine";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { beginAiUsage, finishAiUsage } from "../aiUsageController";
 
@@ -24,13 +24,14 @@ export const stylistRouter = router({
       const activeProducts = await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder));
       const preset = presets.find((item) => item.key === input.styleKey);
       if (!preset) throw new Error("The requested style preset is not active.");
-      if (settings.curatedOutfitsPriority) {
-        const curated = await getEligibleCuratedOutfits({ stylePresetKey: input.styleKey, anchorProductId: input.anchorProductId ?? null, includePreorder: Boolean(settings.stylistIncludePreorder) });
-        if (curated.length) return recommendCuratedTopLooks({ curatedOutfits: curated, activeProducts, preset, anchorProductId: input.anchorProductId ?? null, body: input.body, locale: input.locale, limit: 3 });
-      }
+      const curatedLooks = settings.curatedOutfitsPriority
+        ? recommendCuratedTopLooks({ curatedOutfits: await getEligibleCuratedOutfits({ stylePresetKey: input.styleKey, anchorProductId: input.anchorProductId ?? null, includePreorder: Boolean(settings.stylistIncludePreorder) }), activeProducts, preset, anchorProductId: input.anchorProductId ?? null, body: input.body, locale: input.locale, limit: 3 })
+        : [];
+      if (curatedLooks.length >= 3) return curatedLooks;
       startedAt = Date.now();
       usage = await beginAiUsage({ visitorId, feature: "AI_STYLIST", provider: "lesoul_rule_engine", model: "compatibility_v1", actor });
-      const looks = recommendTopLooks({ activeProducts, preset, anchorProductId: input.anchorProductId ?? null, body: input.body, locale: input.locale, limit: 3 });
+      const dynamicLooks = recommendTopLooks({ activeProducts, preset, anchorProductId: input.anchorProductId ?? null, body: input.body, locale: input.locale, limit: 6 });
+      const looks = prioritizeCuratedTopLooks(curatedLooks, dynamicLooks, 3);
       await finishAiUsage(usage.eventId, "SUCCESS", { durationMs: Date.now() - startedAt });
       return looks;
     } catch (error) {

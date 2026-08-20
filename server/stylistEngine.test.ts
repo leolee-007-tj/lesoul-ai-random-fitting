@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { demoProducts } from "./catalogSeed";
-import { recommendCuratedTopLooks, recommendTopLooks, validateRecommendedProductIds } from "./stylistEngine";
+import { prioritizeCuratedTopLooks, recommendCuratedTopLooks, recommendTopLooks, validateRecommendedProductIds } from "./stylistEngine";
 import { DEFAULT_STYLE_PRESETS } from "../shared/stylist";
 import type { Product } from "../drizzle/schema";
 
@@ -57,5 +57,21 @@ describe("AI Stylist compatibility recommendations", () => {
     const curated = [{ id: 99, sortOrder: 1, reasonEn: null, reasonKo: null, reasonZh: null, items: [{ productId: active.id, product: active }, { productId: inactive.id, product: inactive }] }];
     expect(recommendCuratedTopLooks({ curatedOutfits: curated, activeProducts, preset: quietLuxury })).toHaveLength(0);
     expect(recommendCuratedTopLooks({ curatedOutfits: [{ ...curated[0]!, id: 100, items: [{ productId: active.id, product: active }, { productId: activeProducts.find((product) => product.id !== active.id)!.id, product: activeProducts.find((product) => product.id !== active.id)! }] }], activeProducts, preset: quietLuxury, anchorProductId: active.id })).toHaveLength(1);
+  });
+
+  it("keeps unique administrator combinations first and fills open places with dynamic looks up to three", () => {
+    const anchor = activeProducts.find((product) => product.category === "top")!;
+    const curated = [
+      { id: 1, sortOrder: 1, reasonEn: "First", reasonKo: null, reasonZh: null, items: [{ productId: anchor.id, product: anchor }, { productId: activeProducts.find((product) => product.category === "bottom")!.id, product: activeProducts.find((product) => product.category === "bottom")! }] },
+      { id: 2, sortOrder: 2, reasonEn: "Duplicate", reasonKo: null, reasonZh: null, items: [{ productId: activeProducts.find((product) => product.category === "bottom")!.id, product: activeProducts.find((product) => product.category === "bottom")! }, { productId: anchor.id, product: anchor }] },
+    ];
+    const curatedLooks = recommendCuratedTopLooks({ curatedOutfits: curated, activeProducts, preset: quietLuxury, anchorProductId: anchor.id });
+    const dynamicLooks = recommendTopLooks({ activeProducts, preset: quietLuxury, anchorProductId: anchor.id, limit: 6 });
+    const merged = prioritizeCuratedTopLooks(curatedLooks, dynamicLooks, 3);
+    expect(curatedLooks).toHaveLength(1);
+    expect(merged.length).toBeLessThanOrEqual(3);
+    expect(merged[0]?.lookId).toMatch(/^CURATED_/);
+    expect(new Set(merged.map((look) => [...look.productIds].sort((a, b) => a - b).join("-"))).size).toBe(merged.length);
+    expect(merged.every((look) => look.productIds.includes(anchor.id))).toBe(true);
   });
 });

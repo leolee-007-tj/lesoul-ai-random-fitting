@@ -696,3 +696,9 @@
 - [x] Audit the Style Match fixed-item picker and shared product-status badge rendering scope.
 - [x] Remove the purchase-availability badge from fixed-item picker thumbnails while preserving product images, names, selection state, and all catalog/detail availability badges.
 - [x] Add regression coverage, verify the mobile Style This Item view and catalog status surfaces, then checkpoint and publish.
+
+## Category-guided curated outfits and customer Top 3 priority
+- [x] Audit Curated Outfit storage, Outfit Manager product selection, category metadata, Style This Item anchor queries, curated ranking, dynamic fallback, and duplicate-combination handling.
+- [x] Improve Outfit Manager so an administrator can select real active products by garment category, assemble a complete combination, and save another curated outfit without searching an unfiltered large catalog.
+- [x] Make customer Style This Item return unique administrator-curated combinations containing the fixed product first, then only fill remaining slots with existing dynamic recommendations, capped at three completed looks.
+- [x] Add tests for category filtering, fixed-product inclusion, combination uniqueness, curated-first ordering, fallback completion, and the three-look maximum; verify EN/KO/ZH admin and customer flows, checkpoint, and publish.

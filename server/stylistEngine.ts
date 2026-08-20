@@ -7,6 +7,10 @@ export type StylistRecommendation = { lookId: string; productIds: number[]; scor
 export type ActiveStylePreset = { key: string; name: string; matchingTags: string[]; weights: CompatibilityWeights };
 export type CuratedRecommendationCandidate = { id: number; sortOrder: number; reasonEn: string | null; reasonKo: string | null; reasonZh: string | null; items: Array<{ productId: number; product: Product | null }> };
 
+function recommendationIdentity(productIds: number[]) {
+  return [...productIds].sort((first, second) => first - second).join("-");
+}
+
 const NEUTRALS = new Set(["black", "white", "ivory", "beige", "gray", "grey", "brown", "navy", "블랙", "화이트", "아이보리", "베이지", "그레이", "브라운", "네이비"]);
 const COLOR_COMPATIBILITY: Record<string, string[]> = {
   blue: ["ivory", "beige", "white", "gray", "navy", "블루", "아이보리", "베이지", "화이트", "그레이", "네이비"],
@@ -128,7 +132,7 @@ export function recommendTopLooks(input: { activeProducts: Product[]; preset: Ac
   if (input.anchorProductId && !active.some((product) => product.id === input.anchorProductId)) throw new Error("The selected item is not active inventory.");
   const seen = new Set<string>();
   const candidates = outfitCandidates(active, input.anchorProductId).flatMap((products) => {
-    const productIds = products.map((product) => product.id); const identity = [...productIds].sort((first, second) => first - second).join("-");
+    const productIds = products.map((product) => product.id); const identity = recommendationIdentity(productIds);
     if (seen.has(identity)) return []; seen.add(identity);
     validateRecommendedProductIds(productIds, active);
     const { score, raw } = scoreOutfit(products, input.preset, input.body);
@@ -156,8 +160,30 @@ export function recommendCuratedTopLooks(input: { curatedOutfits: CuratedRecomme
     const { score, raw } = scoreOutfit(products, input.preset, input.body);
     return [{ outfit, productIds, score, raw }];
   });
+  const seen = new Set<string>();
   return candidates
     .sort((first, second) => second.score - first.score || first.outfit.sortOrder - second.outfit.sortOrder || first.outfit.id - second.outfit.id)
+    .filter((candidate) => {
+      const identity = recommendationIdentity(candidate.productIds);
+      if (seen.has(identity)) return false;
+      seen.add(identity);
+      return true;
+    })
     .slice(0, input.limit ?? 3)
     .map((candidate, index) => ({ lookId: `CURATED_${candidate.outfit.id}_${String(index + 1).padStart(2, "0")}`, productIds: candidate.productIds, score: candidate.score, scoreBreakdown: candidate.raw, reason: curatedReason(candidate.outfit, input.preset, input.locale ?? "en"), styleKey: presetKey(input.preset.key), anchorProductId: input.anchorProductId ?? null } satisfies StylistRecommendation));
+}
+
+/**
+ * Customer-facing priority policy: real administrator-made looks come first. Existing
+ * deterministic recommendations only fill open places, and the same product combination
+ * never appears twice even when it exists in both sources.
+ */
+export function prioritizeCuratedTopLooks(curated: StylistRecommendation[], dynamic: StylistRecommendation[], limit = 3) {
+  const seen = new Set<string>();
+  return [...curated, ...dynamic].filter((look) => {
+    const identity = recommendationIdentity(look.productIds);
+    if (seen.has(identity)) return false;
+    seen.add(identity);
+    return true;
+  }).slice(0, limit);
 }
