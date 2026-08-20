@@ -190,7 +190,7 @@ describe("customer-facing UX cleanup contract", () => {
     expect(purchase).toContain('settings.purchaseMode !== "PURCHASE_LIST"');
     expect(purchase).toContain("PURCHASE_ITEM_UNAVAILABLE");
     expect(purchase).toContain("PURCHASE_SIZE_UNAVAILABLE");
-    expect(purchase).toContain("currentPrice: product.price");
+    expect(purchase).toContain("currentPrice: getEffectivePrice(product)");
     expect(admin).toContain('purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"])');
   });
 

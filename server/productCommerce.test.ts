@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateDiscountedPrice, getQuantityDiscountPercent, localizedProductDescription, localizedProductName } from "../shared/productCommerce";
+import { calculateDiscountedPrice, calculateSalePrice, getEffectivePrice, getQuantityDiscountPercent, getSalePriceState, localizedProductDescription, localizedProductName } from "../shared/productCommerce";
 
 const product = {
   name: "Legacy name",
@@ -54,5 +54,20 @@ describe("product commerce helpers", () => {
   it("adds a valid Moment coupon after the tier discount and rejects a wrong code", () => {
     expect(calculateDiscountedPrice(product, 2, "moment10")).toMatchObject({ tierPercent: 25, couponPercent: 10, total: 1350 });
     expect(calculateDiscountedPrice(product, 2, "WRONG")).toMatchObject({ tierPercent: 25, couponPercent: 0, total: 1500 });
+  });
+
+  it("calculates single-product sales with nearest-whole CNY rounding", () => {
+    expect(calculateSalePrice(999, 20)).toBe(799);
+    expect(calculateSalePrice(999, 30)).toBe(699);
+    expect(calculateSalePrice(999, 40)).toBe(599);
+    expect(calculateSalePrice(999, 45)).toBe(549);
+  });
+
+  it("uses sale price only when the enabled sale fields are valid", () => {
+    const sale = { ...product, priceOriginal: 1000, discountRate: 30, priceSale: 700, saleEnabled: 1 };
+    expect(getSalePriceState(sale)).toMatchObject({ original: 1000, rate: 30, sale: 700, enabled: true });
+    expect(getEffectivePrice(sale)).toBe(700);
+    expect(getEffectivePrice({ ...sale, saleEnabled: 0 })).toBe(1000);
+    expect(getEffectivePrice({ ...sale, priceSale: 1000 })).toBe(1000);
   });
 });

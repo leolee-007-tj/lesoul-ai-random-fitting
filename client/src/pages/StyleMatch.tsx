@@ -2,7 +2,7 @@ import MobileScreen from "@/components/MobileScreen";
 import StylistPanel, { type StylistProduct } from "@/components/StylistPanel";
 import { usePurchaseList } from "@/contexts/PurchaseListContext";
 import { trpc } from "@/lib/trpc";
-import { localizedProductName } from "@shared/productCommerce";
+import { getEffectivePrice, localizedProductName } from "@shared/productCommerce";
 import { Check, ShoppingBag, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,7 @@ export default function StyleMatch() {
       const product = products.find((item) => item.id === styled.id);
       if (!product) continue;
       const sizes = sizesFor(product);
-      addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: sizes[0] ?? "FREE", availableSizes: sizes, quantity: 1, currentPrice: product.price, source: "catalog" });
+      addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: sizes[0] ?? "FREE", availableSizes: sizes, quantity: 1, currentPrice: getEffectivePrice(product), source: "catalog" });
     }
     setNotice(copy.added);
   };

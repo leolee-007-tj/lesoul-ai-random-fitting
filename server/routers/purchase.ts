@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { getReleaseSettings } from "../access";
 import { getCatalog } from "../db";
+import { getEffectivePrice } from "../../shared/productCommerce";
 import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 
 const requestItems = z.array(z.object({ productId: z.number().int().positive(), selectedSize: z.string().trim().min(1).max(32), quantity: z.number().int().min(1).max(99), purchaseType: z.enum(["NORMAL", "RESERVATION"]).optional() })).min(1).max(20);
@@ -34,7 +35,7 @@ export const purchaseRouter = router({
     if (invalidSize) throw new Error(`PURCHASE_SIZE_UNAVAILABLE:${invalidSize.productId}`);
     const items = input.items.map((item) => {
       const product = current.get(item.productId)!;
-      return { productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: item.selectedSize, quantity: item.quantity, currentPrice: product.price, status: product.status, availabilityStatus: product.availabilityStatus, purchaseType: product.availabilityStatus === "PRE_ORDER" ? "RESERVATION" as const : "NORMAL" as const };
+      return { productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: item.selectedSize, quantity: item.quantity, currentPrice: getEffectivePrice(product), status: product.status, availabilityStatus: product.availabilityStatus, purchaseType: product.availabilityStatus === "PRE_ORDER" ? "RESERVATION" as const : "NORMAL" as const };
     });
     const referenceTotal = items.reduce((sum, item) => sum + item.currentPrice * item.quantity, 0);
     return { purchaseRequestId: requestNumber(), createdAt: new Date(), visitorId, source: input.source ?? "detail", generationId: input.generationId ?? null, lookId: input.lookId ?? null, releaseMode: settings.releaseMode, items, referenceTotal, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };

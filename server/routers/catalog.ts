@@ -42,7 +42,7 @@ export const catalogRouter = router({
       product: {
         id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh,
         brand: product.brand, category: product.category, displayCategory: product.displayCategory ?? null, season: product.season, color: product.color, style: product.style,
-        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
+        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, priceOriginal: product.priceOriginal, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
         description: product.description, descriptionEn: product.descriptionEn, descriptionKo: product.descriptionKo, descriptionZh: product.descriptionZh,
         garmentMeasurements: product.garmentMeasurements, catalogDisplay: product.catalogDisplay, sizeOptions: product.sizeOptions, stretchLevel: product.stretchLevel,
       },
@@ -56,8 +56,8 @@ export const catalogRouter = router({
     const status = getPurchaseAvailability({ exists: Boolean(product), enabled: Boolean(settings.purchaseQrEnabled), status: product?.status, purchaseQrUrl: product?.purchaseQrUrl });
     const notices = { purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
     if (!product || status === "not_found" || status === "feature_off" || status === "sold_out") return { status, product: null, ...notices };
-    if (status === "consult") return { status, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price }, ...notices };
-    return { status: "available" as const, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, purchaseQrUrl: product.purchaseQrUrl, purchaseQrUpdatedAt: product.purchaseQrUpdatedAt }, ...notices };
+    if (status === "consult") return { status, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, priceOriginal: product.priceOriginal, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled }, ...notices };
+    return { status: "available" as const, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, priceOriginal: product.priceOriginal, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, purchaseQrUrl: product.purchaseQrUrl, purchaseQrUpdatedAt: product.purchaseQrUpdatedAt }, ...notices };
   }),
 });
 

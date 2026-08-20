@@ -51,6 +51,11 @@ export const products = mysqlTable("products", {
   isNew: int("isNew").default(0).notNull(),
   newArrivalAt: timestamp("newArrivalAt"),
   price: int("price").notNull(),
+  /** Legacy price remains the compatible original CNY price; explicit sale fields drive customer sale display. */
+  priceOriginal: int("priceOriginal"),
+  discountRate: int("discountRate"),
+  priceSale: int("priceSale"),
+  saleEnabled: int("saleEnabled").default(0).notNull(),
   imageUrl: text("imageUrl").notNull(),
   images: json("images").$type<string[]>(),
   imageViews: json("imageViews").$type<import("../shared/bodyMeasurements").ProductImageViews>(),

@@ -26,6 +26,10 @@ const productInput = z.object({
   isNew: z.number().int().min(0).max(1).optional(),
   newArrivalAt: z.date().nullable().optional(),
   price: z.number().int().min(0),
+  priceOriginal: z.number().int().positive().nullable().optional(),
+  discountRate: z.number().int().min(1).max(99).nullable().optional(),
+  priceSale: z.number().int().positive().nullable().optional(),
+  saleEnabled: z.number().int().min(0).max(1).optional(),
   imageUrl: z.string().min(1),
   images: z.array(z.string().min(1)).max(6).optional(),
   imageViews: z.object({ front: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), back: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), side: z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() }).optional(), detail: z.array(z.object({ original: z.string(), studioCut: z.string(), thumbnail: z.string() })).max(4).optional() }).optional(),
@@ -63,6 +67,21 @@ const productInput = z.object({
   stylistMetadata: z.object({ mainColor: z.string().max(80).optional(), secondaryColor: z.string().max(80).optional(), pattern: z.string().max(80).optional(), materialAppearance: z.string().max(120).optional(), silhouette: z.string().max(120).optional(), formality: z.number().int().min(1).max(5).optional(), fashionMood: z.array(z.string().max(64)).max(8).optional(), recommendedStyles: z.array(z.enum(["quiet_luxury", "elegant", "minimal", "chic", "casual", "office", "date", "street", "ai_choice"])).max(9).optional(), compatibleColors: z.array(z.string().max(80)).max(8).optional(), layeringSuitability: z.enum(["base", "layer", "outer", "complete", "accessory"]).optional(), source: z.enum(["manual", "vision"]).optional() }).nullable().optional(),
 });
 
+type SaleCandidate = { price?: number; priceOriginal?: number | null; discountRate?: number | null; priceSale?: number | null; saleEnabled?: number | null };
+
+function resolveSaleFields(input: SaleCandidate, existing?: SaleCandidate) {
+  const original = Math.round(input.priceOriginal ?? input.price ?? existing?.priceOriginal ?? existing?.price ?? 0);
+  const saleEnabled = input.saleEnabled ?? existing?.saleEnabled ?? 0;
+  const rate = input.discountRate ?? existing?.discountRate ?? null;
+  const sale = input.priceSale ?? existing?.priceSale ?? null;
+  if (original <= 0) throw new Error("SALE_ORIGINAL_PRICE_REQUIRED");
+  if (saleEnabled) {
+    if (!rate || !sale || sale >= original) throw new Error("SALE_PRICE_INVALID");
+    return { price: original, priceOriginal: original, discountRate: rate, priceSale: sale, saleEnabled: 1 };
+  }
+  return { price: original, priceOriginal: original, discountRate: null, priceSale: null, saleEnabled: 0 };
+}
+
 export const adminRouter = router({
   products: protectedProcedure.query(async () => (await getCatalog()).products),
   productCategories: protectedProcedure.query(async () => listProductCategories(true)),
@@ -99,15 +118,20 @@ export const adminRouter = router({
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
     const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, input.category);
     const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
-    await createAdminProduct({ ...input, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
+    const sale = resolveSaleFields(input);
+    await createAdminProduct({ ...input, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
   updateProduct: protectedProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
+    const existing = (await getCatalog()).products.find((product) => product.id === id);
+    if (!existing) throw new Error("PRODUCT_NOT_FOUND");
     const categoryLink = updates.displayCategoryId === undefined ? null : await resolveDisplayCategoryId(updates.displayCategoryId, updates.category ?? "top");
     const availabilityStatus = updates.availabilityStatus ? normaliseAvailabilityStatus(updates.availabilityStatus, updates.status) : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
-    await updateAdminProduct(id, { ...updates, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
+    const touchesSale = ["price", "priceOriginal", "discountRate", "priceSale", "saleEnabled"].some((key) => Object.prototype.hasOwnProperty.call(updates, key));
+    const sale = touchesSale ? resolveSaleFields(updates, existing) : {};
+    await updateAdminProduct(id, { ...updates, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
   }),
   deleteProduct: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {

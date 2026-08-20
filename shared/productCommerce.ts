@@ -10,6 +10,10 @@ export type LocalizedProduct = {
   descriptionKo?: string | null;
   descriptionZh?: string | null;
   price?: number;
+  priceOriginal?: number | null;
+  discountRate?: number | null;
+  priceSale?: number | null;
+  saleEnabled?: number | boolean | null;
   discountSeasonEnabled?: number | null;
   discountOnePercent?: number | null;
   discountTwoPercent?: number | null;
@@ -36,8 +40,33 @@ export function localizedProductDescription(product: LocalizedProduct, language:
   return (locale === "ko" ? product.descriptionKo : locale === "zh" ? product.descriptionZh : product.descriptionEn) || product.description || "";
 }
 
+export function getOriginalPrice(product: LocalizedProduct) {
+  const explicit = Number(product.priceOriginal ?? 0);
+  return Number.isFinite(explicit) && explicit > 0 ? Math.round(explicit) : Math.max(0, Math.round(product.price ?? 0));
+}
+
 function clampPercent(value: number | null | undefined) {
   return Math.max(0, Math.min(100, Math.round(value ?? 0)));
+}
+
+export function calculateSalePrice(priceOriginal: number, discountRate: number) {
+  const original = Math.max(0, Math.round(priceOriginal));
+  const rate = clampPercent(discountRate);
+  return Math.round(original * (1 - rate / 100));
+}
+
+export function getSalePriceState(product: LocalizedProduct) {
+  const original = getOriginalPrice(product);
+  const rate = clampPercent(product.discountRate);
+  const sale = Math.round(Number(product.priceSale ?? 0));
+  const enabled = product.saleEnabled === true || product.saleEnabled === 1;
+  const valid = enabled && original > 0 && rate > 0 && sale > 0 && sale < original;
+  return { original, rate, sale, enabled: valid };
+}
+
+export function getEffectivePrice(product: LocalizedProduct) {
+  const sale = getSalePriceState(product);
+  return sale.enabled ? sale.sale : sale.original;
 }
 
 export function getQuantityDiscountPercent(product: LocalizedProduct, quantity: number) {
@@ -58,7 +87,7 @@ export function calculateDiscountedPrice(product: LocalizedProduct, quantity = 1
   const safeQuantity = Math.max(1, Math.floor(quantity));
   const tierPercent = getQuantityDiscountPercent(product, safeQuantity);
   const couponPercent = getMomentCouponPercent(product, couponCode);
-  const unitAfterTier = (product.price ?? 0) * (1 - tierPercent / 100);
+  const unitAfterTier = getOriginalPrice(product) * (1 - tierPercent / 100);
   const total = unitAfterTier * safeQuantity * (1 - couponPercent / 100);
-  return { quantity: safeQuantity, baseTotal: (product.price ?? 0) * safeQuantity, tierPercent, couponPercent, total: Math.round(total) };
+  return { quantity: safeQuantity, baseTotal: getOriginalPrice(product) * safeQuantity, tierPercent, couponPercent, total: Math.round(total) };
 }

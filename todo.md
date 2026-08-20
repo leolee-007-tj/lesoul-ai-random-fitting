@@ -638,10 +638,10 @@
 - [x] Verify NORMAL/VIP/ADMIN route visibility, 390px mobile Home and bottom navigation, Quick AI server protection, tests, checkpoint, and publish.
 
 ## Product sale pricing and customer sale display
-- [ ] Audit the attached sale-pricing specification, current product price fields, prior quantity/coupon discount helpers, Product Manager save inputs, customer product cards, detail view, AI Style Match, purchase list, and request-card pricing.
-- [ ] Extend existing product records non-destructively with original price, sale price, selected discount rate, and sale-enabled status; calculate quick rates of 20%, 30%, 40%, and 45% as nearest-whole CNY without changing historical original price behavior.
-- [ ] Create one shared sale-price resolver and visual ProductPrice component for current effective reference price, original-to-sale display, sale discount badge, status priority, and fallback when sale data is invalid or disabled.
-- [ ] Add ADMIN Product Manager controls for original price, quick discount buttons, editable sale price, sale on/off, and non-blocking manual-price mismatch guidance with complete EN/KO/ZH copy.
-- [ ] Apply the shared price display to catalog, product detail, AI Style Match, result/purchase cards, purchase list, and saved request cards; SOLD OUT remains the primary status and NEW/PRE-ORDER remain independent.
-- [ ] Re-fetch latest sale state before purchase-list request generation so sale changes or expiry never use a stale price; retain final-price-confirmation notice and existing manual WeChat flow.
-- [ ] Add regression coverage for CNY rounding, manual overrides, sale-enabled gating, status/badge ordering, current purchase-list price, EN/KO/ZH copy, existing discount helpers, tests, mobile UI, checkpoint, and publish.
+- [x] Audit the attached sale-pricing specification, current product price fields, prior quantity/coupon discount helpers, Product Manager save inputs, customer product cards, detail view, AI Style Match, purchase list, and request-card pricing.
+- [x] Extend existing product records non-destructively with original price, sale price, selected discount rate, and sale-enabled status; calculate quick rates of 20%, 30%, 40%, and 45% as nearest-whole CNY without changing historical original price behavior.
+- [x] Create one shared sale-price resolver and visual ProductPrice component for current effective reference price, original-to-sale display, sale discount badge, status priority, and fallback when sale data is invalid or disabled.
+- [x] Add ADMIN Product Manager controls for original price, quick discount buttons, editable sale price, sale on/off, and non-blocking manual-price mismatch guidance with complete EN/KO/ZH copy.
+- [x] Apply the shared price display to catalog, product detail, AI Style Match, result/purchase cards, purchase list, and saved request cards; SOLD OUT remains the primary status and NEW/PRE-ORDER remain independent.
+- [x] Re-fetch latest sale state before purchase-list request generation so sale changes or expiry never use a stale price; retain final-price-confirmation notice and existing manual WeChat flow.
+- [x] Add regression coverage for CNY rounding, manual overrides, sale-enabled gating, status/badge ordering, current purchase-list price, EN/KO/ZH copy, existing discount helpers, tests, mobile UI, checkpoint, and publish.
