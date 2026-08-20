@@ -18,7 +18,7 @@ describe("Central AI Access/Usage Controller contract", () => {
     const controller = source("./aiUsageController.ts");
     const schema = source("../drizzle/schema.ts");
     expect(controller).toContain("ROLE_AI_PERMISSIONS");
-    expect(controller).toContain('ADMIN: { quickAI: true, liyingAI: true, styleMatch: true');
+    expect(controller).toContain('ADMIN: { quickAI: false, liyingAI: true, styleMatch: true');
     expect(controller).toContain('VIP: { quickAI: false, liyingAI: true, styleMatch: true');
     expect(controller).toContain('NORMAL: { quickAI: false, liyingAI: false, styleMatch: true');
     expect(controller).toContain("normalStyleMatchLimit");

@@ -725,3 +725,9 @@
 - [x] Add a deterministic alias generator that maps the same internal identity to a stable, friendly two-word EN/KO/ZH nickname without changing authentication, role, ownership, or analytics identifiers.
 - [x] Replace administrator-visible numeric/device identifier labels with the localized nickname while retaining an unobtrusive internal reference only where operationally required.
 - [x] Add alias stability and locale tests; verify NORMAL/VIP/ADMIN management views, EN/KO/ZH labels, tests, checkpoint, and publish.
+
+## Customer profile and administrator Quick AI removal
+- [x] Audit ADMIN Quick AI routes/navigation/authorization and NORMAL/VIP ownership-scoped saved looks, saved products, purchase list, and purchase request data sources.
+- [x] Remove Quick AI from ADMIN navigation and route availability while retaining administrator operations, product, fit, curated-outfit, access, and purchase-notice management.
+- [x] Add a NORMAL/VIP customer profile entry with localized welcome copy, role-appropriate display name, saved looks, interested products, and previous purchase-request sections using existing isolated customer data.
+- [x] Verify NORMAL and VIP profiles remain separate by visitorId/userId, ADMIN cannot access customer profile or Quick AI, EN/KO/ZH states, tests, checkpoint, and publish.

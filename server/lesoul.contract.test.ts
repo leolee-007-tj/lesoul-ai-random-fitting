@@ -107,11 +107,12 @@ describe("customer-facing UX cleanup contract", () => {
     const app = readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
     const adminGate = readFileSync(new URL("../client/src/components/AdminGate.tsx", import.meta.url), "utf8");
     expect(header).toContain('const showAdminManage = user?.role === "admin"');
-    expect(bottomNav).toContain('href: "/quick-fit"');
+    expect(bottomNav).not.toContain('href: "/quick-fit"');
+    expect(bottomNav).toContain('href: "/outfit-management"');
     expect(bottomNav).toContain('href: "/products"');
     expect(bottomNav).toContain('href: "/purchase-list"');
     expect(bottomNav).not.toContain('href: "/body-model"');
-    expect(app).toContain('<CustomerGate allowAdmin><QuickFit /></CustomerGate>');
+    expect(app).toContain('<CustomerGate><QuickFit /></CustomerGate>');
     expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
     expect(adminGate).toContain('user?.role !== "admin"');
   });
@@ -123,7 +124,7 @@ describe("customer-facing UX cleanup contract", () => {
     expect(header).toContain("await logout()");
     expect(header).toContain("상품 관리 · 옷 추가");
     expect(header).toContain("const showCatalogManage = showAdminManage");
-    expect(header).toContain("capabilities.quickAI");
+    expect(header).not.toContain("capabilities.quickAI");
     expect(dbSource).toContain('user.openId === ENV.ownerOpenId ? "admin"');
   });
 

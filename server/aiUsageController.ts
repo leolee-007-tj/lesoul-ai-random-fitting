@@ -10,7 +10,7 @@ export type AiRole = "ADMIN" | "VIP" | "NORMAL";
 export type AiActor = { openId: string; role: "admin" | "vip" | "user" } | null | undefined;
 
 export const ROLE_AI_PERMISSIONS = {
-  ADMIN: { quickAI: true, liyingAI: true, styleMatch: true, aiFitting: true, aiBodyModel: true, regeneration: true },
+  ADMIN: { quickAI: false, liyingAI: true, styleMatch: true, aiFitting: true, aiBodyModel: true, regeneration: true },
   VIP: { quickAI: false, liyingAI: true, styleMatch: true, aiFitting: false, aiBodyModel: false, regeneration: false },
   NORMAL: { quickAI: false, liyingAI: false, styleMatch: true, aiFitting: false, aiBodyModel: false, regeneration: false },
 } as const;

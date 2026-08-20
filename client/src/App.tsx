@@ -24,6 +24,7 @@ import StyleMatch from "./pages/StyleMatch";
 import Login from "./pages/Login";
 import AdminSetup from "./pages/AdminSetup";
 import OutfitManager from "./pages/OutfitManager";
+import Profile from "./pages/Profile";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -33,12 +34,13 @@ function Router() {
       <Route path={"/setup-admin"} component={AdminSetup} />
       <Route path={"/"} component={() => <CustomerGate><Home /></CustomerGate>} />
       <Route path={"/studio"} component={() => <CustomerGate><Studio /></CustomerGate>} />
-      <Route path={"/quick-fit"} component={() => <CustomerGate allowAdmin><QuickFit /></CustomerGate>} />
+      <Route path={"/quick-fit"} component={() => <CustomerGate><QuickFit /></CustomerGate>} />
       <Route path={"/catalog"} component={() => <CustomerGate><BrowseProducts /></CustomerGate>} />
       <Route path={"/purchase-list"} component={() => <CustomerGate><PurchaseList /></CustomerGate>} />
       <Route path={"/body-model"} component={() => <CustomerGate><BodyModel /></CustomerGate>} />
       <Route path={"/measurements"} component={() => <CustomerGate><Measurements /></CustomerGate>} />
       <Route path={"/history"} component={() => <CustomerGate><History /></CustomerGate>} />
+      <Route path={"/profile"} component={() => <CustomerGate><Profile /></CustomerGate>} />
       <Route path={"/products"} component={() => <AdminGate><ProductManager /></AdminGate>} />
       <Route path={"/product-fit"} component={() => <AdminGate><ProductFitManager /></AdminGate>} />
       <Route path={"/release-control"} component={() => <AdminGate><ReleaseControl /></AdminGate>} />
