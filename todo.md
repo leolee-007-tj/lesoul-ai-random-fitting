@@ -676,3 +676,9 @@
 - [x] Audit the Style Match “Style this item” recommendation cards and their shared purchase CTA components.
 - [x] Remove the direct-purchase display only from products rendered in Style This Item results while retaining product information, price, and existing purchase-list behavior elsewhere.
 - [x] Verify the Style This Item recommendation view, purchase-list flow, EN/KO/ZH copy, tests, checkpoint, and publish.
+
+## Purchase-notice translation and product-detail reference guidance
+- [x] Audit purchase-notice editing, persistence, locale resolution, and existing auto-translation capabilities alongside the product-detail information notice.
+- [x] Allow Korean purchase-notice input to populate EN and ZH customer notices through server-side automatic translation while preserving administrator edits and safe fallbacks.
+- [x] Replace the product-detail reference notice with localized guidance covering reference-only product/AI-worn images, real garment measurements, and possible lighting-related color variation.
+- [x] Verify purchase-card and product-detail EN/KO/ZH copy, translation failure handling, tests, checkpoint, and publish.

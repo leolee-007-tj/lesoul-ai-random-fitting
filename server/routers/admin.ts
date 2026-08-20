@@ -134,6 +134,22 @@ export const adminRouter = router({
     if (typeof content !== "string") throw new Error("Translation response was empty.");
     return JSON.parse(content) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
   }),
+  translatePurchaseNotice: ownerProcedure.input(z.object({ noticeKo: z.string().trim().min(1).max(1200) })).mutation(async ({ input }) => {
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: "You translate customer-facing Korean purchase-request notices for a premium fashion brand. Translate faithfully into natural English and Simplified Chinese. Preserve brand names, QR payment, WeChat, final-price, return, exchange, and policy meanings exactly. Do not add policies or claims. Return only the requested JSON object." },
+        { role: "user", content: input.noticeKo },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "purchase_notice_translation", strict: true, schema: { type: "object", properties: { noticeEn: { type: "string" }, noticeZh: { type: "string" } }, required: ["noticeEn", "noticeZh"], additionalProperties: false } },
+      },
+    });
+    const content = response.choices?.[0]?.message?.content;
+    if (typeof content !== "string") throw new Error("Purchase notice translation response was empty.");
+    const translated = JSON.parse(content) as { noticeEn: string; noticeZh: string };
+    return { noticeKo: input.noticeKo, noticeEn: translated.noticeEn.trim(), noticeZh: translated.noticeZh.trim() };
+  }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
     const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, input.category);
