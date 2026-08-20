@@ -654,3 +654,8 @@
 - [x] Make Style Match and AI Stylist prefer eligible curated outfits, preserve the current dynamic recommendation engine as a fallback when no curated result exists, and never recommend nonexistent or inactive/sold-out products.
 - [x] Remove oversized customer-facing 바로 구매 CTAs from recommendation results; standardize recommendation/result product-card bottoms around fixed image areas, local names, effective price, availability state, and compact black Add to List actions.
 - [x] Add the localized ADMIN Outfit Management navigation, keep all product/purchase/AI policies intact, and verify EN/KO/ZH reasons, statuses, dynamic fallback, purchase-list handoff, tests, mobile UI, checkpoint, and publish.
+
+## Chinese sale notation
+- [x] Audit ProductPrice and all shared sale badge surfaces to identify the single localization point for Chinese discount notation.
+- [x] Display active sale discounts as Chinese 折 notation in ZH locale (for example, 20% off → 8折) while preserving EN/KO percentage-off text, sale price calculation, and SOLD OUT priority.
+- [x] Add notation regression coverage, verify customer mobile price rendering, checkpoint, and publish.

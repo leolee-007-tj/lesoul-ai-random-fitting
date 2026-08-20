@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateDiscountedPrice, calculateSalePrice, getEffectivePrice, getQuantityDiscountPercent, getSalePriceState, localizedProductDescription, localizedProductName } from "../shared/productCommerce";
+import { calculateDiscountedPrice, calculateSalePrice, formatSaleDiscount, getEffectivePrice, getQuantityDiscountPercent, getSalePriceState, localizedProductDescription, localizedProductName } from "../shared/productCommerce";
 
 const product = {
   name: "Legacy name",
@@ -69,5 +69,13 @@ describe("product commerce helpers", () => {
     expect(getEffectivePrice(sale)).toBe(700);
     expect(getEffectivePrice({ ...sale, saleEnabled: 0 })).toBe(1000);
     expect(getEffectivePrice({ ...sale, priceSale: 1000 })).toBe(1000);
+  });
+
+  it("uses Chinese retail 折 notation only for the Chinese locale", () => {
+    expect(formatSaleDiscount(20, "zh")).toBe("8折");
+    expect(formatSaleDiscount(30, "zh")).toBe("7折");
+    expect(formatSaleDiscount(45, "zh")).toBe("5.5折");
+    expect(formatSaleDiscount(20, "en")).toBe("SALE 20%");
+    expect(formatSaleDiscount(20, "ko")).toBe("SALE 20%");
   });
 });

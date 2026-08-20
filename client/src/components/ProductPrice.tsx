@@ -1,4 +1,5 @@
-import { getSalePriceState, type LocalizedProduct } from "@shared/productCommerce";
+import { formatSaleDiscount, getSalePriceState, toProductLocale, type LocalizedProduct } from "@shared/productCommerce";
+import { useTranslation } from "react-i18next";
 
 type PriceProduct = LocalizedProduct & { price: number; availabilityStatus?: string | null; status?: string | null };
 
@@ -7,8 +8,10 @@ function cny(value: number) {
 }
 
 export default function ProductPrice({ product, className = "" }: { product: PriceProduct; className?: string; detail?: boolean }) {
+  const { i18n } = useTranslation();
   const calculated = getSalePriceState(product);
   const sale = product.availabilityStatus === "SOLD_OUT" || product.status === "sold_out" ? { ...calculated, enabled: false } : calculated;
   if (!sale.enabled) return <span className={`font-semibold text-[#25211d] ${className}`}>{cny(sale.original)}</span>;
-  return <span className={`inline-flex flex-wrap items-center gap-1.5 ${className}`}><span className="text-[#8b847a] line-through decoration-[#8b847a]">{cny(sale.original)}</span><span className="text-[#9a332c]">→</span><b className="font-bold text-[#8f2f28]">{cny(sale.sale)}</b><span className="rounded-full bg-[#f4e3df] px-2 py-0.5 text-[10px] font-bold tracking-[.08em] text-[#8f2f28]">SALE {sale.rate}%</span></span>;
+  const saleLabel = formatSaleDiscount(sale.rate, toProductLocale(i18n.language));
+  return <span className={`inline-flex flex-wrap items-center gap-1.5 ${className}`}><span className="text-[#8b847a] line-through decoration-[#8b847a]">{cny(sale.original)}</span><span className="text-[#9a332c]">→</span><b className="font-bold text-[#8f2f28]">{cny(sale.sale)}</b><span className="rounded-full bg-[#f4e3df] px-2 py-0.5 text-[10px] font-bold tracking-[.08em] text-[#8f2f28]">{saleLabel}</span></span>;
 }

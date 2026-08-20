@@ -64,6 +64,14 @@ export function getSalePriceState(product: LocalizedProduct) {
   return { original, rate, sale, enabled: valid };
 }
 
+/** Converts a percentage discount into the Chinese retail discount notation. */
+export function formatSaleDiscount(rate: number, locale: ProductLocale) {
+  const safeRate = clampPercent(rate);
+  if (locale !== "zh") return `SALE ${safeRate}%`;
+  const zhe = Math.max(0, Math.min(10, (100 - safeRate) / 10));
+  return `${Number.isInteger(zhe) ? zhe : zhe.toFixed(1)}折`;
+}
+
 export function getEffectivePrice(product: LocalizedProduct) {
   const sale = getSalePriceState(product);
   return sale.enabled ? sale.sale : sale.original;
