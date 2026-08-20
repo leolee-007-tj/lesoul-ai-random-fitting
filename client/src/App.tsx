@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import CustomerGate from "@/components/CustomerGate";
+import AdminGate from "@/components/AdminGate";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -31,17 +32,17 @@ function Router() {
       <Route path={"/setup-admin"} component={AdminSetup} />
       <Route path={"/"} component={() => <CustomerGate><Home /></CustomerGate>} />
       <Route path={"/studio"} component={() => <CustomerGate><Studio /></CustomerGate>} />
-      <Route path={"/quick-fit"} component={() => <CustomerGate><QuickFit /></CustomerGate>} />
-      <Route path={"/catalog"} component={BrowseProducts} />
+      <Route path={"/quick-fit"} component={() => <CustomerGate allowAdmin><QuickFit /></CustomerGate>} />
+      <Route path={"/catalog"} component={() => <CustomerGate><BrowseProducts /></CustomerGate>} />
       <Route path={"/purchase-list"} component={() => <CustomerGate><PurchaseList /></CustomerGate>} />
       <Route path={"/body-model"} component={() => <CustomerGate><BodyModel /></CustomerGate>} />
       <Route path={"/measurements"} component={() => <CustomerGate><Measurements /></CustomerGate>} />
       <Route path={"/history"} component={() => <CustomerGate><History /></CustomerGate>} />
-      <Route path={"/products"} component={ProductManager} />
-      <Route path={"/product-fit"} component={ProductFitManager} />
-      <Route path={"/release-control"} component={ReleaseControl} />
-      <Route path={"/purchase-notices"} component={PurchaseNoticeManager} />
-      <Route path={"/operations"} component={OperationsDashboard} />
+      <Route path={"/products"} component={() => <AdminGate><ProductManager /></AdminGate>} />
+      <Route path={"/product-fit"} component={() => <AdminGate><ProductFitManager /></AdminGate>} />
+      <Route path={"/release-control"} component={() => <AdminGate><ReleaseControl /></AdminGate>} />
+      <Route path={"/purchase-notices"} component={() => <AdminGate><PurchaseNoticeManager /></AdminGate>} />
+      <Route path={"/operations"} component={() => <AdminGate><OperationsDashboard /></AdminGate>} />
       <Route path={"/style-match"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/result-preview"} component={() => <CustomerGate><ResultPreview /></CustomerGate>} />
       <Route path={"/404"} component={NotFound} />

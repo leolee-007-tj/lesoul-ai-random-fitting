@@ -38,7 +38,7 @@ export default function Login() {
       }
       await utils.auth.testSession.invalidate();
       await utils.auth.me.invalidate();
-      navigate(next.startsWith("/") ? next : "/");
+      navigate(mode === "admin" ? "/operations" : next.startsWith("/") ? next : "/");
     } catch {
       setMessage(t("auth.unavailable"));
     }

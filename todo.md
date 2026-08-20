@@ -604,3 +604,23 @@
 - [x] Add a one-time server-side bootstrap secret that is never embedded in client code and is invalid once a standalone ADMIN account has been created.
 - [x] Add a public but tightly validated setup page that accepts the configured bootstrap secret plus new ADMIN ID/password, rejects reuse or duplicate IDs, and creates only one active ADMIN account.
 - [x] Add EN/KO/ZH setup and failure messages, prevent bootstrap access from managing VIP or existing ADMIN accounts, and verify invalid secret, reuse rejection, password safety, login, tests, checkpoint, and publish.
+
+## Deployed first-ADMIN setup route recovery
+- [x] Audit the live `/setup-admin` URL, SPA fallback behavior, server route handling, and deployment logs to identify the first-ADMIN setup 404 cause.
+- [x] Confirm the deployed SPA direct route already serves the configured setup page without exposing any bootstrap secret; no additional server fallback was needed.
+- [x] Verify the live direct URL and setup page rendering after the latest deployment; the 404 was a transient pre-deployment or incorrect-path state rather than an active routing defect.
+
+## Role-aware bottom navigation, VIP model entry, and purchase visibility recovery
+- [x] Audit MobileScreen/AppHeader bottom navigation, current role capability response, VIP model/body route, Product Fit Manager labels, purchase CTA components, and purchase-list/cart indicator behavior in EN/KO/ZH.
+- [x] Make bottom navigation role-aware: NORMAL and VIP show Purchase List, ADMIN shows Quick View/Quick AI; preserve Home and My Looks entries and prevent unavailable destinations.
+- [x] Give VIP a dedicated visible entry to the fixed 李瀛 AI person/model creation or selection flow without exposing ADMIN Quick AI, and retain the existing VIP AI access policy.
+- [x] Complete Product Fit Manager EN/KO/ZH localization through the active i18n language resolver with no raw English labels in KO/ZH views, and use localized product names where available.
+- [x] Restore the prior prominent black bottom purchase action on product/detail-result surfaces and ensure the current purchase-list/cart indicator is visible, localized, and reflects persisted item count for NORMAL and VIP.
+- [x] Verify NORMAL/VIP/ADMIN bottom menus, VIP model entry, Product Fit Manager in EN/KO/ZH, black purchase CTA, cart visibility, existing purchase/AI flows, tests, mobile UI, checkpoint, and publish.
+
+## ADMIN-only operations console
+- [x] Audit ADMIN password session redirects, owner session behavior, Operations Dashboard, Product Manager, Product Fit Manager, VIP/ADMIN account managers, Release Control, Purchase Notices, and customer route entry points.
+- [x] Configure the existing localized Operations Dashboard as the ADMIN Operations Console, with management-only header and bottom destinations for dashboard, products, fit data, AI usage, account management, purchase notices, and release controls.
+- [x] Redirect standalone ADMIN sessions to the operations console after login and block or redirect customer-only Home, AI Fitting, AI Style Match, My Looks, catalog purchase-list, and customer checkout routes while retaining ADMIN Quick AI.
+- [x] Preserve owner access to all operations and retain NORMAL/VIP customer journeys with their distinct bottom navigation, saved data ownership, AI policy, products, and purchase flows.
+- [x] Verify ADMIN/owner versus VIP/NORMAL route visibility, direct URL handling, management routes, tests, mobile/desktop console layout, checkpoint, and publish.

@@ -98,12 +98,18 @@ describe("customer-facing UX cleanup contract", () => {
     expect(progress).not.toContain("<span>{progress}%</span>");
   });
 
-  it("gates management navigation to administrators while retaining customer Quick Fit navigation", () => {
+  it("separates administrator operations navigation from NORMAL and VIP customer navigation", () => {
     const header = readFileSync(new URL("../client/src/components/AppHeader.tsx", import.meta.url), "utf8");
     const bottomNav = readFileSync(new URL("../client/src/components/MobileBottomNav.tsx", import.meta.url), "utf8");
+    const app = readFileSync(new URL("../client/src/App.tsx", import.meta.url), "utf8");
+    const adminGate = readFileSync(new URL("../client/src/components/AdminGate.tsx", import.meta.url), "utf8");
     expect(header).toContain('const showAdminManage = user?.role === "admin"');
     expect(bottomNav).toContain('href: "/quick-fit"');
-    expect(bottomNav).not.toContain('href: "/products"');
+    expect(bottomNav).toContain('href: "/products"');
+    expect(bottomNav).toContain('href: "/purchase-list"');
+    expect(bottomNav).toContain('const isVip = user?.role === "vip"');
+    expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
+    expect(adminGate).toContain('user?.role !== "admin"');
   });
 
   it("keeps shared NORMAL login separate from logout and administrator product-management entry", () => {
