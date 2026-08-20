@@ -3,7 +3,7 @@ import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 import { TEST_ACCESS_COOKIE } from "./testAccess";
-import { VIP_ACCESS_COOKIE } from "./vipAccess";
+import { ADMIN_ACCESS_COOKIE, VIP_ACCESS_COOKIE } from "./vipAccess";
 
 type CookieCall = {
   name: string;
@@ -45,15 +45,15 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
 }
 
 describe("auth.logout", () => {
-  it("clears account, NORMAL test-access, and VIP account cookies and reports success", async () => {
+  it("clears account, NORMAL test-access, VIP account, and ADMIN account cookies and reports success", async () => {
     const { ctx, clearedCookies } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.auth.logout();
 
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(3);
-    expect(clearedCookies.map((item) => item.name)).toEqual([COOKIE_NAME, TEST_ACCESS_COOKIE, VIP_ACCESS_COOKIE]);
+    expect(clearedCookies).toHaveLength(4);
+    expect(clearedCookies.map((item) => item.name)).toEqual([COOKIE_NAME, TEST_ACCESS_COOKIE, VIP_ACCESS_COOKIE, ADMIN_ACCESS_COOKIE]);
     expect(clearedCookies[0]?.options).toMatchObject({
       maxAge: -1,
       secure: true,

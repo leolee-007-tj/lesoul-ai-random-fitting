@@ -85,3 +85,13 @@ export const ownerProcedure = t.procedure.use(
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );
+
+/** Only the configured workspace owner may administer other password-based ADMIN accounts. */
+export const ownerOnlyProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    const isOwner = Boolean(ctx.user && ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId);
+    if (!isOwner || !ctx.user) throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
+    return next({ ctx: { ...ctx, user: ctx.user } });
+  }),
+);

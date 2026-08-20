@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { sdk } from "./sdk";
 import { readTestAccessSession, type TestAccessSession } from "../testAccess";
 import { getDb } from "../db";
-import { readVipAccessSession } from "../vipAccess";
+import { readAdminAccessSession, readVipAccessSession } from "../vipAccess";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
@@ -32,6 +32,15 @@ export async function createContext(
       const db = await getDb();
       const vipAccount = db ? (await db.select().from(users).where(and(eq(users.id, vipSession.userId), eq(users.openId, vipSession.openId), eq(users.role, "vip"), eq(users.isActive, 1))).limit(1))[0] : null;
       user = vipAccount ?? null;
+    }
+  }
+
+  if (!user) {
+    const adminSession = readAdminAccessSession(opts.req);
+    if (adminSession) {
+      const db = await getDb();
+      const adminAccount = db ? (await db.select().from(users).where(and(eq(users.id, adminSession.userId), eq(users.openId, adminSession.openId), eq(users.role, "admin"), eq(users.isActive, 1))).limit(1))[0] : null;
+      user = adminAccount ?? null;
     }
   }
 

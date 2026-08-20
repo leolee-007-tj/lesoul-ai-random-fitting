@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { createTestAccessToken, TEST_ACCESS_COOKIE, TEST_ACCESS_MAX_AGE_MS, verifyTestLogin } from "./testAccess";
-import { createVipAccessToken, normalizeVipUsername, verifyVipPassword, VIP_ACCESS_COOKIE, VIP_ACCESS_MAX_AGE_MS } from "./vipAccess";
+import { ADMIN_ACCESS_COOKIE, ADMIN_ACCESS_MAX_AGE_MS, createAdminAccessToken, createVipAccessToken, normalizeVipUsername, verifyVipPassword, VIP_ACCESS_COOKIE, VIP_ACCESS_MAX_AGE_MS } from "./vipAccess";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -43,11 +43,22 @@ export const appRouter = router({
       ctx.res.cookie(VIP_ACCESS_COOKIE, createVipAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: VIP_ACCESS_MAX_AGE_MS });
       return { success: true as const };
     }),
+    adminLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("ADMIN_LOGIN_UNAVAILABLE");
+      const account = (await db.select().from(users).where(eq(users.username, normalizeVipUsername(input.username))).limit(1))[0];
+      if (!account || account.role !== "admin" || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
+      if (!account.isActive) return { success: false as const, reason: "inactive" as const };
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
+      return { success: true as const };
+    }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(TEST_ACCESS_COOKIE, { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(VIP_ACCESS_COOKIE, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(ADMIN_ACCESS_COOKIE, { ...cookieOptions, maxAge: -1 });
       return {
         success: true,
       } as const;

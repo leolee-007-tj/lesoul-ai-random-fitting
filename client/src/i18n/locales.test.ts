@@ -26,10 +26,11 @@ describe("LESOUL v2 locale resources", () => {
       "product.status.inStock", "product.status.preOrder", "product.status.soldOut", "product.status.unpublished",
       "product.newArrival", "product.addToPurchaseList", "product.reserve", "product.soldOutNotice",
       "home.newArrivals", "stylist.recommendation", "stylist.chooseAnchor", "common.loading", "common.retry",
-      "auth.eyebrow", "auth.title", "auth.body", "auth.username", "auth.password", "auth.submit", "auth.invalid", "auth.unavailable", "auth.note", "auth.admin", "auth.normalTab", "auth.vipTab", "auth.normalBody", "auth.vipBody", "auth.vipSubmit", "auth.vipInvalid", "auth.vipInactive",
+      "auth.eyebrow", "auth.title", "auth.body", "auth.username", "auth.password", "auth.submit", "auth.invalid", "auth.unavailable", "auth.note", "auth.admin", "auth.normalTab", "auth.vipTab", "auth.adminTab", "auth.normalBody", "auth.vipBody", "auth.adminBody", "auth.vipSubmit", "auth.adminSubmit", "auth.vipInvalid", "auth.vipInactive", "auth.adminInvalid", "auth.adminInactive",
       "history.manage.select", "history.manage.cancel", "history.manage.delete", "history.manage.deleteSelected", "history.manage.deleteAll", "history.manage.selected", "history.manage.confirmSelected", "history.manage.confirmAll", "history.manage.empty",
       "look.backgrounds.paris.name", "look.backgrounds.paris.description", "look.backgrounds.studio.name", "look.backgrounds.studio.description", "look.styles.QUIET_LUXURY", "look.styles.MINIMAL",
       "vipAdmin.title", "vipAdmin.create", "vipAdmin.id", "vipAdmin.password", "vipAdmin.active", "vipAdmin.inactive", "vipAdmin.resetPassword", "vipAdmin.usage",
+      "adminAccounts.title", "adminAccounts.create", "adminAccounts.id", "adminAccounts.password", "adminAccounts.active", "adminAccounts.inactive", "adminAccounts.resetPassword",
     ];
     for (const locale of [commerceResources.en, commerceResources.ko, commerceResources.zh]) {
       for (const key of commerceKeys) expect(readPath(locale, key)).toEqual(expect.any(String));

@@ -585,3 +585,11 @@
 - [x] Disable customer-facing redeem and VIP code UI without dropping historical tables; update EN/KO/ZH login, administration, errors, account states, and role-specific header/menu copy.
 - [x] Verify NORMAL/VIP/ADMIN login persistence, menu matrix, VIP cross-device saved looks, user data isolation, inactive VIP rejection, owner management button, master AI switch, AI/product/purchase regression, tests, checkpoint, and publish.
 - [x] Scope local My Looks cache by authenticated identity so NORMAL visitor history never migrates into VIP/OWNER/ADMIN userId storage, while only pre-account legacy browser history may migrate once into its original NORMAL visitor scope.
+
+## Owner-managed administrator account login
+- [x] Audit existing owner OAuth, VIP account, NORMAL test access, role resolver, session cookies, user schema, operations permissions, and client login routes before adding ADMIN password authentication.
+- [x] Preserve the existing owner OAuth identity as the only authority that can create, reset, activate, or deactivate separate ADMIN ID/password accounts.
+- [x] Extend the existing account model and password-hash/session module for unique active ADMIN accounts without exposing plaintext passwords, merging roles, or changing VIP/NORMAL ownership rules.
+- [x] Add server-verified ADMIN ID/password login, secure persistent session cookies, inactive-account rejection, duplicate-ID protection, logout cleanup, and administrative route access through the existing role controller.
+- [x] Add owner-only administrator account management UI for creation, password reset, activation/deactivation, and account list; do not expose it to ADMIN, VIP, or NORMAL accounts.
+- [x] Add EN/KO/ZH login and owner-management copy, then verify owner/admin/vip/normal role isolation, session persistence, password safety, existing AI/product/purchase behavior, tests, checkpoint, and publish.

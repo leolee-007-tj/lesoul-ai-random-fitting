@@ -5,6 +5,8 @@ import { ENV } from "./_core/env";
 
 export const VIP_ACCESS_COOKIE = "lesoul_vip_access";
 export const VIP_ACCESS_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
+export const ADMIN_ACCESS_COOKIE = "lesoul_admin_access";
+export const ADMIN_ACCESS_MAX_AGE_MS = VIP_ACCESS_MAX_AGE_MS;
 
 type VipSessionPayload = { userId: number; openId: string; expiresAt: number };
 
@@ -38,6 +40,24 @@ export function createVipAccessToken(input: { userId: number; openId: string }, 
 }
 export function readVipAccessSession(req: Request): VipSessionPayload | null {
   const token = parseCookieHeader(req.headers.cookie ?? "")[VIP_ACCESS_COOKIE];
+  if (!token) return null;
+  const [payload, signature, ...extra] = token.split(".");
+  if (!payload || !signature || extra.length || !secret()) return null;
+  try {
+    if (!equal(signature, sign(payload))) return null;
+    const decoded = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Partial<VipSessionPayload>;
+    if (!Number.isInteger(decoded.userId) || !decoded.openId || typeof decoded.expiresAt !== "number" || decoded.expiresAt <= Date.now()) return null;
+    return decoded as VipSessionPayload;
+  } catch { return null; }
+}
+
+export function createAdminAccessToken(input: { userId: number; openId: string }, now = Date.now()) {
+  const payload = Buffer.from(JSON.stringify({ ...input, expiresAt: now + ADMIN_ACCESS_MAX_AGE_MS })).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readAdminAccessSession(req: Request): VipSessionPayload | null {
+  const token = parseCookieHeader(req.headers.cookie ?? "")[ADMIN_ACCESS_COOKIE];
   if (!token) return null;
   const [payload, signature, ...extra] = token.split(".");
   if (!payload || !signature || extra.length || !secret()) return null;

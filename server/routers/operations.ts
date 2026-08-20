@@ -4,7 +4,8 @@ import { z } from "zod";
 import { aiAccessBlocks, aiUsageEvents, redeemCodes, releaseSettings, users, visitorEntitlements } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getCentralEntitlement, getCentralSettings } from "../aiUsageController";
-import { ownerProcedure, router } from "../_core/trpc";
+import { ownerOnlyProcedure, ownerProcedure, router } from "../_core/trpc";
+import { ENV } from "../_core/env";
 import { hashVipPassword, normalizeVipUsername } from "../vipAccess";
 
 const rangeSchema = z.enum(["today", "7d", "30d", "all"]).default("30d");
@@ -76,6 +77,7 @@ export const operationsRouter = router({
     const visitorAggregates = Array.from(usageByVisitor.entries()).filter(([visitorId]) => !visitorId.startsWith("account:")).map(([visitorId, usage]) => ({ kind: "visitor" as const, visitorId, user: null, aiRequestCount: usage.length, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: false, generationAllowance: null, generationUsed: null, entitlementExpiresAt: null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null }));
     return { accounts, visitors: visitorAggregates };
   }),
+  ownerStatus: ownerProcedure.query(({ ctx }) => ({ isOwner: Boolean(ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId) })),
   setUserAccess: ownerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), isBlocked: z.boolean(), reason: z.string().trim().max(240).optional() })).mutation(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
@@ -99,6 +101,25 @@ export const operationsRouter = router({
     if (!db) throw new Error("VIP_ACCOUNT_SERVICE_UNAVAILABLE");
     const account = (await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
     if (!account || account.role !== "vip") throw new Error("VIP_ACCOUNT_NOT_FOUND");
+    const set: Record<string, unknown> = {};
+    if (input.isActive !== undefined) set.isActive = input.isActive ? 1 : 0;
+    if (input.displayName !== undefined) set.name = input.displayName;
+    if (input.newPassword) set.passwordHash = hashVipPassword(input.newPassword);
+    if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
+    return { success: true };
+  }),
+  createAdminAccount: ownerOnlyProcedure.input(z.object({ username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), password: z.string().min(8).max(128), displayName: z.string().trim().max(120).optional() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("ADMIN_ACCOUNT_SERVICE_UNAVAILABLE");
+    const username = normalizeVipUsername(input.username);
+    const existing = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
+    if (existing) throw new Error("ADMIN_ID_ALREADY_EXISTS");
+    await db.insert(users).values({ openId: `admin:${randomUUID()}`, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "admin_password", role: "admin", isActive: 1 });
+    return { success: true, username };
+  }),
+  updateAdminAccount: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), isActive: z.boolean().optional(), displayName: z.string().trim().max(120).nullable().optional(), newPassword: z.string().min(8).max(128).optional() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("ADMIN_ACCOUNT_SERVICE_UNAVAILABLE");
+    const account = (await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
+    if (!account || account.role !== "admin") throw new Error("ADMIN_ACCOUNT_NOT_FOUND");
     const set: Record<string, unknown> = {};
     if (input.isActive !== undefined) set.isActive = input.isActive ? 1 : 0;
     if (input.displayName !== undefined) set.name = input.displayName;
