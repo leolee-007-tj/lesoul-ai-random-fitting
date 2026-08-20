@@ -6,6 +6,7 @@ import { getVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { localizedProductDescription, localizedProductMeta, localizedProductName } from "@shared/productCommerce";
 import { localizedCategoryName } from "@shared/productCategories";
+import { buildProductGalleryUrls } from "@shared/productImages";
 import { ChevronLeft, LoaderCircle, QrCode, X } from "lucide-react";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import { useState } from "react";
@@ -26,7 +27,7 @@ export default function ProductDetailScreen({ productId, onClose, browseAll = fa
   if (detail.isLoading) return <div className="lesoul-safe-modal z-50"><div className="mx-auto grid min-h-64 max-w-sm place-items-center rounded-[1.7rem] bg-white p-6 shadow-2xl"><LoaderCircle className="animate-spin" /><span className="sr-only">{copy.loading}</span></div></div>;
   const product = detail.data?.product;
   if (!product || detail.data?.status !== "available") return <div className="lesoul-safe-modal z-50"><section className="mx-auto max-w-sm rounded-[1.7rem] bg-white p-6 text-center shadow-2xl"><button onClick={onClose} className="ml-auto block" aria-label={copy.back}><X size={19} /></button><h2 className="mt-5 font-serif text-2xl">{copy.unavailable}</h2><button onClick={onClose} className="mt-5 rounded-full bg-black px-5 py-2.5 text-xs font-semibold text-white">{copy.back}</button></section></div>;
-  const gallery = Array.from(new Set([product.imageViews?.front?.original, product.imageViews?.back?.original, ...(product.imageViews?.detail ?? []).map((item) => item.original), ...(product.images ?? []), product.imageUrl].filter((item): item is string => Boolean(item))));
+  const gallery = buildProductGalleryUrls({ frontUrl: product.imageViews?.front?.original, backUrl: product.imageViews?.back?.original, detailUrls: (product.imageViews?.detail ?? []).map((item) => item.original), fallbackUrls: product.images, fallbackUrl: product.imageUrl });
   const heroImage = activeImage && gallery.includes(activeImage) ? activeImage : gallery[0] ?? product.imageUrl;
   const sizes = product.sizeOptions?.filter((option) => option.available !== false && option.label.trim()) ?? [];
   const measurements = Object.entries(product.garmentMeasurements ?? {}).filter(([, value]) => typeof value === "number" && value > 0) as [keyof ReturnType<typeof measurementLabels>, number][];

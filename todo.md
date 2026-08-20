@@ -713,3 +713,9 @@
 - [x] Replace Curated Outfit name and recommendation-reason triple inputs with Korean-only input, server-side structured EN/ZH translation, preview/failure handling, and atomic save of all locales.
 - [x] Convert every remaining administrator customer-copy form that still asks for three manual languages to Korean-only input and existing/new server translation procedures without changing stored schema or customer locale resolvers.
 - [x] Add translation payload and fallback tests; verify Korean input saves EN/KO/ZH values and customers see locale-specific values across curated outfits, products, categories, and purchase notices; checkpoint and publish.
+
+## Four product images without QR upload in Product Manager
+- [x] Audit Product Manager image slots, imageViews serialization, Product Detail gallery, product QR persistence, and current purchase QR display paths.
+- [x] Replace the Product Manager QR upload slot with a second detail-shot slot so each product has Front, Back, Detail 1, and Detail 2 uploads only.
+- [x] Preserve previously stored payment QR URLs and all purchase-card behavior while preventing new QR values from being changed in Product Manager.
+- [x] Add regression tests for four-image serialization and gallery ordering; verify product create/edit, EN/KO/ZH labels, gallery display, purchase QR behavior, checkpoint, and publish.
