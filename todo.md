@@ -593,3 +593,8 @@
 - [x] Add server-verified ADMIN ID/password login, secure persistent session cookies, inactive-account rejection, duplicate-ID protection, logout cleanup, and administrative route access through the existing role controller.
 - [x] Add owner-only administrator account management UI for creation, password reset, activation/deactivation, and account list; do not expose it to ADMIN, VIP, or NORMAL accounts.
 - [x] Add EN/KO/ZH login and owner-management copy, then verify owner/admin/vip/normal role isolation, session persistence, password safety, existing AI/product/purchase behavior, tests, checkpoint, and publish.
+
+## Brand-first home without product photography
+- [x] Audit all Home route product image, new-arrival, catalog-thumbnail, and decorative image rendering while preserving the existing text-based AI Style Match and Browse Products entries.
+- [x] Remove product photography from the first-screen home composition and retain a calm brand-first LESOUL title, localized explanations, and clear CTA hierarchy without altering the product catalog.
+- [x] Verify mobile and desktop Home rendering, existing route navigation, TypeScript, checkpoint, and publish.
