@@ -671,3 +671,8 @@
 - [x] Remove actual-garment measurement fields and duplicate fit copy from Product Manager create/edit UI while retaining non-measurement product setup fields.
 - [x] Preserve existing stored garment measurements on product save when Product Manager omits them, and keep Product Fit Manager as the sole administrator UI for editing actual measurements.
 - [x] Verify product edit/save, Fit Manager measurement edit, fit engine, product detail measurements, EN/KO/ZH UI, tests, checkpoint, and publish.
+
+## Remove direct-purchase display from Style This Item results
+- [x] Audit the Style Match “Style this item” recommendation cards and their shared purchase CTA components.
+- [x] Remove the direct-purchase display only from products rendered in Style This Item results while retaining product information, price, and existing purchase-list behavior elsewhere.
+- [x] Verify the Style This Item recommendation view, purchase-list flow, EN/KO/ZH copy, tests, checkpoint, and publish.
