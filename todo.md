@@ -744,3 +744,9 @@
 - [x] Add an administrator measurement-field manager where each product category can enable, order, relabel, or reset its necessary actual-garment measurements.
 - [x] Make Fit Manager use the configured category measurement fields, with safe fallback presets for legacy categories and products.
 - [x] Add creation, field-template, legacy fallback, EN/KO/ZH, and fit-save regression tests; verify desktop/mobile flows, checkpoint, and publish.
+
+## Drag-and-drop order for category measurement fields
+- [x] Audit the current measurement-field ordering data, category editor state, and Fit Manager rendering path.
+- [x] Add accessible drag-and-drop field reordering to the category measurement-field editor while retaining tap/click-safe selection controls.
+- [x] Persist the reordered field sequence and verify Fit Manager uses the saved order for the associated product category.
+- [x] Add order-preservation and drag interaction regression coverage; verify mobile/desktop EN/KO/ZH UI, checkpoint, and publish.

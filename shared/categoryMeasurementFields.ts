@@ -26,4 +26,21 @@ export function categoryMeasurementFields(category: { baseCategory: BaseCategory
   return category ? normalizeMeasurementFields(category.measurementFields, category.baseCategory) : defaultMeasurementFields("TOP");
 }
 
+export function reorderMeasurementFields(fields: readonly MeasurementFieldKey[], draggedField: MeasurementFieldKey, targetField: MeasurementFieldKey): MeasurementFieldKey[] {
+  const sourceIndex = fields.indexOf(draggedField);
+  const targetIndex = fields.indexOf(targetField);
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return [...fields];
+  const next = [...fields];
+  next.splice(sourceIndex, 1);
+  next.splice(targetIndex, 0, draggedField);
+  return next;
+}
+
+export function moveMeasurementField(fields: readonly MeasurementFieldKey[], field: MeasurementFieldKey, direction: "up" | "down"): MeasurementFieldKey[] {
+  const index = fields.indexOf(field);
+  const targetIndex = direction === "up" ? index - 1 : index + 1;
+  if (index < 0 || targetIndex < 0 || targetIndex >= fields.length) return [...fields];
+  return reorderMeasurementFields(fields, field, fields[targetIndex]);
+}
+
 export type CategoryMeasurementValues = Pick<GarmentMeasurements, MeasurementFieldKey>;
