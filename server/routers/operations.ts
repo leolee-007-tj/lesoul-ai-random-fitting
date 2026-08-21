@@ -8,6 +8,7 @@ import { ownerOnlyProcedure, ownerProcedure, router } from "../_core/trpc";
 import { ENV } from "../_core/env";
 import { hashVipPassword, normalizeVipUsername } from "../vipAccess";
 import { anonymousNickname } from "../../shared/anonymousNickname";
+import { resolveAiProviderStatus } from "../../shared/aiProvider";
 
 const rangeSchema = z.enum(["today", "7d", "30d", "all"]).default("30d");
 const cnyFen = z.number().int().min(0).max(10_000_000_00);
@@ -132,7 +133,19 @@ export const operationsRouter = router({
     const settings = await getCentralSettings();
     return { ...settings, estimatedCostsAreConfigOnly: true };
   }),
-  updateSettings: ownerProcedure.input(z.object({ generationEnabled: z.boolean().optional(), normalAiGenerationLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchEnabled: z.boolean().optional(), quickAiAdminOnly: z.boolean().optional(), liyingAiVipEnabled: z.boolean().optional(), curatedOutfitsPriority: z.boolean().optional(), dailyAiRequestLimit: z.number().int().min(0).max(100_000).optional(), monthlyAiBudgetFen: cnyFen.optional(), stopAiAtBudgetLimit: z.boolean().optional(), monthlyActualAiCostFen: cnyFen.nullable().optional(), aiBodyModelEstimatedCostFen: cnyFen.optional(), aiFittingEstimatedCostFen: cnyFen.optional(), quickFitEstimatedCostFen: cnyFen.optional(), regenerationEstimatedCostFen: cnyFen.optional() })).mutation(async ({ input }) => {
+  providerStatus: ownerProcedure.query(async () => {
+    const settings = await getCentralSettings();
+    // Qwen credentials have intentionally not been supplied yet. Do not make
+    // outbound calls or infer a connection from a client-side setting.
+    const qwenConfigured = false;
+    return {
+      qwenConfigured,
+      image: resolveAiProviderStatus(settings.aiImageProviderPreference, qwenConfigured),
+      text: resolveAiProviderStatus(settings.aiTextProviderPreference, qwenConfigured),
+      qwenEndpoint: "Beijing / China region",
+    };
+  }),
+  updateSettings: ownerProcedure.input(z.object({ generationEnabled: z.boolean().optional(), normalAiGenerationLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchEnabled: z.boolean().optional(), quickAiAdminOnly: z.boolean().optional(), liyingAiVipEnabled: z.boolean().optional(), curatedOutfitsPriority: z.boolean().optional(), aiImageProviderPreference: z.enum(["FORGE", "QWEN"]).optional(), aiTextProviderPreference: z.enum(["FORGE", "QWEN"]).optional(), dailyAiRequestLimit: z.number().int().min(0).max(100_000).optional(), monthlyAiBudgetFen: cnyFen.optional(), stopAiAtBudgetLimit: z.boolean().optional(), monthlyActualAiCostFen: cnyFen.nullable().optional(), aiBodyModelEstimatedCostFen: cnyFen.optional(), aiFittingEstimatedCostFen: cnyFen.optional(), quickFitEstimatedCostFen: cnyFen.optional(), regenerationEstimatedCostFen: cnyFen.optional() })).mutation(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
     const set: Record<string, unknown> = {};

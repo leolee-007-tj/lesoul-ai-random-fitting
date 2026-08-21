@@ -790,3 +790,10 @@
 - [x] Research current China-domestic providers for multimodal image editing, image generation, and text translation, including API availability and commercial/onboarding requirements.
 - [x] Design a provider adapter, health checks, manual switch, and safe fallback policy that preserves product-image review and avoids silently substituting unverified image output.
 - [x] Provide a recommended primary/fallback provider strategy, required credentials or operating prerequisites, and an implementation path before enabling any external provider.
+
+## Administrator AI provider switch for Forge/OpenAI and Alibaba Qwen
+- [x] Audit the current Forge image/LLM invocation helpers, release settings schema, operations routes, existing administrator permissions, and external-provider configuration state.
+- [x] Add persisted owner-only provider preferences for text and product-image work, defaulting safely to the current Forge/OpenAI-compatible service.
+- [x] Add an administrator AI provider panel with provider selection, connection status, Chinese-region endpoint guidance, safe disabled state, and a clear fallback policy.
+- [x] Add Qwen-unconfigured placeholder behavior: no outbound Qwen request, clear connection-needed state, and continued use of the current default AI regardless of the visible selection.
+- [x] Add settings, authorization, unconfigured-Qwen, default-provider continuity, and current-provider regression tests; verify production build, checkpoint, and publish.

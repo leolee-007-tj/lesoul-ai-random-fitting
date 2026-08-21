@@ -168,6 +168,9 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   purchaseNoticeZh: text("purchaseNoticeZh"),
   stylistIncludePreorder: int("stylistIncludePreorder").default(0).notNull(),
   curatedOutfitsPriority: int("curatedOutfitsPriority").default(1).notNull(),
+  /** Owner preference only. Qwen cannot become effective until a server key is configured. */
+  aiImageProviderPreference: mysqlEnum("aiImageProviderPreference", ["FORGE", "QWEN"]).default("FORGE").notNull(),
+  aiTextProviderPreference: mysqlEnum("aiTextProviderPreference", ["FORGE", "QWEN"]).default("FORGE").notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
