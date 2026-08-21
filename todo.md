@@ -766,3 +766,9 @@
 - [x] Audit the AI product-image prompt and administrator description for any studio-scene, grounding-shadow, or visual-restyling language.
 - [x] Require output to preserve the uploaded front/back framing and garment orientation exactly while changing only the visible background to flat pure white and removing the hanger.
 - [x] Update the administrator preview copy to describe a non-staged white-background product cut and add prompt-policy regression coverage, tests, build, checkpoint, and publish.
+
+## Side-by-side AI background-removal review and per-view regeneration
+- [x] Audit the current paired front/back generation API, preview state, accepted image persistence, and Product Manager image review section.
+- [x] Allow administrator generation and regeneration of the front or back view independently, while retaining the unaffected preview and original source.
+- [x] Add side-by-side original/result comparison for each view, localized garment-detail review checks, and a final approval action gated on the review checks.
+- [x] Add per-view generation, approval gate, persistence, error, and EN/KO/ZH regression tests; verify mobile/desktop review layout, build, checkpoint, and publish.

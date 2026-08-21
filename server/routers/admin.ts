@@ -202,14 +202,19 @@ export const adminRouter = router({
     const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
   }),
-  generateStudioProductImages: ownerProcedure.input(z.object({ frontUrl: z.string().trim().min(1).max(2048), backUrl: z.string().trim().min(1).max(2048) })).mutation(async ({ input }) => {
+  generateStudioProductImages: ownerProcedure.input(z.object({ frontUrl: z.string().trim().min(1).max(2048).optional(), backUrl: z.string().trim().min(1).max(2048).optional(), views: z.array(z.enum(["front", "back"])).min(1).max(2).optional() })).mutation(async ({ input }) => {
     try {
-      const [front, back] = await Promise.all([
-        generateImage({ prompt: buildStudioProductImagePrompt("front"), originalImages: [{ url: input.frontUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" }),
-        generateImage({ prompt: buildStudioProductImagePrompt("back"), originalImages: [{ url: input.backUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" }),
-      ]);
-      if (!front.url || !back.url) throw new Error("Studio image generation returned an empty result.");
-      return { frontStudioUrl: front.url, backStudioUrl: back.url };
+      const views = input.views ?? ["front", "back"];
+      const sourceUrls = { front: input.frontUrl, back: input.backUrl };
+      const generated = await Promise.all(views.map(async (view) => {
+        const sourceUrl = sourceUrls[view];
+        if (!sourceUrl) throw new Error(`MISSING_${view.toUpperCase()}_SOURCE`);
+        const result = await generateImage({ prompt: buildStudioProductImagePrompt(view), originalImages: [{ url: sourceUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" });
+        if (!result.url) throw new Error(`EMPTY_${view.toUpperCase()}_RESULT`);
+        return [view, result.url] as const;
+      }));
+      const resultUrls = Object.fromEntries(generated) as Partial<Record<"front" | "back", string>>;
+      return { frontStudioUrl: resultUrls.front ?? null, backStudioUrl: resultUrls.back ?? null };
     } catch (error) {
       throw new Error(error instanceof Error && error.message ? error.message : "STUDIO_IMAGE_GENERATION_FAILED");
     }
