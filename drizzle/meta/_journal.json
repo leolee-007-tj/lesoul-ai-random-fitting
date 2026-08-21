@@ -267,6 +267,13 @@
       "when": 1787293732594,
       "tag": "0037_faulty_la_nuit",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1787294975653,
+      "tag": "0038_striped_centennial",
+      "breakpoints": true
     }
   ]
 }

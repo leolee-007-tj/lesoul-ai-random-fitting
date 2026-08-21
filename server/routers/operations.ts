@@ -64,7 +64,7 @@ export const operationsRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
     const [registered, events, blocks] = await Promise.all([
-      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
+      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, adminTrialStartedAt: users.adminTrialStartedAt, adminTrialDurationHours: users.adminTrialDurationHours, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
       db.select().from(aiUsageEvents).orderBy(desc(aiUsageEvents.startedAt)),
       db.select().from(aiAccessBlocks),
     ]);

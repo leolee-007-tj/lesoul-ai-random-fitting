@@ -838,3 +838,8 @@
 - [x] Add a server-enforced two-day trial state for administrator access only, evaluated at each protected administrator request without a background scheduler or changes to customer access.
 - [x] Show a localized manual QR payment notice when the administrator trial has expired, using existing purchase-notice and QR safety conventions without initiating payments.
 - [x] Add expiry/isolation regression tests, verify the administrator expired state and customer flow, run tests/build, checkpoint, and publish.
+
+## Per-account administrator trial and usage QR
+- [x] Replace the shared administrator trial start with per-password-admin-account trial timestamps, so every new administrator account receives its own two-day access period.
+- [x] Add a configurable usage-guide QR image and localized instruction to the administrator expiry notice, separate from the manual renewal payment QR.
+- [x] Add owner-facing account status visibility, per-account expiry/isolation tests, verify active and expired states, run tests/build, checkpoint, and publish.

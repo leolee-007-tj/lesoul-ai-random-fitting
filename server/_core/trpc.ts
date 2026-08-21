@@ -46,8 +46,8 @@ const requireUser = t.middleware(async opts => {
 
 export const protectedProcedure = t.procedure.use(requireUser);
 
-async function ensureActiveAdministratorTrial() {
-  const trial = await getAdminTrialStatus(true);
+async function ensureActiveAdministratorTrial(userId: number) {
+  const trial = await getAdminTrialStatus(userId, true);
   if (trial.status === "expired") throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_TRIAL_EXPIRED" });
 }
 
@@ -69,7 +69,7 @@ export const adminProcedure = t.procedure.use(
     if (!ctx.user || ctx.user.role !== 'admin') {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
-    await ensureActiveAdministratorTrial();
+    await ensureActiveAdministratorTrial(ctx.user.id);
 
     return next({
       ctx: {
@@ -89,7 +89,7 @@ export const ownerProcedure = t.procedure.use(
     if (!ctx.user || (ctx.user.role !== "admin" && !isOwner)) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
-    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial();
+    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial(ctx.user.id);
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );
@@ -100,7 +100,7 @@ export const ownerOnlyProcedure = t.procedure.use(
     const { ctx, next } = opts;
     const isOwner = Boolean(ctx.user && ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId);
     if (!isOwner || !ctx.user) throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
-    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial();
+    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial(ctx.user.id);
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );

@@ -13,6 +13,9 @@ export const users = mysqlTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "vip", "admin"]).default("user").notNull(),
   isActive: int("isActive").default(1).notNull(),
+  /** Password-based administrator trial begins independently on that account's first protected console visit. */
+  adminTrialStartedAt: timestamp("adminTrialStartedAt"),
+  adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -145,9 +148,13 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   adminTrialStartedAt: timestamp("adminTrialStartedAt"),
   adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),
   adminTrialPaymentQrUrl: text("adminTrialPaymentQrUrl"),
+  adminTrialUsageGuideQrUrl: text("adminTrialUsageGuideQrUrl"),
   adminTrialPaymentNoticeEn: varchar("adminTrialPaymentNoticeEn", { length: 800 }).default("Your administrator trial has ended. Please scan the QR code to arrange manual renewal, then contact the store owner for activation.").notNull(),
   adminTrialPaymentNoticeKo: varchar("adminTrialPaymentNoticeKo", { length: 800 }).default("관리자 체험 기간이 종료되었습니다. QR 코드를 스캔하여 수동 연장을 진행한 뒤, 스토어 소유자에게 활성화를 요청해 주세요.").notNull(),
   adminTrialPaymentNoticeZh: varchar("adminTrialPaymentNoticeZh", { length: 800 }).default("管理员体验已结束。请扫描二维码安排人工续费，然后联系店铺所有者开通权限。").notNull(),
+  adminTrialUsageGuideNoticeEn: varchar("adminTrialUsageGuideNoticeEn", { length: 800 }).default("Scan the guide QR to view how to use the administrator console and submit a renewal request.").notNull(),
+  adminTrialUsageGuideNoticeKo: varchar("adminTrialUsageGuideNoticeKo", { length: 800 }).default("사용 방법 QR을 스캔하여 관리자 콘솔 이용 방법과 연장 요청 절차를 확인해 주세요.").notNull(),
+  adminTrialUsageGuideNoticeZh: varchar("adminTrialUsageGuideNoticeZh", { length: 800 }).default("请扫描使用指南二维码，查看管理员控制台使用方法和续费申请流程。").notNull(),
   /** Prevent a deliberately emptied administrator catalog from being reseeded with demo products. */
   catalogInitialized: int("catalogInitialized").default(0).notNull(),
   releaseMode: mysqlEnum("releaseMode", ["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]).default("PRIVATE").notNull(),
