@@ -784,3 +784,9 @@
 - [x] Replace the boolean setting with explicit off, subtle, standard, and strong correction modes; pass the selected mode through the server and preserve original garment color when off.
 - [x] Add an accessible magnifier for original/result detail comparison, with a synchronized position control so the same garment area can be inspected on both images.
 - [x] Show the selected correction mode in EN/KO/ZH review UI, require color confirmation, and add mode/prompt/magnifier/approval regression tests, build, checkpoint, and publish.
+
+## China-domestic AI provider fallback assessment
+- [x] Audit existing LESOUL image-generation and text-translation invocation points, payload expectations, output storage, and failure handling.
+- [x] Research current China-domestic providers for multimodal image editing, image generation, and text translation, including API availability and commercial/onboarding requirements.
+- [x] Design a provider adapter, health checks, manual switch, and safe fallback policy that preserves product-image review and avoids silently substituting unverified image output.
+- [x] Provide a recommended primary/fallback provider strategy, required credentials or operating prerequisites, and an implementation path before enabling any external provider.
