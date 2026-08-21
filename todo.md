@@ -816,3 +816,8 @@
 - [x] Record a deduplicated product share-link visit when a customer opens `/catalog?product=<id>` with a WeChat referral context, preserving visitor privacy and excluding administrator/internal visits.
 - [x] Add an owner-only product referral analytics panel with total WeChat visits and product-level counts, plus empty/loading/error states.
 - [x] Add card content, referral parsing/deduplication, role/privacy, EN/KO/ZH, test, build, checkpoint, and publish verification.
+
+## Pure-white product background removal recovery
+- [x] Reproduce and diagnose the failed AI studio pure-white background removal request through client state, tRPC validation, server logs, and image provider response handling.
+- [x] Repair the failed pure-white background removal flow without overwriting approved product images or weakening original-detail preservation safeguards.
+- [x] Add regression coverage, verify the front/back individual regeneration and approval controls, run checks/build, checkpoint, and publish the recovery.

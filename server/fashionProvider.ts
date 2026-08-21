@@ -208,7 +208,7 @@ async function imageReference(source: string) {
   return { url: source, mimeType: referenceMimeType(source) };
 }
 
-async function embeddedImageReference(source: string) {
+export async function embeddedImageReference(source: string) {
   const match = source.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
   if (match) return { b64Json: match[2], mimeType: match[1] };
   const url = source.startsWith("/manus-storage/")

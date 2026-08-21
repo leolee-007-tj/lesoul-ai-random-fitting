@@ -11,6 +11,8 @@ describe("studio product image generation contract", () => {
     expect(admin).toContain("colorCorrectionStrength: z.enum([\"off\", \"subtle\", \"standard\", \"strong\"]).default(\"standard\")");
     expect(admin).toContain("MISSING_${view.toUpperCase()}_SOURCE");
     expect(admin).toContain("buildStudioProductImagePrompt(view, input.colorCorrectionStrength)");
+    expect(admin).toContain("embeddedImageReference(sourceUrl)");
+    expect(admin).toContain("STUDIO_SOURCE_IMAGE_UNAVAILABLE");
   });
 
   it("keeps the manager workflow as generate, compare, review, then accept or discard", () => {

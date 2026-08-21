@@ -13,6 +13,7 @@ import { MEASUREMENT_FIELD_KEYS } from "../../shared/categoryMeasurementFields";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
 import { buildStudioProductImagePrompt } from "../../shared/studioProductImage";
+import { embeddedImageReference } from "../fashionProvider";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -206,17 +207,23 @@ export const adminRouter = router({
     try {
       const views = input.views ?? ["front", "back"];
       const sourceUrls = { front: input.frontUrl, back: input.backUrl };
-      const generated = await Promise.all(views.map(async (view) => {
+      const resultUrls: Partial<Record<"front" | "back", string>> = {};
+      for (const view of views) {
         const sourceUrl = sourceUrls[view];
         if (!sourceUrl) throw new Error(`MISSING_${view.toUpperCase()}_SOURCE`);
-        const result = await generateImage({ prompt: buildStudioProductImagePrompt(view, input.colorCorrectionStrength), originalImages: [{ url: sourceUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" });
+        // Uploaded assets are project-relative /manus-storage paths. Convert them to validated bytes so the image provider never has to resolve a private relative URL or trust a guessed MIME type.
+        const originalImage = await embeddedImageReference(sourceUrl);
+        const result = await generateImage({ prompt: buildStudioProductImagePrompt(view, input.colorCorrectionStrength), originalImages: [originalImage], model: "MODEL_GPT_IMAGE_2", quality: "high" });
         if (!result.url) throw new Error(`EMPTY_${view.toUpperCase()}_RESULT`);
-        return [view, result.url] as const;
-      }));
-      const resultUrls = Object.fromEntries(generated) as Partial<Record<"front" | "back", string>>;
+        resultUrls[view] = result.url;
+      }
       return { frontStudioUrl: resultUrls.front ?? null, backStudioUrl: resultUrls.back ?? null };
     } catch (error) {
-      throw new Error(error instanceof Error && error.message ? error.message : "STUDIO_IMAGE_GENERATION_FAILED");
+      const message = error instanceof Error && error.message ? error.message : "STUDIO_IMAGE_GENERATION_FAILED";
+      console.error("[StudioProductImage] Pure-white generation failed", { message });
+      if (message.startsWith("IMAGE_REFERENCE_")) throw new Error("STUDIO_SOURCE_IMAGE_UNAVAILABLE");
+      if (message.startsWith("MISSING_") || message.startsWith("EMPTY_")) throw new Error(message);
+      throw new Error("STUDIO_IMAGE_GENERATION_FAILED");
     }
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
