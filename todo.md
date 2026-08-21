@@ -750,3 +750,14 @@
 - [x] Add accessible drag-and-drop field reordering to the category measurement-field editor while retaining tap/click-safe selection controls.
 - [x] Persist the reordered field sequence and verify Fit Manager uses the saved order for the associated product category.
 - [x] Add order-preservation and drag interaction regression coverage; verify mobile/desktop EN/KO/ZH UI, checkpoint, and publish.
+
+## WeChat sharing and operations convenience assessment
+- [x] Research current WeChat in-app browser behavior and the feasibility or restrictions of opening shared URLs in iOS Safari and Android default browsers.
+- [x] Assess the LESOUL deployment/domain setup for compliant share links, customer guidance, or platform-specific fallback behavior without bypassing WeChat controls.
+- [x] Provide a prioritized list of practical administrator and customer convenience improvements, including the recommended next implementation step.
+
+## AI studio product images from front and back uploads
+- [x] Audit the four-slot product image model, existing image-generation helper, administrator image permissions, source-image validation, and gallery ordering.
+- [x] Add an administrator-only server procedure that uses front and back source images to generate a white-background studio product image while explicitly preserving garment silhouette, proportions, material, color, pattern, logo, and design details and removing only the hanger/background.
+- [x] Add Product Manager controls to generate a preview, clearly label the result as AI-generated, let the administrator accept or discard it, and save an accepted studio cut alongside its original front/back image.
+- [x] Add access, source-image, prompt-policy, error, and gallery-order regression tests; verify loading/error states and production build before checkpoint and publish.

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
+import { generateImage } from "../_core/imageGeneration";
 import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
@@ -11,6 +12,7 @@ import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
 import { MEASUREMENT_FIELD_KEYS } from "../../shared/categoryMeasurementFields";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
+import { buildStudioProductImagePrompt } from "../../shared/studioProductImage";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -199,6 +201,18 @@ export const adminRouter = router({
     if (typeof content !== "string") throw new Error("Product category translation response was empty.");
     const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
+  }),
+  generateStudioProductImages: ownerProcedure.input(z.object({ frontUrl: z.string().trim().min(1).max(2048), backUrl: z.string().trim().min(1).max(2048) })).mutation(async ({ input }) => {
+    try {
+      const [front, back] = await Promise.all([
+        generateImage({ prompt: buildStudioProductImagePrompt("front"), originalImages: [{ url: input.frontUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" }),
+        generateImage({ prompt: buildStudioProductImagePrompt("back"), originalImages: [{ url: input.backUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" }),
+      ]);
+      if (!front.url || !back.url) throw new Error("Studio image generation returned an empty result.");
+      return { frontStudioUrl: front.url, backStudioUrl: back.url };
+    } catch (error) {
+      throw new Error(error instanceof Error && error.message ? error.message : "STUDIO_IMAGE_GENERATION_FAILED");
+    }
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
