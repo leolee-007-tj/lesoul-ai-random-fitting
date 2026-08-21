@@ -4,9 +4,10 @@ import { buildStudioProductImagePrompt, hasStudioSourceImage } from "./studioPro
 describe("studio product image prompt", () => {
   it("requires hanger/background-only editing while preserving product fidelity", () => {
     const prompt = buildStudioProductImagePrompt("front");
-    expect(prompt).toContain("Remove only the hanger and existing background");
+    expect(prompt).toContain("Keep the uploaded image's exact framing");
     expect(prompt).toContain("Preserve the exact garment");
-    expect(prompt).toContain("pure-white seamless studio background");
+    expect(prompt).toContain("flat, solid, pure white (#FFFFFF) backdrop");
+    expect(prompt).toContain("not a staged studio photograph");
   });
 
   it("does not treat the editor placeholder as a source image", () => {

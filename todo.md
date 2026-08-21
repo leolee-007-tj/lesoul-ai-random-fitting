@@ -761,3 +761,8 @@
 - [x] Add an administrator-only server procedure that uses front and back source images to generate a white-background studio product image while explicitly preserving garment silhouette, proportions, material, color, pattern, logo, and design details and removing only the hanger/background.
 - [x] Add Product Manager controls to generate a preview, clearly label the result as AI-generated, let the administrator accept or discard it, and save an accepted studio cut alongside its original front/back image.
 - [x] Add access, source-image, prompt-policy, error, and gallery-order regression tests; verify loading/error states and production build before checkpoint and publish.
+
+## Plain white-background product cut policy
+- [x] Audit the AI product-image prompt and administrator description for any studio-scene, grounding-shadow, or visual-restyling language.
+- [x] Require output to preserve the uploaded front/back framing and garment orientation exactly while changing only the visible background to flat pure white and removing the hanger.
+- [x] Update the administrator preview copy to describe a non-staged white-background product cut and add prompt-policy regression coverage, tests, build, checkpoint, and publish.
