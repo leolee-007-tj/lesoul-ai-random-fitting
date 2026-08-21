@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { canApproveStudioReview, createStudioReviewChecks, resetStudioReviewViews, studioReviewCheckKeys } from "./studioProductReview";
 
 describe("studio product review approval", () => {
-  it("requires both front and back candidates and every detail check before approval", () => {
+  it("allows a fully reviewed single front or back result while requiring every check for each generated view", () => {
     const checks = createStudioReviewChecks();
-    expect(canApproveStudioReview(checks, true, true)).toBe(false);
-    for (const view of ["front", "back"] as const) for (const key of studioReviewCheckKeys) checks[view][key] = true;
+    expect(canApproveStudioReview(checks, true, false)).toBe(false);
+    for (const key of studioReviewCheckKeys) checks.front[key] = true;
+    expect(canApproveStudioReview(checks, true, false)).toBe(true);
     expect(canApproveStudioReview(checks, false, true)).toBe(false);
+    for (const key of studioReviewCheckKeys) checks.back[key] = true;
     expect(canApproveStudioReview(checks, true, true)).toBe(true);
   });
 

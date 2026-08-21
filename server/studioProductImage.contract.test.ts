@@ -13,6 +13,8 @@ describe("studio product image generation contract", () => {
     expect(admin).toContain("buildStudioProductImagePrompt(view, input.colorCorrectionStrength)");
     expect(admin).toContain("embeddedImageReference(sourceUrl)");
     expect(admin).toContain("STUDIO_SOURCE_IMAGE_UNAVAILABLE");
+    expect(admin).toContain("assessStudioProductImageQuality");
+    expect(admin).toContain("quality[view]");
   });
 
   it("keeps the manager workflow as generate, compare, review, then accept or discard", () => {
@@ -24,5 +26,7 @@ describe("studio product image generation contract", () => {
     expect(manager).toContain("generateStudioPreview([view])");
     expect(manager).toContain("colorCorrectionStrength");
     expect(manager).toContain("frontStudioUrl");
+    expect(manager).toContain("availableViews");
+    expect(manager).toContain("studioQualityAcknowledged");
   });
 });

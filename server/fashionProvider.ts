@@ -199,6 +199,11 @@ function referenceMimeType(source: string) {
   return "image/jpeg";
 }
 
+export function resolveImageReferenceMimeType(contentType: string | null, source: string) {
+  const reported = contentType?.split(";", 1)[0]?.trim().toLowerCase();
+  return reported && /^image\/(jpeg|png|webp)$/.test(reported) ? reported : referenceMimeType(source);
+}
+
 async function imageReference(source: string) {
   const match = source.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
   if (match) return { b64Json: match[2], mimeType: match[1] };
@@ -216,7 +221,7 @@ export async function embeddedImageReference(source: string) {
     : source;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`IMAGE_REFERENCE_FETCH_FAILED:${response.status}`);
-  const mimeType = response.headers.get("content-type")?.split(";", 1)[0] ?? referenceMimeType(source);
+  const mimeType = resolveImageReferenceMimeType(response.headers.get("content-type"), source);
   if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error(`IMAGE_REFERENCE_INVALID_MIME:${mimeType}`);
   const bytes = Buffer.from(await response.arrayBuffer());
   if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024) throw new Error("IMAGE_REFERENCE_INVALID_SIZE");

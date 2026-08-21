@@ -821,3 +821,8 @@
 - [x] Reproduce and diagnose the failed AI studio pure-white background removal request through client state, tRPC validation, server logs, and image provider response handling.
 - [x] Repair the failed pure-white background removal flow without overwriting approved product images or weakening original-detail preservation safeguards.
 - [x] Add regression coverage, verify the front/back individual regeneration and approval controls, run checks/build, checkpoint, and publish the recovery.
+
+## Single-view pure-white processing and quality warnings
+- [x] Allow the first pure-white preview to run when either the front or back original is available, while preserving each view's independent candidate and approval state.
+- [x] Add server-side visual quality assessment for every generated pure-white result, returning a structured warning when background, garment preservation, framing, or output fidelity may be insufficient.
+- [x] Display EN/KO/ZH quality status and warnings before approval, require a manual review decision for warned results, and verify one-view and two-view generation, tests, build, checkpoint, and publish.

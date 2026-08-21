@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS, buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, embeddedImageReference, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider, QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS, selectPrimaryProductReferenceUrls, selectQuickFitReferenceUrls } from "./fashionProvider";
+import { AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS, buildClothingPreservationPrompt, buildQuickFitPreservationPrompt, CLOTHING_NEGATIVE_PROMPT, embeddedImageReference, IMAGE_PROVIDER_TIMEOUT_MS, MockFashionProvider, QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS, resolveImageReferenceMimeType, selectPrimaryProductReferenceUrls, selectQuickFitReferenceUrls } from "./fashionProvider";
 import { defaultBodyMeasurements } from "../shared/bodyMeasurements";
 
 describe("MockFashionProvider", () => {
@@ -102,6 +102,10 @@ describe("QUICK FIT product editorial prompt", () => {
 describe("image provider safeguards", () => {
   it("keeps an inline product image's actual MIME type and bytes for image editing", async () => {
     await expect(embeddedImageReference("data:image/png;base64,cHVyZS13aGl0ZS1zb3VyY2U=")).resolves.toEqual({ b64Json: "cHVyZS13aGl0ZS1zb3VyY2U=", mimeType: "image/png" });
+  });
+
+  it("uses the stored image extension when an object store reports a generic MIME type", () => {
+    expect(resolveImageReferenceMimeType("application/octet-stream", "/manus-storage/generated/123.png")).toBe("image/png");
   });
 
   it("bounds a stalled provider request so the customer flow can use an explicit fallback", () => {

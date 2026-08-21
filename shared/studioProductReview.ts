@@ -18,5 +18,6 @@ export function resetStudioReviewViews(current: StudioReviewChecks, views: reado
 }
 
 export function canApproveStudioReview(checks: StudioReviewChecks, hasFrontCandidate: boolean, hasBackCandidate: boolean): boolean {
-  return hasFrontCandidate && hasBackCandidate && (["front", "back"] as const).every((view) => studioReviewCheckKeys.every((key) => checks[view][key]));
+  const generatedViews = ([hasFrontCandidate && "front", hasBackCandidate && "back"] as const).filter((view): view is StudioProductView => Boolean(view));
+  return generatedViews.length > 0 && generatedViews.every((view) => studioReviewCheckKeys.every((key) => checks[view][key]));
 }

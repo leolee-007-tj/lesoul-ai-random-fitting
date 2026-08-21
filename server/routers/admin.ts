@@ -14,6 +14,7 @@ import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
 import { buildStudioProductImagePrompt } from "../../shared/studioProductImage";
 import { embeddedImageReference } from "../fashionProvider";
+import { assessStudioProductImageQuality } from "../studioProductQuality";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -208,6 +209,7 @@ export const adminRouter = router({
       const views = input.views ?? ["front", "back"];
       const sourceUrls = { front: input.frontUrl, back: input.backUrl };
       const resultUrls: Partial<Record<"front" | "back", string>> = {};
+      const quality: Partial<Record<"front" | "back", Awaited<ReturnType<typeof assessStudioProductImageQuality>>>> = {};
       for (const view of views) {
         const sourceUrl = sourceUrls[view];
         if (!sourceUrl) throw new Error(`MISSING_${view.toUpperCase()}_SOURCE`);
@@ -216,8 +218,9 @@ export const adminRouter = router({
         const result = await generateImage({ prompt: buildStudioProductImagePrompt(view, input.colorCorrectionStrength), originalImages: [originalImage], model: "MODEL_GPT_IMAGE_2", quality: "high" });
         if (!result.url) throw new Error(`EMPTY_${view.toUpperCase()}_RESULT`);
         resultUrls[view] = result.url;
+        quality[view] = await assessStudioProductImageQuality({ view, sourceUrl, resultUrl: result.url });
       }
-      return { frontStudioUrl: resultUrls.front ?? null, backStudioUrl: resultUrls.back ?? null };
+      return { frontStudioUrl: resultUrls.front ?? null, backStudioUrl: resultUrls.back ?? null, quality };
     } catch (error) {
       const message = error instanceof Error && error.message ? error.message : "STUDIO_IMAGE_GENERATION_FAILED";
       console.error("[StudioProductImage] Pure-white generation failed", { message });
