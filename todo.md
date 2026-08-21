@@ -809,3 +809,10 @@
 - [x] Add multi-file image selection and a pending-upload tray in Product Manager, allowing administrators to assign uploaded images to Front, Back, Detail 1, or Detail 2 before saving the product.
 - [x] Add a product-detail WeChat share guidance card that detects WeChat, explains how to open in the system browser in EN/KO/ZH, and offers a safe copy-link action with a non-WeChat fallback.
 - [x] Add multi-file upload, slot assignment, file type/count failure, localized copy-link, WeChat detection, and product-gallery regression tests; verify mobile/desktop paths, checkpoint, and publish.
+
+## Product SNS share cards and WeChat referral analytics
+- [x] Audit product image/price/discount data, existing share-card helper, product-detail shared URL handling, analytics schema, and operations dashboard extension points.
+- [x] Generate a branded downloadable product share card containing product image, name, CNY price, active sale information, and product URL context using customer-localized content.
+- [x] Record a deduplicated product share-link visit when a customer opens `/catalog?product=<id>` with a WeChat referral context, preserving visitor privacy and excluding administrator/internal visits.
+- [x] Add an owner-only product referral analytics panel with total WeChat visits and product-level counts, plus empty/loading/error states.
+- [x] Add card content, referral parsing/deduplication, role/privacy, EN/KO/ZH, test, build, checkpoint, and publish verification.

@@ -7,7 +7,7 @@ describe("WeChat share guidance helpers", () => {
     expect(isWeChatUserAgent("Mozilla/5.0 Mobile Safari/604.1")).toBe(false);
   });
 
-  it("builds a stable catalog product link", () => {
-    expect(buildProductShareUrl("https://lesoul.example/style-match?old=value", 42)).toBe("https://lesoul.example/catalog?product=42");
+  it("builds a stable catalog product link with a WeChat attribution source", () => {
+    expect(buildProductShareUrl("https://lesoul.example/style-match?old=value", 42)).toBe("https://lesoul.example/catalog?product=42&source=wechat_share");
   });
 });

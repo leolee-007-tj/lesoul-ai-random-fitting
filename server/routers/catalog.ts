@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createGeneration, getCatalog, getGenerationForUser, listGenerationsForUser, saveGeneration, updateGenerationResult } from "../db";
+import { createGeneration, getCatalog, getGenerationForUser, listGenerationsForUser, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
@@ -48,6 +48,7 @@ export const catalogRouter = router({
       },
     };
   }),
+  trackWeChatShareVisit: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96) })).mutation(async ({ input, ctx }) => ({ tracked: ctx.user?.role === "admin" ? false : await recordWeChatProductShareVisit(input) })),
   poses: publicProcedure.query(async () => (await getCatalog()).poses),
   backgrounds: publicProcedure.query(async () => (await getCatalog()).backgrounds),
   purchaseInfo: publicProcedure.input(z.object({ productId: z.number().int().positive() })).query(async ({ input }) => {

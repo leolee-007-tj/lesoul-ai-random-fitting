@@ -1,7 +1,7 @@
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { aiAccessBlocks, aiUsageEvents, redeemCodes, releaseSettings, users, visitorEntitlements } from "../../drizzle/schema";
+import { aiAccessBlocks, aiUsageEvents, productShareVisits, products, redeemCodes, releaseSettings, users, visitorEntitlements } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getCentralEntitlement, getCentralSettings } from "../aiUsageController";
 import { ownerOnlyProcedure, ownerProcedure, router } from "../_core/trpc";
@@ -144,6 +144,19 @@ export const operationsRouter = router({
       text: resolveAiProviderStatus(settings.aiTextProviderPreference, qwenConfigured),
       qwenEndpoint: "Beijing / China region",
     };
+  }),
+  productShareAnalytics: ownerProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Product share analytics are temporarily unavailable.");
+    const rows = await db.select({ productId: productShareVisits.productId, visits: count() }).from(productShareVisits).groupBy(productShareVisits.productId).orderBy(desc(count()));
+    if (!rows.length) return { total: 0, products: [] };
+    const productRows = await db.select({ id: products.id, name: products.name, nameEn: products.nameEn, nameKo: products.nameKo, nameZh: products.nameZh, imageUrl: products.imageUrl, imageViews: products.imageViews }).from(products).where(inArray(products.id, rows.map((item) => item.productId)));
+    const productsById = new Map(productRows.map((item) => [item.id, item]));
+    const ranked = rows.flatMap((item) => {
+      const product = productsById.get(item.productId);
+      return product ? [{ product, visits: Number(item.visits) }] : [];
+    });
+    return { total: ranked.reduce((sum, item) => sum + item.visits, 0), products: ranked };
   }),
   updateSettings: ownerProcedure.input(z.object({ generationEnabled: z.boolean().optional(), normalAiGenerationLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchEnabled: z.boolean().optional(), quickAiAdminOnly: z.boolean().optional(), liyingAiVipEnabled: z.boolean().optional(), curatedOutfitsPriority: z.boolean().optional(), aiImageProviderPreference: z.enum(["FORGE", "QWEN"]).optional(), aiTextProviderPreference: z.enum(["FORGE", "QWEN"]).optional(), dailyAiRequestLimit: z.number().int().min(0).max(100_000).optional(), monthlyAiBudgetFen: cnyFen.optional(), stopAiAtBudgetLimit: z.boolean().optional(), monthlyActualAiCostFen: cnyFen.nullable().optional(), aiBodyModelEstimatedCostFen: cnyFen.optional(), aiFittingEstimatedCostFen: cnyFen.optional(), quickFitEstimatedCostFen: cnyFen.optional(), regenerationEstimatedCostFen: cnyFen.optional() })).mutation(async ({ input }) => {
     const db = await getDb();

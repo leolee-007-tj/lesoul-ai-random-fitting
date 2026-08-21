@@ -366,6 +366,16 @@ export const aiUsageEvents = mysqlTable("aiUsageEvents", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Daily-deduplicated visits from a product link copied for WeChat sharing. Visitor IDs remain opaque and are never exposed in operations UI. */
+export const productShareVisits = mysqlTable("productShareVisits", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull().references(() => products.id),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  source: mysqlEnum("source", ["WECHAT_SHARE"]).default("WECHAT_SHARE").notNull(),
+  visitDay: varchar("visitDay", { length: 10 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [uniqueIndex("product_share_visit_daily_unique").on(table.productId, table.visitorId, table.source, table.visitDay)]);
+
 /** Owner-controlled AI access pause for a concrete signed-in account or anonymous visitor ID. */
 export const aiAccessBlocks = mysqlTable("aiAccessBlocks", {
   visitorId: varchar("visitorId", { length: 96 }).primaryKey(),

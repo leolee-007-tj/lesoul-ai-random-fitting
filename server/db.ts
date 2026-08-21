@@ -1,6 +1,6 @@
 import { count, desc, eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
+import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -92,6 +92,30 @@ export async function getCatalog() {
   const categoryById = new Map(managedCategories.map((category) => [category.id, category]));
   const enrichedProducts = catalogProducts.map((product) => ({ ...product, displayCategory: product.displayCategoryId ? categoryById.get(product.displayCategoryId) ?? null : null }));
   return { products: resolveCatalogDisplay(enrichedProducts), poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets, productCategories: managedCategories };
+}
+
+/** Store at most one opaque visitor event per product and day for a copied WeChat share link. */
+export async function recordWeChatProductShareVisit(input: { productId: number; visitorId: string }) {
+  const db = await getDb();
+  if (!db) return false;
+  const product = (await db.select({ id: products.id, isActive: products.isActive }).from(products).where(eq(products.id, input.productId)).limit(1))[0];
+  if (!product || product.isActive === 0) return false;
+  const visitDay = new Date().toISOString().slice(0, 10);
+  await db.insert(productShareVisits).values({ productId: input.productId, visitorId: input.visitorId, visitDay }).onDuplicateKeyUpdate({ set: { visitorId: input.visitorId } });
+  return true;
+}
+
+export async function listWeChatProductShareAnalytics() {
+  const db = await getDb();
+  if (!db) return [];
+  const counts = await db.select({ productId: productShareVisits.productId, visits: count() }).from(productShareVisits).groupBy(productShareVisits.productId).orderBy(desc(count()));
+  if (!counts.length) return [];
+  const rows = await db.select({ id: products.id, name: products.name, nameEn: products.nameEn, nameKo: products.nameKo, nameZh: products.nameZh, imageUrl: products.imageUrl, imageViews: products.imageViews }).from(products).where(inArray(products.id, counts.map((item) => item.productId)));
+  const byId = new Map(rows.map((item) => [item.id, item]));
+  return counts.flatMap((item) => {
+    const product = byId.get(item.productId);
+    return product ? [{ product, visits: Number(item.visits) }] : [];
+  });
 }
 
 async function ensureManagedProductCategories() {

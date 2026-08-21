@@ -5,6 +5,7 @@ import PurchaseListAddButton from "@/components/PurchaseListAddButton";
 import ProductPrice from "@/components/ProductPrice";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import { trpc } from "@/lib/trpc";
+import { getVisitorId } from "@/lib/visitor";
 import { localizedProductName } from "@shared/productCommerce";
 import { customerProductImage } from "@shared/productImages";
 import { formatKeyMeasurement } from "@shared/catalogDisplay";
@@ -30,11 +31,22 @@ export default function BrowseProducts() {
   const catalog = trpc.catalog.browseProducts.useQuery();
   const [category, setCategory] = useState<Category>("all");
   const [detailId, setDetailId] = useState<number | null>(null);
+  const trackShareVisit = trpc.catalog.trackWeChatShareVisit.useMutation();
   const products = catalog.data ?? [];
   const visible = useMemo(() => category === "all" ? products : products.filter((product) => product.category === category), [category, products]);
   useEffect(() => {
-    const sharedProductId = Number(new URLSearchParams(location.split("?")[1] ?? "").get("product"));
-    if (sharedProductId && products.some((product) => product.id === sharedProductId)) setDetailId(sharedProductId);
+    const params = new URLSearchParams(location.split("?")[1] ?? "");
+    const sharedProductId = Number(params.get("product"));
+    if (sharedProductId && products.some((product) => product.id === sharedProductId)) {
+      setDetailId(sharedProductId);
+      if (params.get("source") === "wechat_share") {
+        const key = `lesoul.wechat-share.${sharedProductId}.${getVisitorId()}`;
+        if (!window.sessionStorage.getItem(key)) {
+          window.sessionStorage.setItem(key, "1");
+          trackShareVisit.mutate({ productId: sharedProductId, visitorId: getVisitorId() });
+        }
+      }
+    }
   }, [location, products]);
 
   return <MobileScreen><main className="lesoul-mobile-frame px-4 pb-7 pt-4 sm:px-6">
