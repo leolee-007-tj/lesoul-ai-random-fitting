@@ -2,6 +2,7 @@ import PurchaseScreen from "@/components/PurchaseScreen";
 import PurchaseListAddButton from "@/components/PurchaseListAddButton";
 import ProductPrice from "@/components/ProductPrice";
 import FitReferenceNotice from "@/components/FitReferenceNotice";
+import WeChatShareGuide from "@/components/WeChatShareGuide";
 import { getVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { localizedProductDescription, localizedProductMeta, localizedProductName } from "@shared/productCommerce";
@@ -9,7 +10,8 @@ import { localizedCategoryName } from "@shared/productCategories";
 import { buildProductGalleryUrls, customerProductImage } from "@shared/productImages";
 import { ChevronLeft, LoaderCircle, QrCode, X } from "lucide-react";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 
 const categoryLabel = (category: string, language: string) => {
@@ -24,6 +26,18 @@ export default function ProductDetailScreen({ productId, onClose, browseAll = fa
   const copy = language.startsWith("ko") ? { loading: "상품 정보를 불러오는 중…", unavailable: "상품 정보를 찾을 수 없습니다.", back: "뒤로", details: "상품 정보", sizes: "사이즈", measurements: "실측 (cm)", info: "상품 설명", buy: "구매 QR 보기", consult: "구매 문의", sold: t("product.soldOutNotice"), stock: t("product.status.inStock"), preorder: t("product.status.preOrder"), color: "색상", season: "시즌", style: "스타일", free: "F (Free Size)" } : language.startsWith("zh") ? { loading: "正在加载商品信息…", unavailable: "未找到商品信息。", back: "返回", details: "商品信息", sizes: "尺码", measurements: "实测尺寸 (cm)", info: "商品说明", buy: "查看付款二维码", consult: "咨询购买", sold: t("product.soldOutNotice"), stock: t("product.status.inStock"), preorder: t("product.status.preOrder"), color: "颜色", season: "季节", style: "风格", free: "F（均码）" } : { loading: "Loading product details…", unavailable: "Product information is unavailable.", back: "Back", details: "PRODUCT DETAILS", sizes: "SIZES", measurements: "MEASUREMENTS (CM)", info: "DESCRIPTION", buy: "VIEW PAYMENT QR", consult: "PURCHASE INQUIRY", sold: t("product.soldOutNotice"), stock: t("product.status.inStock"), preorder: t("product.status.preOrder"), color: "Color", season: "Season", style: "Style", free: "F (Free Size)" };
   const detail = trpc.catalog.productDetail.useQuery({ productId, visitorId: getVisitorId(), browseAll }); const purchaseConfig = trpc.purchase.config.useQuery();
   const [activeImage, setActiveImage] = useState<string | null>(null); const [purchasing, setPurchasing] = useState(false);
+  const shareProductId = detail.data?.status === "available" ? detail.data.product?.id ?? null : null;
+  useEffect(() => {
+    if (!shareProductId) return;
+    const modal = document.querySelector<HTMLElement>(".lesoul-safe-modal section");
+    if (!modal) return;
+    const host = document.createElement("div");
+    host.dataset.wechatShareGuide = String(shareProductId);
+    modal.append(host);
+    const root = createRoot(host);
+    root.render(<WeChatShareGuide productId={shareProductId} />);
+    return () => { root.unmount(); host.remove(); };
+  }, [shareProductId, i18n.language]);
   if (detail.isLoading) return <div className="lesoul-safe-modal z-50"><div className="mx-auto grid min-h-64 max-w-sm place-items-center rounded-[1.7rem] bg-white p-6 shadow-2xl"><LoaderCircle className="animate-spin" /><span className="sr-only">{copy.loading}</span></div></div>;
   const product = detail.data?.product;
   if (!product || detail.data?.status !== "available") return <div className="lesoul-safe-modal z-50"><section className="mx-auto max-w-sm rounded-[1.7rem] bg-white p-6 text-center shadow-2xl"><button onClick={onClose} className="ml-auto block" aria-label={copy.back}><X size={19} /></button><h2 className="mt-5 font-serif text-2xl">{copy.unavailable}</h2><button onClick={onClose} className="mt-5 rounded-full bg-black px-5 py-2.5 text-xs font-semibold text-white">{copy.back}</button></section></div>;

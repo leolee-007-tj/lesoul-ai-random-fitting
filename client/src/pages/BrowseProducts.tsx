@@ -10,7 +10,7 @@ import { customerProductImage } from "@shared/productImages";
 import { formatKeyMeasurement } from "@shared/catalogDisplay";
 import { localizedCategoryName } from "@shared/productCategories";
 import { ChevronLeft, LoaderCircle, ShoppingBag } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
@@ -18,7 +18,7 @@ type Category = "all" | "top" | "bottom" | "outer" | "dress" | "shoes" | "bag";
 const categories: Exclude<Category, "all">[] = ["top", "bottom", "outer", "dress", "shoes", "bag"];
 
 export default function BrowseProducts() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { i18n } = useTranslation();
   const language = i18n.language;
   const locale = language.startsWith("ko") ? "ko" : language.startsWith("zh") ? "zh" : "en";
@@ -32,6 +32,10 @@ export default function BrowseProducts() {
   const [detailId, setDetailId] = useState<number | null>(null);
   const products = catalog.data ?? [];
   const visible = useMemo(() => category === "all" ? products : products.filter((product) => product.category === category), [category, products]);
+  useEffect(() => {
+    const sharedProductId = Number(new URLSearchParams(location.split("?")[1] ?? "").get("product"));
+    if (sharedProductId && products.some((product) => product.id === sharedProductId)) setDetailId(sharedProductId);
+  }, [location, products]);
 
   return <MobileScreen><main className="lesoul-mobile-frame px-4 pb-7 pt-4 sm:px-6">
     <header className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#7a7065]">{copy.eyebrow}</p><h1 className="mt-1 font-serif text-3xl">{copy.title}</h1><p className="mt-2 max-w-md text-sm leading-5 text-[#71685f]">{copy.body}</p></div><button onClick={() => navigate("/")} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-[#ddd6cc] bg-white px-3 text-[10px] font-bold"><ChevronLeft size={14} />{copy.back}</button></header>

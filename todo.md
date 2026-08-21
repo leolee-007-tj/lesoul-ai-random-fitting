@@ -803,3 +803,9 @@
 - [x] Prepare OpenAI and Alibaba Qwen server-only activation for later project Secrets registration while keeping raw keys out of application tables and browser state.
 - [x] Extend the owner-only provider panel with masked connection status, key-connection guidance, replacement guidance, and no-key fallback status; omit last-four display until a key exists in the secure environment.
 - [x] Verify API keys never appear in tRPC responses, application database rows, client bundles, logs, or customer/admin text; test owner restriction, default-provider continuity, build, checkpoint, and publish.
+
+## Bulk product-image upload and WeChat share guidance
+- [x] Audit existing Product Manager upload endpoints, four image slots, product-image serialization, and customer product-detail share entry points.
+- [x] Add multi-file image selection and a pending-upload tray in Product Manager, allowing administrators to assign uploaded images to Front, Back, Detail 1, or Detail 2 before saving the product.
+- [x] Add a product-detail WeChat share guidance card that detects WeChat, explains how to open in the system browser in EN/KO/ZH, and offers a safe copy-link action with a non-WeChat fallback.
+- [x] Add multi-file upload, slot assignment, file type/count failure, localized copy-link, WeChat detection, and product-gallery regression tests; verify mobile/desktop paths, checkpoint, and publish.
