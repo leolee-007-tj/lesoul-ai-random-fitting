@@ -797,3 +797,9 @@
 - [x] Add an administrator AI provider panel with provider selection, connection status, Chinese-region endpoint guidance, safe disabled state, and a clear fallback policy.
 - [x] Add Qwen-unconfigured placeholder behavior: no outbound Qwen request, clear connection-needed state, and continued use of the current default AI regardless of the visible selection.
 - [x] Add settings, authorization, unconfigured-Qwen, default-provider continuity, and current-provider regression tests; verify production build, checkpoint, and publish.
+
+## Secure OpenAI and Qwen API key connection management
+- [x] Audit provider status UI, server environment handling, owner permissions, and safe secret-management path for OpenAI and Alibaba Qwen credentials.
+- [ ] Keep OpenAI and Alibaba Qwen server-only API key activation pending until a secure credential input is approved; do not store raw keys in application tables or browser state.
+- [x] Extend the owner-only provider panel with masked connection status, key-connection guidance, replacement guidance, and no-key fallback status; omit last-four display until a key exists in the secure environment.
+- [x] Verify API keys never appear in tRPC responses, application database rows, client bundles, logs, or customer/admin text; test owner restriction, default-provider continuity, build, checkpoint, and publish.
