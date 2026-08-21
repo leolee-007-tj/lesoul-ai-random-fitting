@@ -833,3 +833,8 @@
 - [x] Build a public app-introduction route that explains the LESOUL styling journey, presents clear sign-in and account-registration paths, and guides visitors to the existing catalog and styling experiences.
 - [x] Add an owner-safe monetization readiness section that explains the 2-day access trial and manual QR purchase flow without fabricating customer reviews or payments.
 - [x] Add regression coverage, validate the image path and public/mobile layouts, run tests/build, checkpoint, and publish.
+
+## Administrator-only two-day trial expiry
+- [x] Add a server-enforced two-day trial state for administrator access only, evaluated at each protected administrator request without a background scheduler or changes to customer access.
+- [x] Show a localized manual QR payment notice when the administrator trial has expired, using existing purchase-notice and QR safety conventions without initiating payments.
+- [x] Add expiry/isolation regression tests, verify the administrator expired state and customer flow, run tests/build, checkpoint, and publish.

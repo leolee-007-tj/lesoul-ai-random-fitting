@@ -3,6 +3,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import { ENV } from "./env";
+import { getAdminTrialStatus } from "../adminTrial";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -45,6 +46,11 @@ const requireUser = t.middleware(async opts => {
 
 export const protectedProcedure = t.procedure.use(requireUser);
 
+async function ensureActiveAdministratorTrial() {
+  const trial = await getAdminTrialStatus(true);
+  if (trial.status === "expired") throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_TRIAL_EXPIRED" });
+}
+
 /** Customer operations require either the isolated browser-bound test session or an existing signed-in account. */
 export const customerProcedure = t.procedure.use(
   t.middleware(async opts => {
@@ -63,6 +69,7 @@ export const adminProcedure = t.procedure.use(
     if (!ctx.user || ctx.user.role !== 'admin') {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
+    await ensureActiveAdministratorTrial();
 
     return next({
       ctx: {
@@ -82,6 +89,7 @@ export const ownerProcedure = t.procedure.use(
     if (!ctx.user || (ctx.user.role !== "admin" && !isOwner)) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
+    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial();
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );
@@ -92,6 +100,7 @@ export const ownerOnlyProcedure = t.procedure.use(
     const { ctx, next } = opts;
     const isOwner = Boolean(ctx.user && ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId);
     if (!isOwner || !ctx.user) throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
+    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial();
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );

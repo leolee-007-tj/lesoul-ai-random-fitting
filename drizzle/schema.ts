@@ -141,6 +141,13 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   storeTaglineEn: varchar("storeTaglineEn", { length: 180 }).default("A quieter way to discover your next LOOK.").notNull(),
   storeTaglineKo: varchar("storeTaglineKo", { length: 180 }).default("다음 LOOK을 더 조용하고 선명하게 발견하는 방법.").notNull(),
   storeTaglineZh: varchar("storeTaglineZh", { length: 180 }).default("以更安静、更清晰的方式发现你的下一套 LOOK。").notNull(),
+  /** Starts only when an administrator first opens the protected console. Customer access never reads these fields. */
+  adminTrialStartedAt: timestamp("adminTrialStartedAt"),
+  adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),
+  adminTrialPaymentQrUrl: text("adminTrialPaymentQrUrl"),
+  adminTrialPaymentNoticeEn: varchar("adminTrialPaymentNoticeEn", { length: 800 }).default("Your administrator trial has ended. Please scan the QR code to arrange manual renewal, then contact the store owner for activation.").notNull(),
+  adminTrialPaymentNoticeKo: varchar("adminTrialPaymentNoticeKo", { length: 800 }).default("관리자 체험 기간이 종료되었습니다. QR 코드를 스캔하여 수동 연장을 진행한 뒤, 스토어 소유자에게 활성화를 요청해 주세요.").notNull(),
+  adminTrialPaymentNoticeZh: varchar("adminTrialPaymentNoticeZh", { length: 800 }).default("管理员体验已结束。请扫描二维码安排人工续费，然后联系店铺所有者开通权限。").notNull(),
   /** Prevent a deliberately emptied administrator catalog from being reseeded with demo products. */
   catalogInitialized: int("catalogInitialized").default(0).notNull(),
   releaseMode: mysqlEnum("releaseMode", ["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]).default("PRIVATE").notNull(),
