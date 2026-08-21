@@ -202,14 +202,14 @@ export const adminRouter = router({
     const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
   }),
-  generateStudioProductImages: ownerProcedure.input(z.object({ frontUrl: z.string().trim().min(1).max(2048).optional(), backUrl: z.string().trim().min(1).max(2048).optional(), views: z.array(z.enum(["front", "back"])).min(1).max(2).optional() })).mutation(async ({ input }) => {
+  generateStudioProductImages: ownerProcedure.input(z.object({ frontUrl: z.string().trim().min(1).max(2048).optional(), backUrl: z.string().trim().min(1).max(2048).optional(), views: z.array(z.enum(["front", "back"])).min(1).max(2).optional(), correctLightingColor: z.boolean().default(true) })).mutation(async ({ input }) => {
     try {
       const views = input.views ?? ["front", "back"];
       const sourceUrls = { front: input.frontUrl, back: input.backUrl };
       const generated = await Promise.all(views.map(async (view) => {
         const sourceUrl = sourceUrls[view];
         if (!sourceUrl) throw new Error(`MISSING_${view.toUpperCase()}_SOURCE`);
-        const result = await generateImage({ prompt: buildStudioProductImagePrompt(view), originalImages: [{ url: sourceUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" });
+        const result = await generateImage({ prompt: buildStudioProductImagePrompt(view, input.correctLightingColor), originalImages: [{ url: sourceUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "high" });
         if (!result.url) throw new Error(`EMPTY_${view.toUpperCase()}_RESULT`);
         return [view, result.url] as const;
       }));

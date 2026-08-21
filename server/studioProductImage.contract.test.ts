@@ -8,8 +8,9 @@ describe("studio product image generation contract", () => {
     const admin = source("./routers/admin.ts");
     expect(admin).toContain("generateStudioProductImages: ownerProcedure.input");
     expect(admin).toContain("views: z.array(z.enum([\"front\", \"back\"]))");
+    expect(admin).toContain("correctLightingColor: z.boolean().default(true)");
     expect(admin).toContain("MISSING_${view.toUpperCase()}_SOURCE");
-    expect(admin).toContain("buildStudioProductImagePrompt(view)");
+    expect(admin).toContain("buildStudioProductImagePrompt(view, input.correctLightingColor)");
   });
 
   it("keeps the manager workflow as generate, compare, review, then accept or discard", () => {
@@ -19,6 +20,7 @@ describe("studio product image generation contract", () => {
     expect(manager).toContain("discardStudioPreview");
     expect(manager).toContain("StudioImageReview");
     expect(manager).toContain("generateStudioPreview([view])");
+    expect(manager).toContain("correctLightingColor");
     expect(manager).toContain("frontStudioUrl");
   });
 });

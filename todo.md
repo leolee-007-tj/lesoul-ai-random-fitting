@@ -772,3 +772,9 @@
 - [x] Allow administrator generation and regeneration of the front or back view independently, while retaining the unaffected preview and original source.
 - [x] Add side-by-side original/result comparison for each view, localized garment-detail review checks, and a final approval action gated on the review checks.
 - [x] Add per-view generation, approval gate, persistence, error, and EN/KO/ZH regression tests; verify mobile/desktop review layout, build, checkpoint, and publish.
+
+## Limited lighting color correction for AI white-background product cuts
+- [x] Audit the current white-background prompt, generation API input, color-detail review check, and Product Manager controls.
+- [x] Add a conservative lighting-neutralization option that corrects only obvious white-balance and exposure cast while explicitly preserving the garment’s intended color, print, and material appearance.
+- [x] Surface the selected correction mode in the original/result review, require color confirmation before approval, and keep the uncorrected source unchanged.
+- [x] Add color-policy, input-contract, approval, EN/KO/ZH, test, build, checkpoint, and publish verification.

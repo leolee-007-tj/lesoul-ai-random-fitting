@@ -8,6 +8,8 @@ describe("studio product image prompt", () => {
     expect(prompt).toContain("Preserve the exact garment");
     expect(prompt).toContain("flat, solid, pure white (#FFFFFF) backdrop");
     expect(prompt).toContain("not a staged studio photograph");
+    expect(prompt).toContain("Conservatively neutralize only obvious warm/cool white-balance casts");
+    expect(buildStudioProductImagePrompt("back", false)).toContain("Do not change white balance, exposure, hue, saturation");
   });
 
   it("does not treat the editor placeholder as a source image", () => {
