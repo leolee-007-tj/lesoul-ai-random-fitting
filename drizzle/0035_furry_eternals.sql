@@ -1,0 +1,1 @@
+ALTER TABLE `releaseSettings` ADD `storeName` varchar(80) DEFAULT 'LESOUL AI LOOK' NOT NULL;

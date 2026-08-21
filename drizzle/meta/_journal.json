@@ -246,6 +246,20 @@
       "when": 1787288942923,
       "tag": "0034_strange_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1787291573825,
+      "tag": "0035_furry_eternals",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1787292051430,
+      "tag": "0036_rapid_makkari",
+      "breakpoints": true
     }
   ]
 }

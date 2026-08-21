@@ -15,6 +15,8 @@ describe("studio product image generation contract", () => {
     expect(admin).toContain("STUDIO_SOURCE_IMAGE_UNAVAILABLE");
     expect(admin).toContain("assessStudioProductImageQuality");
     expect(admin).toContain("quality[view]");
+    expect(admin).toContain('quality: "medium"');
+    expect(admin).toContain("Retrying pure-white generation once");
   });
 
   it("keeps the manager workflow as generate, compare, review, then accept or discard", () => {

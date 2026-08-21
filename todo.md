@@ -826,3 +826,10 @@
 - [x] Allow the first pure-white preview to run when either the front or back original is available, while preserving each view's independent candidate and approval state.
 - [x] Add server-side visual quality assessment for every generated pure-white result, returning a structured warning when background, garment preservation, framing, or output fidelity may be insufficient.
 - [x] Display EN/KO/ZH quality status and warnings before approval, require a manual review decision for warned results, and verify one-view and two-view generation, tests, build, checkpoint, and publish.
+
+## Administrator branding and public conversion experience
+- [x] Reproduce and diagnose the latest administrator pure-white processing failure, then keep the feature enabled with a reliable fallback, actionable failure state, and no loss of source or approved images.
+- [x] Add owner-only store branding settings so the administrator can change the store name and public-facing headline without exposing management controls to customers.
+- [x] Build a public app-introduction route that explains the LESOUL styling journey, presents clear sign-in and account-registration paths, and guides visitors to the existing catalog and styling experiences.
+- [x] Add an owner-safe monetization readiness section that explains the 2-day access trial and manual QR purchase flow without fabricating customer reviews or payments.
+- [x] Add regression coverage, validate the image path and public/mobile layouts, run tests/build, checkpoint, and publish.
