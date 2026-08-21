@@ -164,6 +164,7 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   globalDailyGenerationLimit: int("globalDailyGenerationLimit").default(120).notNull(),
   monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
   generationEnabled: int("generationEnabled").default(1).notNull(),
+  studioImageProcessingEnabled: int("studioImageProcessingEnabled").default(1).notNull(),
   /** Central AI policy settings. Monetary values are CNY fen and are always shown as estimates unless provider metadata supplies an actual amount. */
   normalAiGenerationLimit: int("normalAiGenerationLimit").default(3).notNull(),
   dailyAiRequestLimit: int("dailyAiRequestLimit").default(0).notNull(),

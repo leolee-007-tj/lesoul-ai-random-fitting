@@ -843,3 +843,8 @@
 - [x] Replace the shared administrator trial start with per-password-admin-account trial timestamps, so every new administrator account receives its own two-day access period.
 - [x] Add a configurable usage-guide QR image and localized instruction to the administrator expiry notice, separate from the manual renewal payment QR.
 - [x] Add owner-facing account status visibility, per-account expiry/isolation tests, verify active and expired states, run tests/build, checkpoint, and publish.
+
+## Pure-white studio processing switch
+- [x] Add an owner-controlled pure-white studio processing switch to the central release settings and enforce it on the server-side processing route.
+- [x] Show the switch in Release Control and hide all pure-white studio menus, controls, and review affordances in Product Manager while it is off.
+- [x] Add EN/KO/ZH toggle states and disabled-path regression coverage, verify product management remains usable, run tests/build, checkpoint, and publish.
