@@ -778,3 +778,9 @@
 - [x] Add a conservative lighting-neutralization option that corrects only obvious white-balance and exposure cast while explicitly preserving the garment’s intended color, print, and material appearance.
 - [x] Surface the selected correction mode in the original/result review, require color confirmation before approval, and keep the uncorrected source unchanged.
 - [x] Add color-policy, input-contract, approval, EN/KO/ZH, test, build, checkpoint, and publish verification.
+
+## Color-correction strengths and magnified image comparison
+- [x] Audit the current boolean lighting-correction input, AI prompt wording, review component image layout, and approval criteria.
+- [x] Replace the boolean setting with explicit off, subtle, standard, and strong correction modes; pass the selected mode through the server and preserve original garment color when off.
+- [x] Add an accessible magnifier for original/result detail comparison, with a synchronized position control so the same garment area can be inspected on both images.
+- [x] Show the selected correction mode in EN/KO/ZH review UI, require color confirmation, and add mode/prompt/magnifier/approval regression tests, build, checkpoint, and publish.

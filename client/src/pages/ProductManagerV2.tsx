@@ -10,7 +10,7 @@ import type { CatalogDisplaySettings } from "@shared/catalogDisplay";
 import { calculateSalePrice, localizedProductName } from "@shared/productCommerce";
 import { baseCategoryToCoreCategory, localizedCategoryName } from "@shared/productCategories";
 import { buildProductGalleryUrls, normalizeProductDetailUrls } from "@shared/productImages";
-import type { StudioProductView } from "@shared/studioProductImage";
+import { colorCorrectionStrengths, type ColorCorrectionStrength, type StudioProductView } from "@shared/studioProductImage";
 import { canApproveStudioReview, createStudioReviewChecks, resetStudioReviewViews, type StudioReviewCheckKey } from "@shared/studioProductReview";
 import CategoryManagementPanel from "@/components/CategoryManagementPanel";
 import StudioImageReview from "@/components/StudioImageReview";
@@ -90,7 +90,7 @@ export default function ProductManagerV2() {
   const [categoryPanelOpen, setCategoryPanelOpen] = useState(false);
   const [draft, setDraft] = useState<ProductDraft | null>(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("new") === "1" ? initialDraft() : null);
   const [studioReviewChecks, setStudioReviewChecks] = useState(createStudioReviewChecks);
-  const [correctLightingColor, setCorrectLightingColor] = useState(true);
+  const [colorCorrectionStrength, setColorCorrectionStrength] = useState<ColorCorrectionStrength>("standard");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
   const [error, setError] = useState("");
@@ -116,10 +116,19 @@ export default function ProductManagerV2() {
     if (draft && draft.displayCategoryId === null && firstActive) change({ displayCategoryId: firstActive.id, category: baseCategoryToCoreCategory(firstActive.baseCategory) });
   }, [managedCategories.data]);
 
-  const openNew = () => { const firstActive = (managedCategories.data ?? []).find((item: any) => item.isActive); setEditingId(null); setFieldErrors({}); setError(""); setSuccess(""); setStudioReviewChecks(createStudioReviewChecks()); setCorrectLightingColor(true); setDraft({ ...initialDraft(), displayCategoryId: firstActive?.id ?? null, category: firstActive ? baseCategoryToCoreCategory(firstActive.baseCategory) : "top" }); };
+  useEffect(() => {
+    const updateStrength = (event: Event) => {
+      const value = (event as CustomEvent<ColorCorrectionStrength>).detail;
+      if (colorCorrectionStrengths.includes(value)) setColorCorrectionStrength(value);
+    };
+    window.addEventListener("lesoul:studio-color-correction", updateStrength);
+    return () => window.removeEventListener("lesoul:studio-color-correction", updateStrength);
+  }, []);
+
+  const openNew = () => { const firstActive = (managedCategories.data ?? []).find((item: any) => item.isActive); setEditingId(null); setFieldErrors({}); setError(""); setSuccess(""); setStudioReviewChecks(createStudioReviewChecks()); setColorCorrectionStrength("standard"); setDraft({ ...initialDraft(), displayCategoryId: firstActive?.id ?? null, category: firstActive ? baseCategoryToCoreCategory(firstActive.baseCategory) : "top" }); };
   const openEdit = (item: any) => {
     const views = item.imageViews ?? {};
-    setEditingId(item.id); setFieldErrors({}); setError(""); setSuccess(""); setStudioReviewChecks(createStudioReviewChecks()); setCorrectLightingColor(true);
+    setEditingId(item.id); setFieldErrors({}); setError(""); setSuccess(""); setStudioReviewChecks(createStudioReviewChecks()); setColorCorrectionStrength("standard");
     const details = normalizeProductDetailUrls((views.detail ?? []).map((entry: any) => entry.original).filter(Boolean));
     setDraft({ name: item.name ?? "", brand: item.brand ?? "", displayCategoryId: item.displayCategoryId ?? null, category: item.category, price: Number(item.priceOriginal ?? item.price ?? 0), discountRate: item.discountRate ?? null, priceSale: item.priceSale ?? "", saleEnabled: Boolean(item.saleEnabled), season: item.season ?? "", color: item.color ?? "", style: item.style ?? "", description: item.description ?? "", status: item.status, isActive: item.isActive !== 0, availabilityStatus: item.availabilityStatus ?? (item.status === "sold_out" ? "SOLD_OUT" : "IN_STOCK"), isNew: Boolean(item.isNew), newArrivalAt: item.newArrivalAt ? new Date(item.newArrivalAt) : null, frontUrl: views.front?.original ?? item.imageUrl ?? placeholder, backUrl: views.back?.original ?? "", frontStudioUrl: views.front?.studioCut && views.front.studioCut !== views.front.original ? views.front.studioCut : "", backStudioUrl: views.back?.studioCut && views.back.studioCut !== views.back.original ? views.back.studioCut : "", studioCandidateFrontUrl: "", studioCandidateBackUrl: "", detailUrls: [details[0] ?? "", details[1] ?? ""], qrUrl: item.purchaseQrUrl ?? "", garmentMeasurements: item.garmentMeasurements ?? {}, sizeOptions: item.sizeOptions ?? [], stretchLevel: item.stretchLevel ?? "low", catalogDisplay: item.catalogDisplay?.manualScale || item.catalogDisplay?.objectPositionX !== undefined || item.catalogDisplay?.objectPositionY !== undefined ? { manualScale: item.catalogDisplay.manualScale ?? null, objectPositionX: item.catalogDisplay.objectPositionX ?? 50, objectPositionY: item.catalogDisplay.objectPositionY ?? 50 } : null });
   };
@@ -141,7 +150,7 @@ export default function ProductManagerV2() {
     if (views.some((view) => view === "front" ? !draft.frontUrl || draft.frontUrl === placeholder : !draft.backUrl)) { setError(studioCopy.needSources); return; }
     setError(""); setSuccess("");
     try {
-      const result = await generateStudio.mutateAsync({ frontUrl: draft.frontUrl === placeholder ? undefined : draft.frontUrl, backUrl: draft.backUrl || undefined, views, correctLightingColor });
+      const result = await generateStudio.mutateAsync({ frontUrl: draft.frontUrl === placeholder ? undefined : draft.frontUrl, backUrl: draft.backUrl || undefined, views, colorCorrectionStrength });
       change({ ...(result.frontStudioUrl ? { studioCandidateFrontUrl: result.frontStudioUrl } : {}), ...(result.backStudioUrl ? { studioCandidateBackUrl: result.backStudioUrl } : {}) });
       setStudioReviewChecks((current) => resetStudioReviewViews(current, views));
     } catch {
