@@ -58,6 +58,9 @@ export const products = mysqlTable("products", {
   isNew: int("isNew").default(0).notNull(),
   newArrivalAt: timestamp("newArrivalAt"),
   price: int("price").notNull(),
+  /** A set is still one purchasable catalog product; its inner pieces are kept as an ordered value list. */
+  productType: mysqlEnum("productType", ["SINGLE", "SET"]).default("SINGLE").notNull(),
+  setComponents: json("setComponents").$type<import("../shared/setProducts").SetProductComponent[]>(),
   /** Owner-selected base customer discounts. Seasonal sale modes temporarily override these values. */
   normalDiscountPercent: int("normalDiscountPercent").default(17).notNull(),
   vipDiscountPercent: int("vipDiscountPercent").default(20).notNull(),

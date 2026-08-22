@@ -46,7 +46,7 @@ export const catalogRouter = router({
       product: {
         id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh,
         brand: product.brand, category: product.category, displayCategory: product.displayCategory ?? null, season: product.season, color: product.color, style: product.style,
-        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, priceOriginal: product.priceOriginal, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
+        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, priceOriginal: product.priceOriginal, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, productType: product.productType, setComponents: product.setComponents, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
         description: product.description, descriptionEn: product.descriptionEn, descriptionKo: product.descriptionKo, descriptionZh: product.descriptionZh,
         garmentMeasurements: product.garmentMeasurements, catalogDisplay: product.catalogDisplay, sizeOptions: product.sizeOptions, stretchLevel: product.stretchLevel,
       },

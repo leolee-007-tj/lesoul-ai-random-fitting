@@ -11,6 +11,18 @@ import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
 import { MEASUREMENT_FIELD_KEYS } from "../../shared/categoryMeasurementFields";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
+import { SET_COMPONENT_CATEGORIES, sumSetComponentPrices, type SetProductComponent } from "../../shared/setProducts";
+
+const setComponentInput = z.object({
+  componentId: z.string().trim().min(1).max(64),
+  sortOrder: z.number().int().min(1).max(99).optional(),
+  category: z.enum(SET_COMPONENT_CATEGORIES),
+  name: z.string().trim().min(1).max(160),
+  nameEn: z.string().trim().max(160).nullable().optional(),
+  nameKo: z.string().trim().max(160).nullable().optional(),
+  nameZh: z.string().trim().max(160).nullable().optional(),
+  price: z.number().int().min(1).max(10_000_000),
+});
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -29,6 +41,8 @@ const productInput = z.object({
   isNew: z.number().int().min(0).max(1).optional(),
   newArrivalAt: z.date().nullable().optional(),
   price: z.number().int().min(0),
+  productType: z.enum(["SINGLE", "SET"]).optional(),
+  setComponents: z.array(setComponentInput).min(2).max(6).nullable().optional(),
   normalDiscountPercent: z.union([z.literal(17), z.literal(20)]).optional(),
   vipDiscountPercent: z.union([z.literal(20), z.literal(30)]).optional(),
   priceOriginal: z.number().int().positive().nullable().optional(),
@@ -86,6 +100,39 @@ const curatedOutfitInput = z.object({
 });
 
 type SaleCandidate = { price?: number; priceOriginal?: number | null; discountRate?: number | null; priceSale?: number | null; saleEnabled?: number | null };
+type SetComponentDraft = z.infer<typeof setComponentInput>;
+type SetCandidate = { productType?: "SINGLE" | "SET" | null; setComponents?: SetComponentDraft[] | null; price?: number; priceOriginal?: number | null };
+
+function normalizeSetComponents(components: SetComponentDraft[]): SetProductComponent[] {
+  const ids = new Set<string>();
+  const normalized = components.map((component, index) => {
+    const componentId = component.componentId.trim();
+    if (ids.has(componentId)) throw new Error("SET_COMPONENT_DUPLICATE");
+    ids.add(componentId);
+    return {
+      componentId,
+      sortOrder: component.sortOrder ?? index + 1,
+      category: component.category,
+      name: component.name.trim(),
+      nameEn: component.nameEn?.trim() || null,
+      nameKo: component.nameKo?.trim() || null,
+      nameZh: component.nameZh?.trim() || null,
+      price: Math.round(component.price),
+    } satisfies SetProductComponent;
+  }).sort((a, b) => a.sortOrder - b.sortOrder || a.componentId.localeCompare(b.componentId));
+  if (normalized.length < 2) throw new Error("SET_NEEDS_TWO_COMPONENTS");
+  return normalized.map((component, index) => ({ ...component, sortOrder: index + 1 }));
+}
+
+function resolveSetFields(input: SetCandidate, existing?: SetCandidate) {
+  const isTouched = Object.prototype.hasOwnProperty.call(input, "productType") || Object.prototype.hasOwnProperty.call(input, "setComponents");
+  if (!isTouched && existing) return {};
+  const productType = input.productType ?? existing?.productType ?? "SINGLE";
+  if (productType === "SINGLE") return { productType: "SINGLE" as const, setComponents: null };
+  const components = normalizeSetComponents(input.setComponents ?? existing?.setComponents ?? []);
+  const total = sumSetComponentPrices(components);
+  return { productType: "SET" as const, setComponents: components, price: total, priceOriginal: total };
+}
 
 function resolveSaleFields(input: SaleCandidate, existing?: SaleCandidate) {
   const original = Math.round(input.priceOriginal ?? input.price ?? existing?.priceOriginal ?? existing?.price ?? 0);
@@ -206,8 +253,10 @@ export const adminRouter = router({
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
     const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, input.category);
     const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
-    const sale = resolveSaleFields(input);
-    await createAdminProduct({ ...input, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
+    const { productType: _productType, setComponents: _setComponents, ...productInputFields } = input;
+    const setFields = resolveSetFields(input);
+    const sale = resolveSaleFields({ ...productInputFields, ...setFields });
+    await createAdminProduct({ ...productInputFields, ...setFields, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
   updateProduct: ownerProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
@@ -217,9 +266,11 @@ export const adminRouter = router({
     const categoryLink = updates.displayCategoryId === undefined ? null : await resolveDisplayCategoryId(updates.displayCategoryId, updates.category ?? "top");
     const availabilityStatus = updates.availabilityStatus ? normaliseAvailabilityStatus(updates.availabilityStatus, updates.status) : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
-    const touchesSale = ["price", "priceOriginal", "discountRate", "priceSale", "saleEnabled"].some((key) => Object.prototype.hasOwnProperty.call(updates, key));
-    const sale = touchesSale ? resolveSaleFields(updates, existing) : {};
-    await updateAdminProduct(id, { ...updates, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
+    const { productType: _productType, setComponents: _setComponents, ...productUpdates } = updates;
+    const setFields = resolveSetFields(updates, existing);
+    const touchesSale = ["price", "priceOriginal", "discountRate", "priceSale", "saleEnabled"].some((key) => Object.prototype.hasOwnProperty.call(updates, key)) || Object.prototype.hasOwnProperty.call(setFields, "price");
+    const sale = touchesSale ? resolveSaleFields({ ...productUpdates, ...setFields }, existing) : {};
+    await updateAdminProduct(id, { ...productUpdates, ...setFields, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
   }),
   deleteProduct: ownerProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {

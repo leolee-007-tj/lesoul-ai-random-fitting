@@ -922,3 +922,10 @@
 - [x] Apply the new policy to catalog, detail, purchase list, server purchase calculation, QR purchase flow, and sharing cards with EN/KO percent labels and ZH 折 labels.
 - [x] Verify database persistence defaults, non-owner owner-status handling, product-tier calculations, seasonal override restoration, all tests, TypeScript, and production build before release.
 - [x] Add per-product selection, seasonal override, restoration, rounding, localization, and UI regression coverage; verify build, checkpoint, and publish.
+
+## Grouped set products with component pricing
+- [x] Add a SET product type with a persisted ordered component list containing each garment's localized name, garment type, and individual CNY reference price; the existing four product images remain set-level media.
+- [x] Keep the set's outer price as the combined customer-facing price, while recording and validating its individual component prices inside the set.
+- [x] Add owner Product Manager controls to create, edit, add, remove, and reorder two or more set components without duplicating ordinary standalone products.
+- [x] Show a clear set badge and combined price in catalog cards, and show localized component garments with individual prices in the set product detail and purchase-list views.
+- [ ] Add EN/KO/ZH regression tests for set persistence, discount calculation on the set total, component display, purchase behavior, mobile UI, TypeScript, production build, checkpoint, and publish.

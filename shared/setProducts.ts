@@ -1,0 +1,42 @@
+export const SET_COMPONENT_CATEGORIES = ["top", "bottom", "outer", "dress", "shoes", "bag"] as const;
+
+export type SetComponentCategory = (typeof SET_COMPONENT_CATEGORIES)[number];
+
+export type SetProductComponent = {
+  componentId: string;
+  sortOrder: number;
+  category: SetComponentCategory;
+  name: string;
+  nameEn?: string | null;
+  nameKo?: string | null;
+  nameZh?: string | null;
+  price: number;
+};
+
+export type SetAwareProduct = {
+  productType?: "SINGLE" | "SET" | null;
+  setComponents?: SetProductComponent[] | null;
+};
+
+export function isSetProduct(product: SetAwareProduct) {
+  return product.productType === "SET" && Array.isArray(product.setComponents) && product.setComponents.length >= 2;
+}
+
+export function sumSetComponentPrices(components: readonly Pick<SetProductComponent, "price">[] | null | undefined) {
+  return Math.round((components ?? []).reduce((total, component) => total + Math.max(0, Number(component.price) || 0), 0));
+}
+
+export function localizedSetComponentName(component: SetProductComponent, language: string) {
+  if (language.startsWith("ko")) return component.nameKo || component.name;
+  if (language.startsWith("zh")) return component.nameZh || component.name;
+  return component.nameEn || component.name;
+}
+
+export function localizedSetComponentCategory(category: SetComponentCategory, language: string) {
+  const labels = language.startsWith("ko")
+    ? { top: "상의", bottom: "하의", outer: "아우터", dress: "원피스", shoes: "신발", bag: "가방" }
+    : language.startsWith("zh")
+      ? { top: "上装", bottom: "下装", outer: "外套", dress: "连衣裙", shoes: "鞋履", bag: "包袋" }
+      : { top: "Top", bottom: "Bottom", outer: "Outer", dress: "Dress", shoes: "Shoes", bag: "Bag" };
+  return labels[category];
+}

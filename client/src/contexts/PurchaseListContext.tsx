@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import type { CatalogDisplaySettings } from "@shared/catalogDisplay";
+import type { SetProductComponent } from "@shared/setProducts";
 
 export type PurchaseListItem = {
   productId: number;
@@ -8,6 +9,8 @@ export type PurchaseListItem = {
   nameKo?: string | null;
   nameZh?: string | null;
   productImage: string;
+  productType?: "SINGLE" | "SET" | null;
+  setComponents?: SetProductComponent[] | null;
   catalogDisplay?: (CatalogDisplaySettings & { effectiveScale?: number | null }) | null;
   selectedSize: string;
   availableSizes: string[];
