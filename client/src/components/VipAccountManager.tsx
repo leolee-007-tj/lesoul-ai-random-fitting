@@ -21,7 +21,7 @@ type VipAccount = {
   latestAiRequestAt: Date | null;
 };
 
-export function VipAccountManager({ accounts, onChanged }: { accounts: VipAccount[]; onChanged: () => void }) {
+export function VipAccountManager({ accounts, onChanged, includeRelatedManagers = true }: { accounts: VipAccount[]; onChanged: () => void; includeRelatedManagers?: boolean }) {
   const { t } = useTranslation();
   const ownerStatus = trpc.operations.ownerStatus.useQuery();
   const people = trpc.operations.users.useQuery(undefined, { enabled: Boolean(ownerStatus.data?.isOwner) });
@@ -54,8 +54,7 @@ export function VipAccountManager({ accounts, onChanged }: { accounts: VipAccoun
   const adminAccounts = (people.data?.accounts ?? []).filter((account) => account.user.role === "admin");
 
   return <>
-    <AiProviderPanel />
-    <ProductShareAnalyticsPanel />
+    {includeRelatedManagers && <><AiProviderPanel /><ProductShareAnalyticsPanel /></>}
     <section className="mt-5 rounded-2xl border border-[#e2ddd5] bg-white p-4">
       <div className="flex items-center gap-2"><UserPlus size={16} /><p className="text-[10px] font-bold tracking-[.14em] text-[#766b60]">{t("vipAdmin.title")}</p></div>
       <form onSubmit={(event) => { event.preventDefault(); setNotice(""); create.mutate({ username, password, displayName: displayName || undefined }); }} className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -75,6 +74,6 @@ export function VipAccountManager({ accounts, onChanged }: { accounts: VipAccoun
         </article>) : <p className="text-sm text-[#746a61]">{t("vipAdmin.noAccounts")}</p>}
       </div>
     </section>
-    {ownerStatus.data?.isOwner && <><AdminAccountManager accounts={adminAccounts} onChanged={() => { onChanged(); void people.refetch(); }} /><TrialStoreManager /></>}
+    {includeRelatedManagers && ownerStatus.data?.isOwner && <><AdminAccountManager accounts={adminAccounts} onChanged={() => { onChanged(); void people.refetch(); }} /><TrialStoreManager /></>}
   </>;
 }

@@ -869,3 +869,8 @@
 - [x] Remove browser-side compression from production product and isolated trial-store image uploads so uploaded files retain their original visual quality.
 - [x] Remove compression-specific status text, helpers, and tests while preserving upload validation and four-slot image management.
 - [x] Verify original-quality upload paths, run tests/build, checkpoint, and publish.
+
+## Unified owner account management
+- [x] Create an owner-only Account Management tab with clear NORMAL, VIP, ADMIN, and STORE TRIAL role sections and privacy-conscious counts for anonymous normal visitors.
+- [x] Consolidate existing VIP, administrator, and isolated trial-store credential creation, activation, deactivation, password reset, trial reset, and expiry status controls into role-specific panels.
+- [x] Add role-aware account summaries and lifecycle guidance, regression coverage for owner-only access and role isolation, verify desktop/mobile UI, run tests/build, checkpoint, and publish.
