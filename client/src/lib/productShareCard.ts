@@ -1,4 +1,5 @@
-import { getEffectivePrice, getOriginalPrice, getSalePriceState, localizedProductName } from "@shared/productCommerce";
+import { getOriginalPrice, localizedProductName } from "@shared/productCommerce";
+import { formatCentralDiscount, resolveCentralPrice, type PricingMode } from "@shared/pricingPolicy";
 
 type Locale = "en" | "ko" | "zh";
 
@@ -14,6 +15,7 @@ export type ProductShareCardData = {
   priceSale?: number | null;
   discountRate?: number | null;
   saleEnabled?: number | boolean | null;
+  pricingMode?: PricingMode | null;
 };
 
 function normalizeForCommerce(product: ProductShareCardData) {
@@ -22,10 +24,9 @@ function normalizeForCommerce(product: ProductShareCardData) {
 
 export function productShareCardPrice(product: ProductShareCardData, locale: Locale) {
   const normalized = normalizeForCommerce(product);
-  const sale = getSalePriceState(normalized);
-  const price = getEffectivePrice(normalized);
+  const price = resolveCentralPrice(getOriginalPrice(normalized), { mode: product.pricingMode, tier: "NORMAL" });
   const formatter = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US", { style: "currency", currency: "CNY", minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  return { price: formatter.format(price), original: sale.enabled ? formatter.format(getOriginalPrice(normalized)) : null, discount: sale.enabled ? `${sale.rate}% OFF` : null };
+  return { price: formatter.format(price.unitPrice), original: formatter.format(price.original), discount: formatCentralDiscount(price.discountPercent, locale) };
 }
 
 function drawCover(context: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) {

@@ -146,6 +146,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   storeTaglineEn: varchar("storeTaglineEn", { length: 180 }).default("A quieter way to discover your next LOOK.").notNull(),
   storeTaglineKo: varchar("storeTaglineKo", { length: 180 }).default("다음 LOOK을 더 조용하고 선명하게 발견하는 방법.").notNull(),
   storeTaglineZh: varchar("storeTaglineZh", { length: 180 }).default("以更安静、更清晰的方式发现你的下一套 LOOK。").notNull(),
+  /** One centralized policy replaces legacy per-product sale and coupon calculations in every customer purchase flow. */
+  pricingMode: mysqlEnum("pricingMode", ["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).default("BASE").notNull(),
   /** Starts only when an administrator first opens the protected console. Customer access never reads these fields. */
   adminTrialStartedAt: timestamp("adminTrialStartedAt"),
   adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),

@@ -890,3 +890,10 @@
 - [x] Preserve the designated owner password-ADMIN account, retire any secondary password-based ADMIN accounts, and prevent any future secondary administrator creation.
 - [x] Remove secondary ADMIN account creation, password reset, activation, trial, and list UI from owner account management while retaining the owner's own access plus VIP, NORMAL, and STORE TRIAL management.
 - [x] Add regression coverage for exclusive owner administration and role isolation, verify account-management UI, run tests/build, checkpoint, and publish.
+
+## Central customer-tier and seasonal pricing policy
+- [x] Replace legacy discount calculation with a centralized base policy: NORMAL 17% for one or more items, VIP 20% for one item and up to 22% for multi-item purchases.
+- [x] Add mutually exclusive seasonal sale formats that reset base discounts while active: Format 1 (20% / 30% / 40% / 45% for 1 / 2 / 3 / 4+ items), Format 2 (30% / 40% / 45% / 45% for 1 / 2 / 3 / 4+ items), and Format 3 (45% for every quantity).
+- [x] Add owner controls to enable one sale format at a time and show the active policy in EN/KO/ZH, including ZH 折 display.
+- [x] Apply the effective price and quantity discount across catalog, detail, purchase list, purchase QR card, product share card, and all customer tiers without duplicating limit logic.
+- [x] Add deterministic pricing, rounding, localization, seasonal override, and UI regression tests; verify build, checkpoint, and publish.
