@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { aiAccessBlocks, aiUsageEvents, productShareVisits, products, redeemCodes, releaseSettings, users, visitorEntitlements } from "../../drizzle/schema";
+import { aiAccessBlocks, aiUsageEvents, productShareVisits, products, redeemCodes, releaseSettings, trialStoreProducts, trialStores, users, visitorEntitlements } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getCentralEntitlement, getCentralSettings } from "../aiUsageController";
 import { ownerOnlyProcedure, ownerProcedure, router } from "../_core/trpc";
@@ -9,6 +9,7 @@ import { ENV } from "../_core/env";
 import { hashVipPassword, normalizeVipUsername } from "../vipAccess";
 import { anonymousNickname } from "../../shared/anonymousNickname";
 import { resolveAiProviderStatus } from "../../shared/aiProvider";
+import { TRIAL_STORE_DURATION_MS } from "../trialStore";
 
 const rangeSchema = z.enum(["today", "7d", "30d", "all"]).default("30d");
 const cnyFen = z.number().int().min(0).max(10_000_000_00);
@@ -127,6 +128,43 @@ export const operationsRouter = router({
     if (input.displayName !== undefined) set.name = input.displayName;
     if (input.newPassword) set.passwordHash = hashVipPassword(input.newPassword);
     if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
+    return { success: true };
+  }),
+  trialStores: ownerOnlyProcedure.query(async () => {
+    const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
+    const stores = await db.select({ id: trialStores.id, ownerUserId: trialStores.ownerUserId, status: trialStores.status, storeName: trialStores.storeName, startedAt: trialStores.startedAt, expiresAt: trialStores.expiresAt, resetAt: trialStores.resetAt, username: users.username, displayName: users.name, isActive: users.isActive }).from(trialStores).innerJoin(users, eq(trialStores.ownerUserId, users.id)).orderBy(desc(trialStores.createdAt));
+    return stores;
+  }),
+  createTrialStore: ownerOnlyProcedure.input(z.object({ username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), password: z.string().min(8).max(128), displayName: z.string().trim().max(120).optional(), storeName: z.string().trim().min(1).max(80).optional() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
+    const username = normalizeVipUsername(input.username);
+    const existing = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
+    if (existing) throw new Error("TRIAL_STORE_ID_ALREADY_EXISTS");
+    const now = new Date(); const expiresAt = new Date(now.getTime() + TRIAL_STORE_DURATION_MS);
+    await db.transaction(async (tx) => {
+      const inserted = await tx.insert(users).values({ openId: `trial:${randomUUID()}`, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "trial_store_password", role: "store_trial", isActive: 1 });
+      const userId = Number((inserted as any).insertId);
+      await tx.insert(trialStores).values({ ownerUserId: userId, storeName: input.storeName || "MY TRIAL STORE", startedAt: now, expiresAt });
+    });
+    return { success: true, username, expiresAt };
+  }),
+  resetTrialStore: ownerOnlyProcedure.input(z.object({ storeId: z.number().int().positive() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
+    const store = (await db.select().from(trialStores).where(eq(trialStores.id, input.storeId)).limit(1))[0];
+    if (!store) throw new Error("TRIAL_STORE_NOT_FOUND");
+    const now = new Date();
+    await db.transaction(async (tx) => {
+      await tx.delete(trialStoreProducts).where(eq(trialStoreProducts.storeId, store.id));
+      await tx.update(trialStores).set({ status: "ACTIVE", storeName: "MY TRIAL STORE", paymentQrUrl: null, purchaseNotice: null, startedAt: now, expiresAt: new Date(now.getTime() + TRIAL_STORE_DURATION_MS), resetAt: now }).where(eq(trialStores.id, store.id));
+      await tx.update(users).set({ isActive: 1 }).where(eq(users.id, store.ownerUserId));
+    });
+    return { success: true };
+  }),
+  setTrialStoreActive: ownerOnlyProcedure.input(z.object({ storeId: z.number().int().positive(), isActive: z.boolean() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
+    const store = (await db.select().from(trialStores).where(eq(trialStores.id, input.storeId)).limit(1))[0];
+    if (!store) throw new Error("TRIAL_STORE_NOT_FOUND");
+    await db.update(users).set({ isActive: input.isActive ? 1 : 0 }).where(eq(users.id, store.ownerUserId));
     return { success: true };
   }),
   settings: ownerProcedure.query(async () => {

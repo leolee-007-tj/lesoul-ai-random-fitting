@@ -39,7 +39,8 @@ export async function createContext(
     const adminSession = readAdminAccessSession(opts.req);
     if (adminSession) {
       const db = await getDb();
-      const adminAccount = db ? (await db.select().from(users).where(and(eq(users.id, adminSession.userId), eq(users.openId, adminSession.openId), eq(users.role, "admin"), eq(users.isActive, 1))).limit(1))[0] : null;
+      const candidate = db ? (await db.select().from(users).where(and(eq(users.id, adminSession.userId), eq(users.openId, adminSession.openId), eq(users.isActive, 1))).limit(1))[0] : null;
+      const adminAccount = candidate && (candidate.role === "admin" || candidate.role === "store_trial") ? candidate : null;
       user = adminAccount ?? null;
     }
   }

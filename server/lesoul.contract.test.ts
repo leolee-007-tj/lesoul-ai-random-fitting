@@ -31,9 +31,9 @@ describe("LESOUL experience API contract", () => {
 describe("administrator product deletion contract", () => {
   it("keeps catalog mutations authenticated and exposes one, selected, and all-product deletion routes", () => {
     const adminSource = readFileSync(new URL("./routers/admin.ts", import.meta.url), "utf8");
-    expect(adminSource).toContain("deleteProduct: protectedProcedure");
-    expect(adminSource).toContain("deleteProducts: protectedProcedure");
-    expect(adminSource).toContain("deleteAllProducts: protectedProcedure");
+    expect(adminSource).toContain("deleteProduct: ownerProcedure");
+    expect(adminSource).toContain("deleteProducts: ownerProcedure");
+    expect(adminSource).toContain("deleteAllProducts: ownerProcedure");
   });
 
   it("clears relational product references and marks the catalog initialized before a destructive delete", () => {

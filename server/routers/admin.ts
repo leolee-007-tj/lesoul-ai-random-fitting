@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
-import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
+import { ownerProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
@@ -134,7 +134,7 @@ export const adminRouter = router({
     const translated = JSON.parse(content) as { sourceLanguage: "en" | "ko" | "zh"; titleEn: string; titleKo: string; titleZh: string; bodyEn: string; bodyKo: string; bodyZh: string };
     return { sourceLanguage: translated.sourceLanguage, titleEn: translated.titleEn.trim(), titleKo: translated.titleKo.trim(), titleZh: translated.titleZh.trim(), bodyEn: translated.bodyEn.trim(), bodyKo: translated.bodyKo.trim(), bodyZh: translated.bodyZh.trim() };
   }),
-  translateProduct: protectedProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
+  translateProduct: ownerProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [
         { role: "system", content: "You are a professional fashion-commerce translator. Translate the supplied product name and description into English, Korean, and Simplified Chinese. Preserve brand names, material names, garment category, tone, and factual meaning. Return only the requested JSON object." },
@@ -200,7 +200,7 @@ export const adminRouter = router({
     const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
   }),
-  createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
+  createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
     const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, input.category);
     const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
@@ -208,7 +208,7 @@ export const adminRouter = router({
     await createAdminProduct({ ...input, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
   }),
-  updateProduct: protectedProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+  updateProduct: ownerProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
     const existing = (await getCatalog()).products.find((product) => product.id === id);
     if (!existing) throw new Error("PRODUCT_NOT_FOUND");
@@ -220,15 +220,15 @@ export const adminRouter = router({
     await updateAdminProduct(id, { ...updates, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
   }),
-  deleteProduct: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+  deleteProduct: ownerProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const result = await deleteAdminProduct(input.id);
     return { success: true, ...result };
   }),
-  deleteProducts: protectedProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(1000) })).mutation(async ({ input }) => {
+  deleteProducts: ownerProcedure.input(z.object({ ids: z.array(z.number().int().positive()).min(1).max(1000) })).mutation(async ({ input }) => {
     const result = await deleteAdminProducts(input.ids);
     return { success: true, ...result };
   }),
-  deleteAllProducts: protectedProcedure.mutation(async () => {
+  deleteAllProducts: ownerProcedure.mutation(async () => {
     const result = await deleteAllAdminProducts();
     return { success: true, ...result };
   }),

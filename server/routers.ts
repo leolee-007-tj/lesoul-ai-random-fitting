@@ -20,6 +20,7 @@ import { savedLooksRouter } from "./routers/savedLooks";
 import { purchaseRouter } from "./routers/purchase";
 import { operationsRouter } from "./routers/operations";
 import { adminTrialRouter } from "./routers/adminTrial";
+import { trialStoreRouter } from "./routers/trialStore";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -50,6 +51,16 @@ export const appRouter = router({
       if (!db) throw new Error("ADMIN_LOGIN_UNAVAILABLE");
       const account = (await db.select().from(users).where(eq(users.username, normalizeVipUsername(input.username))).limit(1))[0];
       if (!account || account.role !== "admin" || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
+      if (!account.isActive) return { success: false as const, reason: "inactive" as const };
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
+      return { success: true as const };
+    }),
+    trialStoreLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("TRIAL_STORE_LOGIN_UNAVAILABLE");
+      const account = (await db.select().from(users).where(eq(users.username, normalizeVipUsername(input.username))).limit(1))[0];
+      if (!account || account.role !== "store_trial" || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
       if (!account.isActive) return { success: false as const, reason: "inactive" as const };
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
@@ -93,6 +104,7 @@ export const appRouter = router({
   purchase: purchaseRouter,
   operations: operationsRouter,
   adminTrial: adminTrialRouter,
+  trialStore: trialStoreRouter,
 });
 
 export type AppRouter = typeof appRouter;

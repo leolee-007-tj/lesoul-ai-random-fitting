@@ -9,6 +9,8 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerOgRoutes } from "../og";
+import { sdk } from "./sdk";
+import { resetExpiredTrialStores } from "../trialStore";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +40,16 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerOgRoutes(app);
+  app.post("/api/scheduled/trial-store-reset", async (req, res) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron || !user.taskUid) return res.status(403).json({ error: "cron-only" });
+      const result = await resetExpiredTrialStores();
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      return res.status(500).json({ error: error instanceof Error ? error.message : "TRIAL_STORE_RESET_FAILED", timestamp: new Date().toISOString() });
+    }
+  });
   // tRPC API
   app.use(
     "/api/trpc",

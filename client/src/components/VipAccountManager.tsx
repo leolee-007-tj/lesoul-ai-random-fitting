@@ -1,6 +1,7 @@
 import { AdminAccountManager } from "@/components/AdminAccountManager";
 import { AiProviderPanel } from "@/components/AiProviderPanel";
 import { ProductShareAnalyticsPanel } from "@/components/ProductShareAnalyticsPanel";
+import { TrialStoreManager } from "@/components/TrialStoreManager";
 import { trpc } from "@/lib/trpc";
 import { KeyRound, UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -74,6 +75,6 @@ export function VipAccountManager({ accounts, onChanged }: { accounts: VipAccoun
         </article>) : <p className="text-sm text-[#746a61]">{t("vipAdmin.noAccounts")}</p>}
       </div>
     </section>
-    {ownerStatus.data?.isOwner && <AdminAccountManager accounts={adminAccounts} onChanged={() => { onChanged(); void people.refetch(); }} />}
+    {ownerStatus.data?.isOwner && <><AdminAccountManager accounts={adminAccounts} onChanged={() => { onChanged(); void people.refetch(); }} /><TrialStoreManager /></>}
   </>;
 }

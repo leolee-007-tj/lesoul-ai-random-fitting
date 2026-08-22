@@ -281,6 +281,20 @@
       "when": 1787296409632,
       "tag": "0039_far_mephistopheles",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1787376954606,
+      "tag": "0040_smiling_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1787377360466,
+      "tag": "0041_massive_dark_beast",
+      "breakpoints": true
     }
   ]
 }

@@ -858,3 +858,9 @@
 - [x] Add a reusable browser-side product image compression helper that preserves aspect ratio, prevents unwanted upscaling, and converts large camera uploads to optimized WebP or JPEG files before upload.
 - [x] Apply compression consistently to front, back, detail, and bulk-tray assignments while preserving the existing four-slot product image workflow.
 - [x] Show localized compression/upload feedback, add deterministic regression coverage for compression decisions, verify product management, run tests/build, checkpoint, and publish.
+
+## Isolated two-day store trial workspace
+- [x] Create a separate STORE_TRIAL account role and trial-store workspace data model, with owner-created credentials and a dedicated 48-hour lifecycle independent of NORMAL, VIP, ADMIN, and production-store data.
+- [x] Provide trial-only store name, manual QR notice, product catalog, and four-slot image management so a trial operator can test a realistic store without reading or mutating production settings or products.
+- [ ] Enforce active/expired trial access on the server, automatically reset expired trial-store products, images, settings, and credentials through an idempotent scheduled cleanup, and show an expired-trial screen.
+- [ ] Add owner oversight to create, inspect, reset, and deactivate trial stores; verify role, tenant, data, storage, and API isolation with regression tests; deploy the cleanup handler, checkpoint, and publish.

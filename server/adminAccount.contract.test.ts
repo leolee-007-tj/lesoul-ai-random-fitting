@@ -15,7 +15,7 @@ describe("owner-managed ADMIN password accounts", () => {
     expect(operations).toContain("hashVipPassword(input.password)");
   });
 
-  it("uses an independent ADMIN cookie and resolves only active ADMIN accounts", () => {
+  it("uses an independent ADMIN cookie and resolves only active ADMIN or isolated trial accounts", () => {
     const auth = source("./routers.ts");
     const context = source("./_core/context.ts");
     const access = source("./vipAccess.ts");
@@ -23,7 +23,7 @@ describe("owner-managed ADMIN password accounts", () => {
     expect(auth).toContain("adminLogin:");
     expect(auth).toContain("createAdminAccessToken");
     expect(context).toContain("readAdminAccessSession");
-    expect(context).toContain('eq(users.role, "admin")');
+    expect(context).toContain('candidate.role === "admin" || candidate.role === "store_trial"');
     expect(context).toContain("eq(users.isActive, 1)");
   });
 

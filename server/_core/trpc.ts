@@ -4,6 +4,7 @@ import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import { ENV } from "./env";
 import { getAdminTrialStatus } from "../adminTrial";
+import { requireActiveTrialStore } from "../trialStore";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -45,6 +46,24 @@ const requireUser = t.middleware(async opts => {
 });
 
 export const protectedProcedure = t.procedure.use(requireUser);
+
+export const trialStoreSessionProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    if (!ctx.user || ctx.user.role !== "store_trial") throw new TRPCError({ code: "FORBIDDEN", message: "NOT_TRIAL_STORE" });
+    return next({ ctx: { ...ctx, user: ctx.user } });
+  }),
+);
+
+export const trialStoreProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    if (!ctx.user || ctx.user.role !== "store_trial") throw new TRPCError({ code: "FORBIDDEN", message: "NOT_TRIAL_STORE" });
+    try { await requireActiveTrialStore(ctx.user.id); }
+    catch (error) { throw new TRPCError({ code: "FORBIDDEN", message: error instanceof Error && error.message === "TRIAL_STORE_EXPIRED" ? "TRIAL_STORE_EXPIRED" : "TRIAL_STORE_UNAVAILABLE" }); }
+    return next({ ctx: { ...ctx, user: ctx.user } });
+  }),
+);
 
 async function ensureActiveAdministratorTrial(userId: number) {
   const trial = await getAdminTrialStatus(userId, true);

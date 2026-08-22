@@ -11,7 +11,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "vip", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "vip", "admin", "store_trial"]).default("user").notNull(),
   isActive: int("isActive").default(1).notNull(),
   /** Password-based administrator trial begins independently on that account's first protected console visit. */
   adminTrialStartedAt: timestamp("adminTrialStartedAt"),
@@ -155,6 +155,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   adminTrialUsageGuideNoticeEn: varchar("adminTrialUsageGuideNoticeEn", { length: 800 }).default("Scan the guide QR to view how to use the administrator console and submit a renewal request.").notNull(),
   adminTrialUsageGuideNoticeKo: varchar("adminTrialUsageGuideNoticeKo", { length: 800 }).default("사용 방법 QR을 스캔하여 관리자 콘솔 이용 방법과 연장 요청 절차를 확인해 주세요.").notNull(),
   adminTrialUsageGuideNoticeZh: varchar("adminTrialUsageGuideNoticeZh", { length: 800 }).default("请扫描使用指南二维码，查看管理员控制台使用方法和续费申请流程。").notNull(),
+  /** Project-owned hourly cleanup job for expired isolated trial-store workspaces. */
+  trialStoreResetCronTaskUid: varchar("trialStoreResetCronTaskUid", { length: 65 }),
   /** Prevent a deliberately emptied administrator catalog from being reseeded with demo products. */
   catalogInitialized: int("catalogInitialized").default(0).notNull(),
   releaseMode: mysqlEnum("releaseMode", ["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]).default("PRIVATE").notNull(),
@@ -191,6 +193,37 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   /** Owner preference only. Qwen cannot become effective until a server key is configured. */
   aiImageProviderPreference: mysqlEnum("aiImageProviderPreference", ["FORGE", "QWEN"]).default("FORGE").notNull(),
   aiTextProviderPreference: mysqlEnum("aiTextProviderPreference", ["FORGE", "QWEN"]).default("FORGE").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** A sandboxed store workspace that belongs to exactly one password-based STORE_TRIAL account. */
+export const trialStores = mysqlTable("trialStores", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerUserId: int("ownerUserId").notNull().unique().references(() => users.id),
+  status: mysqlEnum("status", ["ACTIVE", "EXPIRED"]).default("ACTIVE").notNull(),
+  storeName: varchar("storeName", { length: 80 }).default("MY TRIAL STORE").notNull(),
+  paymentQrUrl: text("paymentQrUrl"),
+  purchaseNotice: text("purchaseNotice"),
+  startedAt: timestamp("startedAt").notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  resetAt: timestamp("resetAt"),
+  scheduleCronTaskUid: varchar("scheduleCronTaskUid", { length: 65 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Trial-store products never read from or write to the production products catalog. */
+export const trialStoreProducts = mysqlTable("trialStoreProducts", {
+  id: int("id").autoincrement().primaryKey(),
+  storeId: int("storeId").notNull().references(() => trialStores.id),
+  name: varchar("name", { length: 160 }).notNull(),
+  brand: varchar("brand", { length: 120 }),
+  category: mysqlEnum("category", ["top", "bottom", "outer", "dress", "shoes", "bag"]).default("top").notNull(),
+  price: int("price").notNull(),
+  status: mysqlEnum("status", ["IN_STOCK", "SOLD_OUT"]).default("IN_STOCK").notNull(),
+  imageUrls: json("imageUrls").$type<string[]>().notNull(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

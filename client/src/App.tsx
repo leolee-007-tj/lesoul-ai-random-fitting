@@ -26,6 +26,7 @@ import AdminSetup from "./pages/AdminSetup";
 import OutfitManager from "./pages/OutfitManager";
 import Profile from "./pages/Profile";
 import PublicIntroduction from "./pages/PublicIntroduction";
+import TrialStoreConsole from "./pages/TrialStoreConsole";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -34,6 +35,7 @@ function Router() {
       <Route path={"/login"} component={Login} />
       <Route path={"/setup-admin"} component={AdminSetup} />
       <Route path={"/about"} component={PublicIntroduction} />
+      <Route path={"/trial-store"} component={TrialStoreConsole} />
       <Route path={"/"} component={() => <CustomerGate><Home /></CustomerGate>} />
       <Route path={"/studio"} component={() => <CustomerGate><Studio /></CustomerGate>} />
       <Route path={"/quick-fit"} component={() => <CustomerGate><QuickFit /></CustomerGate>} />
