@@ -999,4 +999,4 @@
 ## VIP model-picker back navigation and card order
 - [x] Add a localized back control to the VIP 李瀛 model-picker that returns to the previous VIP flow step.
 - [x] Reorder the unchanged existing model cards from smaller body type to average body type to larger body type.
-- [ ] Add navigation and ordering regression coverage; verify responsive EN/KO/ZH UI, tests, build, checkpoint, and publish.
+- [x] Add navigation and ordering regression coverage; verify responsive EN/KO/ZH UI, tests, build, checkpoint, and publish.
