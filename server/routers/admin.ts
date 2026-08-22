@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
-import { generateImage } from "../_core/imageGeneration";
 import { ownerProcedure, protectedProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
@@ -12,9 +11,6 @@ import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
 import { MEASUREMENT_FIELD_KEYS } from "../../shared/categoryMeasurementFields";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
-import { buildStudioProductImagePrompt } from "../../shared/studioProductImage";
-import { embeddedImageReference } from "../fashionProvider";
-import { assessStudioProductImageQuality } from "../studioProductQuality";
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -115,10 +111,10 @@ export const adminRouter = router({
   updateProductCategory: ownerProcedure.input(z.object({ id: z.number().int().positive(), nameEn: z.string().trim().min(1).max(120).optional(), nameKo: z.string().trim().min(1).max(120).optional(), nameZh: z.string().trim().min(1).max(120).optional(), baseCategory: z.enum(BASE_CATEGORY_OPTIONS).optional(), measurementFields: z.array(z.enum(MEASUREMENT_FIELD_KEYS)).min(1).max(MEASUREMENT_FIELD_KEYS.length).optional(), isActive: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).mutation(async ({ input }) => { const { id, ...updates } = input; return updateProductCategory(id, updates); }),
   stats: ownerProcedure.query(getAdminStats),
   releaseConfig: ownerProcedure.query(getReleaseSettings),
-  updateReleaseConfig: ownerProcedure.input(z.object({ storeName: z.string().trim().min(1).max(80).optional(), storeTaglineEn: z.string().trim().min(1).max(180).optional(), storeTaglineKo: z.string().trim().min(1).max(180).optional(), storeTaglineZh: z.string().trim().min(1).max(180).optional(), adminTrialPaymentQrUrl: z.string().min(1).nullable().optional(), adminTrialUsageGuideQrUrl: z.string().min(1).nullable().optional(), adminTrialPaymentNoticeEn: z.string().trim().min(1).max(800).optional(), adminTrialPaymentNoticeKo: z.string().trim().min(1).max(800).optional(), adminTrialPaymentNoticeZh: z.string().trim().min(1).max(800).optional(), releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), studioImageProcessingEnabled: z.number().int().min(0).max(1).optional(), purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"]).optional(), purchaseListMaxItems: z.number().int().min(1).max(20).optional(), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional(), stylistIncludePreorder: z.number().int().min(0).max(1).optional() })).mutation(async ({ input }) => {
+  updateReleaseConfig: ownerProcedure.input(z.object({ storeName: z.string().trim().min(1).max(80).optional(), storeTaglineEn: z.string().trim().min(1).max(180).optional(), storeTaglineKo: z.string().trim().min(1).max(180).optional(), storeTaglineZh: z.string().trim().min(1).max(180).optional(), adminTrialPaymentQrUrl: z.string().min(1).nullable().optional(), adminTrialUsageGuideQrUrl: z.string().min(1).nullable().optional(), adminTrialPaymentNoticeEn: z.string().trim().min(1).max(800).optional(), adminTrialPaymentNoticeKo: z.string().trim().min(1).max(800).optional(), adminTrialPaymentNoticeZh: z.string().trim().min(1).max(800).optional(), releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"]).optional(), purchaseListMaxItems: z.number().int().min(1).max(20).optional(), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional(), stylistIncludePreorder: z.number().int().min(0).max(1).optional() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("Release settings are temporarily unavailable.");
     const current = await getReleaseSettings();
-    const update = { ...input, storeName: input.storeName ?? current.storeName, storeTaglineEn: input.storeTaglineEn ?? current.storeTaglineEn, storeTaglineKo: input.storeTaglineKo ?? current.storeTaglineKo, storeTaglineZh: input.storeTaglineZh ?? current.storeTaglineZh, adminTrialPaymentQrUrl: input.adminTrialPaymentQrUrl ?? current.adminTrialPaymentQrUrl, adminTrialUsageGuideQrUrl: input.adminTrialUsageGuideQrUrl ?? current.adminTrialUsageGuideQrUrl, adminTrialPaymentNoticeEn: input.adminTrialPaymentNoticeEn ?? current.adminTrialPaymentNoticeEn, adminTrialPaymentNoticeKo: input.adminTrialPaymentNoticeKo ?? current.adminTrialPaymentNoticeKo, adminTrialPaymentNoticeZh: input.adminTrialPaymentNoticeZh ?? current.adminTrialPaymentNoticeZh, betaFreeGenerationAllowance: input.betaFreeGenerationAllowance ?? current.betaFreeGenerationAllowance, studioImageProcessingEnabled: input.studioImageProcessingEnabled ?? current.studioImageProcessingEnabled, purchaseMode: input.purchaseMode ?? current.purchaseMode, purchaseListMaxItems: input.purchaseListMaxItems ?? current.purchaseListMaxItems, purchaseQrEnabled: input.purchaseQrEnabled ?? current.purchaseQrEnabled, purchaseNoticeEn: input.purchaseNoticeEn ?? current.purchaseNoticeEn, purchaseNoticeKo: input.purchaseNoticeKo ?? current.purchaseNoticeKo, purchaseNoticeZh: input.purchaseNoticeZh ?? current.purchaseNoticeZh, stylistIncludePreorder: input.stylistIncludePreorder ?? current.stylistIncludePreorder };
+    const update = { ...input, storeName: input.storeName ?? current.storeName, storeTaglineEn: input.storeTaglineEn ?? current.storeTaglineEn, storeTaglineKo: input.storeTaglineKo ?? current.storeTaglineKo, storeTaglineZh: input.storeTaglineZh ?? current.storeTaglineZh, adminTrialPaymentQrUrl: input.adminTrialPaymentQrUrl ?? current.adminTrialPaymentQrUrl, adminTrialUsageGuideQrUrl: input.adminTrialUsageGuideQrUrl ?? current.adminTrialUsageGuideQrUrl, adminTrialPaymentNoticeEn: input.adminTrialPaymentNoticeEn ?? current.adminTrialPaymentNoticeEn, adminTrialPaymentNoticeKo: input.adminTrialPaymentNoticeKo ?? current.adminTrialPaymentNoticeKo, adminTrialPaymentNoticeZh: input.adminTrialPaymentNoticeZh ?? current.adminTrialPaymentNoticeZh, betaFreeGenerationAllowance: input.betaFreeGenerationAllowance ?? current.betaFreeGenerationAllowance, purchaseMode: input.purchaseMode ?? current.purchaseMode, purchaseListMaxItems: input.purchaseListMaxItems ?? current.purchaseListMaxItems, purchaseQrEnabled: input.purchaseQrEnabled ?? current.purchaseQrEnabled, purchaseNoticeEn: input.purchaseNoticeEn ?? current.purchaseNoticeEn, purchaseNoticeKo: input.purchaseNoticeKo ?? current.purchaseNoticeKo, purchaseNoticeZh: input.purchaseNoticeZh ?? current.purchaseNoticeZh, stylistIncludePreorder: input.stylistIncludePreorder ?? current.stylistIncludePreorder };
     await db.insert(releaseSettings).values({ id: 1, ...update }).onDuplicateKeyUpdate({ set: update });
     return getReleaseSettings();
   }),
@@ -203,39 +199,6 @@ export const adminRouter = router({
     if (typeof content !== "string") throw new Error("Product category translation response was empty.");
     const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
-  }),
-  generateStudioProductImages: ownerProcedure.input(z.object({ frontUrl: z.string().trim().min(1).max(2048).optional(), backUrl: z.string().trim().min(1).max(2048).optional(), views: z.array(z.enum(["front", "back"])).min(1).max(2).optional(), colorCorrectionStrength: z.enum(["off", "subtle", "standard", "strong"]).default("standard") })).mutation(async ({ input }) => {
-    try {
-      if (!((await getReleaseSettings()).studioImageProcessingEnabled)) throw new Error("STUDIO_IMAGE_PROCESSING_DISABLED");
-      const views = input.views ?? ["front", "back"];
-      const sourceUrls = { front: input.frontUrl, back: input.backUrl };
-      const resultUrls: Partial<Record<"front" | "back", string>> = {};
-      const quality: Partial<Record<"front" | "back", Awaited<ReturnType<typeof assessStudioProductImageQuality>>>> = {};
-      for (const view of views) {
-        const sourceUrl = sourceUrls[view];
-        if (!sourceUrl) throw new Error(`MISSING_${view.toUpperCase()}_SOURCE`);
-        // Uploaded assets are project-relative /manus-storage paths. Convert them to validated bytes so the image provider never has to resolve a private relative URL or trust a guessed MIME type.
-        const originalImage = await embeddedImageReference(sourceUrl);
-        let result;
-        try {
-          result = await generateImage({ prompt: buildStudioProductImagePrompt(view, input.colorCorrectionStrength), originalImages: [originalImage], model: "MODEL_GPT_IMAGE_2", quality: "medium" });
-        } catch (firstAttemptError) {
-          console.warn("[StudioProductImage] Retrying pure-white generation once", { view, reason: firstAttemptError instanceof Error ? firstAttemptError.message : "unknown" });
-          result = await generateImage({ prompt: buildStudioProductImagePrompt(view, input.colorCorrectionStrength), originalImages: [originalImage], model: "MODEL_GPT_IMAGE_2", quality: "medium" });
-        }
-        if (!result.url) throw new Error(`EMPTY_${view.toUpperCase()}_RESULT`);
-        resultUrls[view] = result.url;
-        quality[view] = await assessStudioProductImageQuality({ view, sourceUrl, resultUrl: result.url });
-      }
-      return { frontStudioUrl: resultUrls.front ?? null, backStudioUrl: resultUrls.back ?? null, quality };
-    } catch (error) {
-      const message = error instanceof Error && error.message ? error.message : "STUDIO_IMAGE_GENERATION_FAILED";
-      console.error("[StudioProductImage] Pure-white generation failed", { message });
-      if (message.startsWith("IMAGE_REFERENCE_")) throw new Error("STUDIO_SOURCE_IMAGE_UNAVAILABLE");
-      if (message === "STUDIO_IMAGE_PROCESSING_DISABLED") throw new Error(message);
-      if (message.startsWith("MISSING_") || message.startsWith("EMPTY_")) throw new Error(message);
-      throw new Error("STUDIO_IMAGE_GENERATION_FAILED");
-    }
   }),
   createProduct: protectedProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);

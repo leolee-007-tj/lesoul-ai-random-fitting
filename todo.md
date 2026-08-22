@@ -848,3 +848,8 @@
 - [x] Add an owner-controlled pure-white studio processing switch to the central release settings and enforce it on the server-side processing route.
 - [x] Show the switch in Release Control and hide all pure-white studio menus, controls, and review affordances in Product Manager while it is off.
 - [x] Add EN/KO/ZH toggle states and disabled-path regression coverage, verify product management remains usable, run tests/build, checkpoint, and publish.
+
+## Remove pure-white AI product-image processing
+- [x] Remove the central pure-white processing setting and all Release Control, Product Manager, review, and quality-warning UI related to this credit-consuming feature.
+- [x] Remove the server generation route and supporting imports so no app flow can invoke pure-white AI image generation, while retaining normal product image upload and existing approved images.
+- [x] Add regression coverage, verify ordinary product image management, run tests/build, checkpoint, and publish the removal.
