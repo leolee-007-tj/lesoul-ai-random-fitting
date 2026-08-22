@@ -979,4 +979,4 @@
 ## Remove product-type creation from edit dropdown
 - [x] Remove the “Add new product type” action option from the existing-product type dropdown.
 - [x] Keep the dropdown limited to existing active managed types and direct creation only to the dedicated bottom button.
-- [ ] Add dropdown-content regression coverage; run tests/build, checkpoint, and publish.
+- [x] Add dropdown-content regression coverage; run tests/build, checkpoint, and publish.
