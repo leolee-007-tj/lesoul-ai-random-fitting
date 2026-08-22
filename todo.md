@@ -963,4 +963,4 @@
 ## VIP 李瀛 AI model-picker image previews
 - [x] Display the current owner-uploaded petite, balanced, and fuller reference images prominently on the VIP model-picker cards.
 - [x] Add clear localized uploaded, missing-image, and selected-model visual states without changing VIP model selection or AI fitting handoff behavior.
-- [ ] Add responsive preview and EN/KO/ZH regression coverage; run tests/build, checkpoint, and publish.
+- [x] Add responsive preview and EN/KO/ZH regression coverage; run tests/build, checkpoint, and publish.
