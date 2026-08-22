@@ -990,3 +990,8 @@
 - [x] Hide the “Add product type” button and its nested creation form when editing an existing product.
 - [x] Keep existing-type selection in edit mode and preserve the type-creation button and flow for new-product registration only.
 - [x] Add add-versus-edit control regression coverage; run tests/build, checkpoint, and publish.
+
+## Dashboard-only product-type creation
+- [x] Remove the “Add product type” button and nested type-creation form from both new-product and existing-product modals.
+- [x] Keep product modals limited to selecting existing active types, with all type creation and measurement-list management available only through the owner dashboard Categories & Fit Fields entry.
+- [ ] Add dashboard-only entry-point regression coverage; run tests/build, checkpoint, and publish.

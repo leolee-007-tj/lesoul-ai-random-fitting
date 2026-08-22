@@ -15,12 +15,12 @@ describe("set-product manager contract", () => {
     expect(manager).toContain("priceReadOnly={draft.productType === \"SET\"}");
   });
 
-  it("keeps product-type selection and dedicated category creation available while editing an existing product", () => {
+  it("keeps product-type selection available while editing an existing product", () => {
     const manager = source("client/src/pages/ProductManagerV2.tsx");
     const categories = source("client/src/components/CategoryManagementPanel.tsx");
     expect(manager).toContain("displayCategoryId: item.displayCategoryId ?? null");
-    expect(manager).toContain("setCategoryPanelOpen(true)");
-    expect(manager).not.toContain("__add_category__");
+    expect(manager).not.toContain("CategoryManagementPanel");
+    expect(manager).not.toContain("categoryPanelOpen");
     expect(categories).toContain('open ? "z-50" : "z-0"');
   });
 
@@ -42,26 +42,28 @@ describe("set-product manager contract", () => {
     expect(categories).not.toContain("useEffect(() => { if (open) startCreate(); }, [open])");
   });
 
-  it("does not expose category creation as a product edit dropdown option", () => {
+  it("does not expose category creation from product type dropdowns or product modals", () => {
     const productManager = source("client/src/pages/ProductManagerV2.tsx");
+    const operationsDashboard = source("client/src/pages/OperationsDashboard.tsx");
     expect(productManager).not.toContain("__add_category__");
-    expect(productManager).toContain('onClick={() => setCategoryPanelOpen(true)}');
+    expect(productManager).not.toContain("setCategoryPanelOpen(true)");
+    expect(operationsDashboard).toContain("CategoryManagementPanel");
+    expect(operationsDashboard).toContain("setCategoryPanelOpen(true)");
   });
 
-  it("opens product-type creation visibly above the active product modal and retains the draft after creation", () => {
+  it("keeps product-type creation in the operations dashboard instead of active product modals", () => {
     const productManager = source("client/src/pages/ProductManagerV2.tsx");
-    const categories = source("client/src/components/CategoryManagementPanel.tsx");
-    expect(productManager).toContain('categoryPanelOpen && <div className="lesoul-safe-modal z-50 overflow-y-auto">');
-    expect(productManager).toContain("autoStartCreate");
-    expect(productManager).toContain("displayCategoryId: category.id");
-    expect(categories).toContain("autoStartCreate = false");
-    expect(categories).toContain("if (open && autoStartCreate) startCreate()");
+    const operationsDashboard = source("client/src/pages/OperationsDashboard.tsx");
+    expect(productManager).not.toContain("autoStartCreate");
+    expect(productManager).not.toContain("categoryPanelOpen");
+    expect(operationsDashboard).toContain("종류 · 치수 관리");
   });
 
-  it("shows product-type creation only for new products, not existing-product edits", () => {
+  it("shows product-type creation only in the operations dashboard, not product add or edit modals", () => {
     const productManager = source("client/src/pages/ProductManagerV2.tsx");
-    expect(productManager).toContain('auth.user?.role === "admin" && !editingId && <button');
-    expect(productManager).toContain('auth.user?.role === "admin" && !editingId && categoryPanelOpen');
+    const operationsDashboard = source("client/src/pages/OperationsDashboard.tsx");
+    expect(productManager).not.toContain("상품 종류 추가");
+    expect(operationsDashboard).toContain("CategoryManagementPanel");
   });
 
   it("keeps the customer-facing set total and individual components together through catalog and purchase flows", () => {

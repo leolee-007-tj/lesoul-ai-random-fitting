@@ -260,6 +260,7 @@ describe("customer-facing UX cleanup contract", () => {
     const admin = readFileSync(new URL("./routers/admin.ts", import.meta.url), "utf8");
     const categoryDb = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
     const manager = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx", import.meta.url), "utf8");
+    const dashboard = readFileSync(new URL("../client/src/pages/OperationsDashboard.tsx", import.meta.url), "utf8");
     const provider = readFileSync(new URL("./fashionProvider.ts", import.meta.url), "utf8");
     const studio = readFileSync(new URL("../client/src/pages/Studio.tsx", import.meta.url), "utf8");
     const quickFit = readFileSync(new URL("../client/src/pages/QuickFit.tsx", import.meta.url), "utf8");
@@ -268,7 +269,8 @@ describe("customer-facing UX cleanup contract", () => {
     expect(admin).toContain("createProductCategory: ownerProcedure");
     expect(admin).toContain("updateProductCategory: ownerProcedure");
     expect(categoryDb).toContain("The Base Category cannot change while products use this category.");
-    expect(manager).toContain("CategoryManagementPanel");
+    expect(dashboard).toContain("CategoryManagementPanel");
+    expect(manager).not.toContain("CategoryManagementPanel");
     expect(manager).toContain("displayCategoryId: draft.displayCategoryId");
     expect(manager).toContain("const firstActive = (managedCategories.data ?? []).find");
     expect(provider).toContain("Stable Base Category");

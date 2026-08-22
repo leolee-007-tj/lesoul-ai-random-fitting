@@ -15,6 +15,7 @@ describe("category measurement field management contract", () => {
   it("connects the dedicated category editor and Fit Manager to the same category field template", () => {
     expect(source("../client/src/components/CategoryManagementPanel.tsx")).toContain("saveFields");
     expect(source("../client/src/pages/ProductFitManager.tsx")).toContain("categoryMeasurementFields(product.displayCategory");
-    expect(source("../client/src/pages/ProductManagerV2.tsx")).toContain("종류 · 치수 관리");
+    expect(source("../client/src/pages/OperationsDashboard.tsx")).toContain("종류 · 치수 관리");
+    expect(source("../client/src/pages/ProductManagerV2.tsx")).not.toContain("CategoryManagementPanel");
   });
 });
