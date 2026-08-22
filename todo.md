@@ -985,3 +985,8 @@
 - [x] Make the in-product-modal “Add product type” button open the Korean type-name and measurement-checklist form visibly above the active add/edit modal.
 - [x] Preserve the current product draft and select the newly created type immediately after saving.
 - [x] Add modal visibility, creation handoff, draft preservation regression coverage; run tests/build, checkpoint, and publish.
+
+## Remove product-type creation from edit mode
+- [x] Hide the “Add product type” button and its nested creation form when editing an existing product.
+- [x] Keep existing-type selection in edit mode and preserve the type-creation button and flow for new-product registration only.
+- [ ] Add add-versus-edit control regression coverage; run tests/build, checkpoint, and publish.

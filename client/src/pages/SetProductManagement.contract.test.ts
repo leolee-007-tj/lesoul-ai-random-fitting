@@ -58,6 +58,12 @@ describe("set-product manager contract", () => {
     expect(categories).toContain("if (open && autoStartCreate) startCreate()");
   });
 
+  it("shows product-type creation only for new products, not existing-product edits", () => {
+    const productManager = source("client/src/pages/ProductManagerV2.tsx");
+    expect(productManager).toContain('auth.user?.role === "admin" && !editingId && <button');
+    expect(productManager).toContain('auth.user?.role === "admin" && !editingId && categoryPanelOpen');
+  });
+
   it("keeps the customer-facing set total and individual components together through catalog and purchase flows", () => {
     const detail = source("client/src/components/ProductDetailScreen.tsx");
     const list = source("client/src/pages/PurchaseList.tsx");
