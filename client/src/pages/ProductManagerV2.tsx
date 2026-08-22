@@ -115,7 +115,7 @@ export default function ProductManagerV2() {
   const uploadFileToSlot = async (kind: ProductImageSlotKey, file: File) => {
     if (!draft) return;
     setError("");
-    if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) { setError(copy.saveFail); return; }
+    if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) { setError(copy.saveFail); return; }
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); });
       const view = kind === "front" || kind === "back" ? kind : "detail";

@@ -874,3 +874,8 @@
 - [x] Create an owner-only Account Management tab with clear NORMAL, VIP, ADMIN, and STORE TRIAL role sections and privacy-conscious counts for anonymous normal visitors.
 - [x] Consolidate existing VIP, administrator, and isolated trial-store credential creation, activation, deactivation, password reset, trial reset, and expiry status controls into role-specific panels.
 - [x] Add role-aware account summaries and lifecycle guidance, regression coverage for owner-only access and role isolation, verify desktop/mobile UI, run tests/build, checkpoint, and publish.
+
+## Product image fidelity repair
+- [x] Trace selected-file previews, upload payload preparation, storage upload behavior, and product image rendering to identify the remaining cause of blurred images.
+- [x] Remove or correct the fidelity-reducing transformation while preserving original file quality, orientation, and standard upload safety validation.
+- [x] Add regression coverage and verify selected preview, stored URL, four-slot product display, and isolated trial-store display before checkpoint and publish.

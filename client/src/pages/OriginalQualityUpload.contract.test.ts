@@ -8,6 +8,7 @@ describe("original-quality product upload contract", () => {
   it("uploads the selected production product file without browser-side compression", () => {
     const manager = source("client/src/pages/ProductManagerV2.tsx");
     expect(manager).toContain("reader.readAsDataURL(file)");
+    expect(manager).toContain("file.size > 20 * 1024 * 1024");
     expect(manager).not.toContain("compressProductImage");
     expect(manager).not.toContain("productImageCompression");
   });
