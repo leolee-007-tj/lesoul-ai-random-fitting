@@ -1,7 +1,5 @@
-import { AdminAccountManager } from "@/components/AdminAccountManager";
 import { AiProviderPanel } from "@/components/AiProviderPanel";
 import { ProductShareAnalyticsPanel } from "@/components/ProductShareAnalyticsPanel";
-import { TrialStoreManager } from "@/components/TrialStoreManager";
 import { trpc } from "@/lib/trpc";
 import { KeyRound, UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -23,8 +21,6 @@ type VipAccount = {
 
 export function VipAccountManager({ accounts, onChanged, includeRelatedManagers = true }: { accounts: VipAccount[]; onChanged: () => void; includeRelatedManagers?: boolean }) {
   const { t } = useTranslation();
-  const ownerStatus = trpc.operations.ownerStatus.useQuery();
-  const people = trpc.operations.users.useQuery(undefined, { enabled: Boolean(ownerStatus.data?.isOwner) });
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -51,7 +47,6 @@ export function VipAccountManager({ accounts, onChanged, includeRelatedManagers 
     onError: (error) => setNotice(error.message),
   });
   const pending = create.isPending || update.isPending;
-  const adminAccounts = (people.data?.accounts ?? []).filter((account) => account.user.role === "admin");
 
   return <>
     {includeRelatedManagers && <><AiProviderPanel /><ProductShareAnalyticsPanel /></>}
@@ -74,6 +69,5 @@ export function VipAccountManager({ accounts, onChanged, includeRelatedManagers 
         </article>) : <p className="text-sm text-[#746a61]">{t("vipAdmin.noAccounts")}</p>}
       </div>
     </section>
-    {includeRelatedManagers && ownerStatus.data?.isOwner && <><AdminAccountManager accounts={adminAccounts} onChanged={() => { onChanged(); void people.refetch(); }} /><TrialStoreManager /></>}
   </>;
 }

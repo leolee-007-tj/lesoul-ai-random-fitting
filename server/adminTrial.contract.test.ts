@@ -26,7 +26,6 @@ describe("administrator trial access contract", () => {
     const trial = source("./adminTrial.ts");
     expect(trial).toContain("where(eq(users.id, userId))");
     expect(trial).toContain("adminTrialStartedAt: users.adminTrialStartedAt");
-    const adminAccounts = source("../client/src/components/AdminAccountManager.tsx");
-    expect(adminAccounts).toContain("Two-day trial starts on first admin login");
+    expect(trial).toContain("account.adminTrialDurationHours || 48");
   });
 });

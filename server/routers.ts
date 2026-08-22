@@ -50,7 +50,7 @@ export const appRouter = router({
       const db = await getDb();
       if (!db) throw new Error("ADMIN_LOGIN_UNAVAILABLE");
       const account = (await db.select().from(users).where(eq(users.username, normalizeVipUsername(input.username))).limit(1))[0];
-      if (!account || account.role !== "admin" || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
+      if (!account || account.role !== "admin" || !account.isPrimaryAdmin || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
       if (!account.isActive) return { success: false as const, reason: "inactive" as const };
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
@@ -75,7 +75,7 @@ export const appRouter = router({
       const duplicate = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
       if (duplicate) return { success: false as const, reason: "duplicate" as const };
       const openId = `admin:${randomUUID()}`;
-      const inserted = await db.insert(users).values({ openId, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "admin_password", role: "admin", isActive: 1 });
+      const inserted = await db.insert(users).values({ openId, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "admin_password", role: "admin", isActive: 1, isPrimaryAdmin: 1 });
       const userId = Number((inserted as any).insertId);
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId, openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });

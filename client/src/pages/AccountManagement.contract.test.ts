@@ -5,13 +5,13 @@ import { resolve } from "node:path";
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("unified owner account management", () => {
-  it("keeps NORMAL, VIP, ADMIN, and STORE TRIAL roles in separate owner-only sections", () => {
+  it("keeps NORMAL, VIP, and STORE TRIAL controls in separate owner-only sections while reserving ADMIN for the owner", () => {
     const page = source("client/src/pages/AccountManagement.tsx");
-    expect(page).toContain('type AccountTab = "overview" | "normal" | "vip" | "admin" | "trial"');
+    expect(page).toContain('type AccountTab = "overview" | "normal" | "vip" | "trial"');
     expect(page).toContain("trpc.operations.ownerStatus.useQuery()");
     expect(page).toContain("VipAccountManager");
-    expect(page).toContain("AdminAccountManager");
     expect(page).toContain("TrialStoreManager");
+    expect(page).not.toContain("AdminAccountManager");
   });
 
   it("offers the new tab through an ADMIN route and navigation entry", () => {

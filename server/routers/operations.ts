@@ -111,25 +111,6 @@ export const operationsRouter = router({
     if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
     return { success: true };
   }),
-  createAdminAccount: ownerOnlyProcedure.input(z.object({ username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), password: z.string().min(8).max(128), displayName: z.string().trim().max(120).optional() })).mutation(async ({ input }) => {
-    const db = await getDb(); if (!db) throw new Error("ADMIN_ACCOUNT_SERVICE_UNAVAILABLE");
-    const username = normalizeVipUsername(input.username);
-    const existing = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
-    if (existing) throw new Error("ADMIN_ID_ALREADY_EXISTS");
-    await db.insert(users).values({ openId: `admin:${randomUUID()}`, username, passwordHash: hashVipPassword(input.password), name: input.displayName || null, loginMethod: "admin_password", role: "admin", isActive: 1 });
-    return { success: true, username };
-  }),
-  updateAdminAccount: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), isActive: z.boolean().optional(), displayName: z.string().trim().max(120).nullable().optional(), newPassword: z.string().min(8).max(128).optional() })).mutation(async ({ input }) => {
-    const db = await getDb(); if (!db) throw new Error("ADMIN_ACCOUNT_SERVICE_UNAVAILABLE");
-    const account = (await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
-    if (!account || account.role !== "admin") throw new Error("ADMIN_ACCOUNT_NOT_FOUND");
-    const set: Record<string, unknown> = {};
-    if (input.isActive !== undefined) set.isActive = input.isActive ? 1 : 0;
-    if (input.displayName !== undefined) set.name = input.displayName;
-    if (input.newPassword) set.passwordHash = hashVipPassword(input.newPassword);
-    if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
-    return { success: true };
-  }),
   trialStores: ownerOnlyProcedure.query(async () => {
     const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
     const stores = await db.select({ id: trialStores.id, ownerUserId: trialStores.ownerUserId, status: trialStores.status, storeName: trialStores.storeName, startedAt: trialStores.startedAt, expiresAt: trialStores.expiresAt, resetAt: trialStores.resetAt, username: users.username, displayName: users.name, isActive: users.isActive }).from(trialStores).innerJoin(users, eq(trialStores.ownerUserId, users.id)).orderBy(desc(trialStores.createdAt));

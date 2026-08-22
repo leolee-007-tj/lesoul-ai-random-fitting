@@ -885,3 +885,8 @@
 - [x] Repair owner access without loosening the existing non-owner restrictions for NORMAL, VIP, ADMIN, and STORE TRIAL accounts.
 - [x] Add access-path regression coverage, verify the owner UI and non-owner restriction, run tests/build, checkpoint, and publish.
 - [x] Add a single designated primary password-ADMIN identity so the user's intended administrator login can access owner-only account management without granting the same access to ordinary ADMIN accounts.
+
+## Single-owner administrator model
+- [x] Preserve the designated owner password-ADMIN account, retire any secondary password-based ADMIN accounts, and prevent any future secondary administrator creation.
+- [x] Remove secondary ADMIN account creation, password reset, activation, trial, and list UI from owner account management while retaining the owner's own access plus VIP, NORMAL, and STORE TRIAL management.
+- [x] Add regression coverage for exclusive owner administration and role isolation, verify account-management UI, run tests/build, checkpoint, and publish.
