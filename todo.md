@@ -974,4 +974,4 @@
 ## Single bottom product-type add button
 - [x] Remove the in-list product-type add control so existing categories are shown only as a list.
 - [x] Keep one bottom “Add new product type” button that alone opens the Korean-name and measurement-checklist form.
-- [ ] Add placement/behavior regression coverage; run tests/build, checkpoint, and publish.
+- [x] Add placement/behavior regression coverage; run tests/build, checkpoint, and publish.
