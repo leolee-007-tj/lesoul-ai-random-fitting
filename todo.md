@@ -864,3 +864,8 @@
 - [x] Provide trial-only store name, manual QR notice, product catalog, and four-slot image management so a trial operator can test a realistic store without reading or mutating production settings or products.
 - [x] Enforce active/expired trial access on the server, automatically reset expired trial-store products, images, and settings through an idempotent scheduled cleanup while retaining credentials needed to display the expired-trial screen.
 - [x] Add owner oversight to create, inspect, reset, and deactivate trial stores; verify role, tenant, data, storage, and API isolation with regression tests; deploy the cleanup handler, checkpoint, and publish.
+
+## Restore original-quality product uploads
+- [x] Remove browser-side compression from production product and isolated trial-store image uploads so uploaded files retain their original visual quality.
+- [x] Remove compression-specific status text, helpers, and tests while preserving upload validation and four-slot image management.
+- [x] Verify original-quality upload paths, run tests/build, checkpoint, and publish.
