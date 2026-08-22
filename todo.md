@@ -952,4 +952,4 @@
 - [x] Add owner-only upload, replace, preview, and missing-image guidance without changing ordinary product image uploads or exposing reference-model changes to NORMAL users.
 - [x] Let VIP users select one of the three uploaded 李瀛 reference models with EN/KO/ZH descriptions before entering the existing clothing, pose, background, and AI fitting flow.
 - [x] Pass the selected model's current uploaded image to the existing VIP fitting request and preserve selection through the flow without altering product, pose, or background behavior.
-- [ ] Add authorization, storage, missing-image, selected-reference handoff, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
+- [x] Add authorization, storage, missing-image, selected-reference handoff, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
