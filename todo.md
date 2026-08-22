@@ -1000,3 +1000,9 @@
 - [x] Add a localized back control to the VIP 李瀛 model-picker that returns to the previous VIP flow step.
 - [x] Reorder the unchanged existing model cards from smaller body type to average body type to larger body type.
 - [x] Add navigation and ordering regression coverage; verify responsive EN/KO/ZH UI, tests, build, checkpoint, and publish.
+
+## VIP reference-image cache and body-type consistency
+- [x] Eliminate stale cached reference images after owner uploads or replaces any of the three 李瀛 model images.
+- [x] Preserve the selected petite, balanced, or fuller body-type key and its matching image through model selection, pose/background selection, and final AI fitting generation.
+- [x] Verify that each body type produces a distinct selected reference and fitting payload rather than silently falling back to balanced; add regression, build, checkpoint, and publish verification.
+

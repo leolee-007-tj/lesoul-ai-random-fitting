@@ -46,5 +46,13 @@ describe("owner-managed VIP 李瀛 reference models", () => {
     expect(page).toContain('["petite", "balanced", "volume"] as FixedModelKey[]');
     expect(page).toContain('onClick={() => navigate("/")}');
     expect(page).toContain('<ArrowLeft size={14} /> {c.back}');
+
+    const studio = source("client/src/pages/Studio.tsx");
+    expect(studio).toContain('const requestedFixedModelKey = query.get("fixedModel");');
+    expect(studio).toContain('getFixedModel(requestedFixedModelKey) ?? getFixedModel(LIYING_FIXED_MODEL_KEY)!');
+    expect(studio).toContain('liyingReferences.data?.imageUrls?.[selectedFixedModel.key]');
+
+    const manager = source("client/src/components/LiyingReferenceModelManager.tsx");
+    expect(manager).toContain('utils.bodyModel.liyingReferenceModels.invalidate()');
   });
 });

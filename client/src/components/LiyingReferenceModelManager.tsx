@@ -21,7 +21,14 @@ export function LiyingReferenceModelManager() {
   const copy = locale === "ko" ? { title: "VIP 李瀛 AI 기준 모델 사진", body: "VIP 피팅에 사용할 세 가지 기준 체형 사진을 업로드하세요. 선택된 사진은 의상·포즈·배경과 결합하는 李瀛 AI 피팅의 인물 기준으로 사용됩니다.", upload: "사진 업로드·교체", uploaded: "업로드된 기준 사진", default: "기본 기준 사진", limit: "JPG, PNG, WEBP · 원본 최대 20MB" } : locale === "zh" ? { title: "VIP 李瀛 AI 参考模特照片", body: "请为 VIP 试穿上传三种固定体型的参考照片。所选照片将作为李瀛 AI 试穿中搭配服装、姿势与背景的人物参考。", upload: "上传或更换照片", uploaded: "已上传参考照片", default: "默认参考照片", limit: "JPG、PNG、WEBP · 原文件最大 20MB" } : { title: "VIP LIYING AI REFERENCE MODELS", body: "Upload the three fixed body-proportion reference photos used for VIP fitting. The selected photo becomes the 李瀛 AI reference while clothing, pose, and background change.", upload: "Upload or replace photo", uploaded: "Uploaded reference photo", default: "Default reference photo", limit: "JPG, PNG, WEBP · original files up to 20MB" };
   const utils = trpc.useUtils();
   const models = trpc.operations.liyingReferenceModels.useQuery();
-  const upload = trpc.operations.uploadLiyingReferenceImage.useMutation({ onSuccess: () => void utils.operations.liyingReferenceModels.invalidate() });
+  const upload = trpc.operations.uploadLiyingReferenceImage.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.operations.liyingReferenceModels.invalidate(),
+        utils.bodyModel.liyingReferenceModels.invalidate(),
+      ]);
+    },
+  });
   const fileInputs = useRef<Partial<Record<FixedModelKey, HTMLInputElement | null>>>({});
   const [error, setError] = useState("");
   const imageUrls = models.data?.imageUrls ?? {};
