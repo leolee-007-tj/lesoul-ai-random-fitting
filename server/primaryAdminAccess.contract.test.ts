@@ -13,10 +13,10 @@ describe("primary password administrator access", () => {
     expect(trpc).toContain('user.role === "admin" && user.isPrimaryAdmin');
   });
 
-  it("keeps owner-only procedures and status queries behind the same primary-operator rule", () => {
+  it("keeps owner-only procedures behind the primary-operator rule and exposes only a safe boolean status query", () => {
     const trpc = source("server/_core/trpc.ts");
     const operations = source("server/routers/operations.ts");
     expect(trpc).toContain("const isOwner = Boolean(ctx.user && isPrimaryOperator(ctx.user));");
-    expect(operations).toContain("ownerStatus: ownerProcedure.query(({ ctx }) => ({ isOwner: isPrimaryOperator(ctx.user) }))");
+    expect(operations).toContain("ownerStatus: publicProcedure.query(({ ctx }) => ({ isOwner: Boolean(ctx.user && isPrimaryOperator(ctx.user)) }))");
   });
 });

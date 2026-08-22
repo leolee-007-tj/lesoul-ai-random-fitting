@@ -29,6 +29,8 @@ const productInput = z.object({
   isNew: z.number().int().min(0).max(1).optional(),
   newArrivalAt: z.date().nullable().optional(),
   price: z.number().int().min(0),
+  normalDiscountPercent: z.union([z.literal(17), z.literal(20)]).optional(),
+  vipDiscountPercent: z.union([z.literal(20), z.literal(30)]).optional(),
   priceOriginal: z.number().int().positive().nullable().optional(),
   discountRate: z.number().int().min(1).max(99).nullable().optional(),
   priceSale: z.number().int().positive().nullable().optional(),

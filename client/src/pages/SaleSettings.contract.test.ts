@@ -7,7 +7,7 @@ describe("dedicated sale settings entry", () => {
   it("keeps the storewide sale selector owner-only and makes its immediate effect explicit", () => {
     const page = read(new URL("./SaleSettings.tsx", import.meta.url));
     expect(page).toContain("trpc.operations.ownerStatus.useQuery()");
-    expect(page).toContain("The selection changes every customer-facing product price immediately");
+    expect(page).toContain("A seasonal format immediately replaces every product's selected base discount");
     expect(page).toContain('mode: "SEASON_FORMAT_1"');
     expect(page).toContain('mode: "SEASON_FORMAT_2"');
     expect(page).toContain('mode: "SEASON_FORMAT_3"');

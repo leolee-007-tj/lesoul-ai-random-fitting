@@ -58,6 +58,9 @@ export const products = mysqlTable("products", {
   isNew: int("isNew").default(0).notNull(),
   newArrivalAt: timestamp("newArrivalAt"),
   price: int("price").notNull(),
+  /** Owner-selected base customer discounts. Seasonal sale modes temporarily override these values. */
+  normalDiscountPercent: int("normalDiscountPercent").default(17).notNull(),
+  vipDiscountPercent: int("vipDiscountPercent").default(20).notNull(),
   /** Legacy price remains the compatible original CNY price; explicit sale fields drive customer sale display. */
   priceOriginal: int("priceOriginal"),
   discountRate: int("discountRate"),

@@ -38,7 +38,7 @@ export const purchaseRouter = router({
     const totalUnits = input.items.reduce((sum, item) => sum + item.quantity, 0);
     const items = input.items.map((item) => {
       const product = current.get(item.productId)!;
-      const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: settings.pricingMode, tier: pricingTier, quantity: totalUnits });
+      const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: settings.pricingMode, tier: pricingTier, quantity: totalUnits, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent });
       return { productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: item.selectedSize, quantity: item.quantity, currentPrice: pricing.unitPrice, status: product.status, availabilityStatus: product.availabilityStatus, purchaseType: product.availabilityStatus === "PRE_ORDER" ? "RESERVATION" as const : "NORMAL" as const };
     });
     const referenceTotal = items.reduce((sum, item) => sum + item.currentPrice * item.quantity, 0);

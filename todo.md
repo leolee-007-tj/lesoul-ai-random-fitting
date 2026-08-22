@@ -1,5 +1,7 @@
 # Project TODO
 
+- [x] Resolve the logged-out Sale Settings loading state by returning a non-sensitive false owner status instead of a permission error.
+
 - [x] Define Drizzle tables for products, poses, backgrounds, and generations with relationships and product-compatibility fields.
 - [x] Add 18 in-stock and sold-out demo products, 8 exact Korean pose records, and 10 curated background records through an idempotent seed routine.
 - [x] Implement a tested conditional outfit selector that enforces in-stock, 30/70 dress split, 30% outer skip, season, color, and style compatibility rules.
@@ -912,3 +914,11 @@
 - [x] Change Base policy to a fixed NORMAL 17% discount and fixed VIP 22% discount for every purchase quantity, while retaining seasonal formats as the exclusive override.
 - [x] Standardize customer price display as original price plus effective discounted price and add localized discount labels: percent-off for EN/KO and 折 for ZH.
 - [x] Add fixed-tier, seasonal override, rounding, original-price, discounted-price, and EN/KO/ZH presentation regression coverage; verify build, checkpoint, and publish.
+
+## Per-product base discounts with seasonal override
+- [x] Add per-product NORMAL discount selection (17% or 20%) and VIP discount selection (20% or 30%) to product create and edit flows, preserving safe defaults for existing products.
+- [x] Make Base pricing resolve from the selected product discount for the current customer tier, while each active season format overrides every product selection with its storewide quantity rule.
+- [x] Add a clearly named owner-only seasonal sale menu that switches Base or one season format at a time and explains that disabling the season restores each product's selected discounts.
+- [x] Apply the new policy to catalog, detail, purchase list, server purchase calculation, QR purchase flow, and sharing cards with EN/KO percent labels and ZH 折 labels.
+- [x] Verify database persistence defaults, non-owner owner-status handling, product-tier calculations, seasonal override restoration, all tests, TypeScript, and production build before release.
+- [ ] Add per-product selection, seasonal override, restoration, rounding, localization, and UI regression coverage; verify build, checkpoint, and publish.

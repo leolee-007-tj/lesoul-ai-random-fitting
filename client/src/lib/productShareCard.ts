@@ -12,6 +12,8 @@ export type ProductShareCardData = {
   imageUrl: string;
   price?: number | null;
   priceOriginal?: number | null;
+  normalDiscountPercent?: number | null;
+  vipDiscountPercent?: number | null;
   priceSale?: number | null;
   discountRate?: number | null;
   saleEnabled?: number | boolean | null;
@@ -24,7 +26,7 @@ function normalizeForCommerce(product: ProductShareCardData) {
 
 export function productShareCardPrice(product: ProductShareCardData, locale: Locale) {
   const normalized = normalizeForCommerce(product);
-  const price = resolveCentralPrice(getOriginalPrice(normalized), { mode: product.pricingMode, tier: "NORMAL" });
+  const price = resolveCentralPrice(getOriginalPrice(normalized), { mode: product.pricingMode, tier: "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent });
   const formatter = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US", { style: "currency", currency: "CNY", minimumFractionDigits: 0, maximumFractionDigits: 0 });
   return { price: formatter.format(price.unitPrice), original: formatter.format(price.original), discount: formatCentralDiscount(price.discountPercent, locale) };
 }

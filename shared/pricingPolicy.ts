@@ -12,19 +12,28 @@ export function roundCny(value: number) {
   return Math.max(0, Math.round(Number.isFinite(value) ? value : 0));
 }
 
-export function resolvePricingDiscountPercent(mode: PricingMode | null | undefined, tier: PricingTier, quantity: number) {
+export type ProductBaseDiscounts = {
+  normalDiscountPercent?: number | null;
+  vipDiscountPercent?: number | null;
+};
+
+function productBaseDiscount(tier: PricingTier, discounts?: ProductBaseDiscounts) {
+  if (tier === "VIP") return discounts?.vipDiscountPercent === 30 ? 30 : 20;
+  return discounts?.normalDiscountPercent === 20 ? 20 : 17;
+}
+
+export function resolvePricingDiscountPercent(mode: PricingMode | null | undefined, tier: PricingTier, quantity: number, discounts?: ProductBaseDiscounts) {
   const units = safeQuantity(quantity);
   if (mode === "SEASON_FORMAT_1") return units >= 4 ? 45 : units === 3 ? 40 : units === 2 ? 30 : 20;
   if (mode === "SEASON_FORMAT_2") return units >= 3 ? 45 : units === 2 ? 40 : 30;
   if (mode === "SEASON_FORMAT_3") return 45;
-  if (tier === "VIP") return 22;
-  return 17;
+  return productBaseDiscount(tier, discounts);
 }
 
-export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number }) {
+export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number } & ProductBaseDiscounts) {
   const original = roundCny(originalPrice);
   const quantity = safeQuantity(options.quantity ?? 1);
-  const discountPercent = resolvePricingDiscountPercent(options.mode, options.tier, quantity);
+  const discountPercent = resolvePricingDiscountPercent(options.mode, options.tier, quantity, options);
   const unitPrice = roundCny(original * (1 - discountPercent / 100));
   return { original, quantity, discountPercent, unitPrice, total: unitPrice * quantity, mode: options.mode ?? "BASE" as PricingMode };
 }

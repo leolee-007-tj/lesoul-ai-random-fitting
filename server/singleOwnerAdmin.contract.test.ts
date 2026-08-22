@@ -19,4 +19,10 @@ describe("single-owner administrator model", () => {
     expect(page).not.toContain('id: "admin"');
     expect(page).toContain("ADMIN is the owner's only operations account.");
   });
+
+  it("lets unauthenticated screens determine that they are not the owner without exposing owner data", () => {
+    const operations = source("server/routers/operations.ts");
+    expect(operations).toContain("ownerStatus: publicProcedure.query");
+    expect(operations).toContain("isOwner: Boolean(ctx.user && isPrimaryOperator(ctx.user))");
+  });
 });
