@@ -40,4 +40,11 @@ describe("owner-managed VIP 李瀛 reference models", () => {
     expect(look).toContain("resolveLiyingReferenceImageUrl(fixed.key, uploadedLiyingImages)");
     expect(look).toContain("modelKey: isLiying ? `liying-${fixed.key}` : `fixed-${fixed.key}`");
   });
+
+  it("orders VIP cards from smaller to average to larger and provides a back control without changing model names", () => {
+    const page = source("client/src/pages/BodyModel.tsx");
+    expect(page).toContain('["petite", "balanced", "volume"] as FixedModelKey[]');
+    expect(page).toContain('onClick={() => navigate("/")}');
+    expect(page).toContain('<ArrowLeft size={14} /> {c.back}');
+  });
 });
