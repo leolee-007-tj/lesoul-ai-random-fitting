@@ -945,4 +945,4 @@
 ## User-management nickname consistency
 - [x] Replace technical-looking names and identifiers in every owner User Management list and summary card with the same localized role-appropriate display names used in Account Management.
 - [x] Ensure NORMAL visitor, VIP, and STORE_TRIAL display names remain recognizable and consistent across both owner management surfaces without exposing internal identifiers.
-- [ ] Add regression coverage, verify EN/KO/ZH owner UI behavior, run tests/build, checkpoint, and publish.
+- [x] Add regression coverage, verify EN/KO/ZH owner UI behavior, run tests/build, checkpoint, and publish.
