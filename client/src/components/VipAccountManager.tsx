@@ -1,5 +1,6 @@
 import { AiProviderPanel } from "@/components/AiProviderPanel";
 import { ProductShareAnalyticsPanel } from "@/components/ProductShareAnalyticsPanel";
+import { LiyingReferenceModelManager } from "@/components/LiyingReferenceModelManager";
 import { trpc } from "@/lib/trpc";
 import { KeyRound, UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -51,6 +52,7 @@ export function VipAccountManager({ accounts, onChanged, includeRelatedManagers 
 
   return <>
     {includeRelatedManagers && <><AiProviderPanel /><ProductShareAnalyticsPanel /></>}
+    <LiyingReferenceModelManager />
     <section className="mt-5 rounded-2xl border border-[#e2ddd5] bg-white p-4">
       <div className="flex items-center gap-2"><UserPlus size={16} /><p className="text-[10px] font-bold tracking-[.14em] text-[#766b60]">{t("vipAdmin.title")}</p></div>
       <form onSubmit={(event) => { event.preventDefault(); setNotice(""); create.mutate({ username, password, displayName: displayName || undefined }); }} className="mt-4 grid gap-2 sm:grid-cols-3">

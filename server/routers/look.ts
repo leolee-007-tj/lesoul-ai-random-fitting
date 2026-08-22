@@ -8,6 +8,7 @@ import { aiBodyModels, bodyProfiles } from "../../drizzle/schema";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { getFixedModel, LIYING_FIXED_MODEL_KEY } from "../../shared/fixedModels";
+import { getLiyingReferenceImageUrls, resolveLiyingReferenceImageUrl } from "../liyingReferenceModels";
 
 const lookRequest = z.object({
   visitorId: z.string().min(1).max(96),
@@ -39,7 +40,7 @@ export const lookRouter = router({
     const retryParent = input.retryOfGenerationId ? await getGenerationLog(input.retryOfGenerationId) : undefined;
     const retryCount = (retryParent?.retryCount ?? -1) + 1;
     const isQuickFit = input.generationMode === "QUICK_FIT";
-    const isLiying = !isQuickFit && input.fixedModelKey === LIYING_FIXED_MODEL_KEY;
+    const isLiying = !isQuickFit && ctx.user?.role === "vip" && Boolean(input.fixedModelKey);
     const feature: AiFeatureType = input.retryOfGenerationId ? "REGENERATION" : isQuickFit ? "QUICK_FIT" : isLiying ? "LIYING_AI" : "AI_FITTING";
     const actor = ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null;
     const access = await evaluateAiAccess({ visitorId, feature, actor });
@@ -57,7 +58,10 @@ export const lookRouter = router({
       if (input.fixedModelKey) {
         const fixed = getFixedModel(input.fixedModelKey);
         if (!fixed) throw new Error("FIXED_MODEL_REFERENCE_UNAVAILABLE");
-        modelReference = { imageUrl: fixed.imageUrl, modelKey: `fixed-${fixed.key}`, version: 1, appearance: fixed.appearance };
+        const uploadedLiyingImages = isLiying ? await getLiyingReferenceImageUrls() : {};
+        const imageUrl = isLiying ? resolveLiyingReferenceImageUrl(fixed.key, uploadedLiyingImages) : fixed.imageUrl;
+        if (!imageUrl) throw new Error("LIYING_REFERENCE_IMAGE_UNAVAILABLE");
+        modelReference = { imageUrl, modelKey: isLiying ? `liying-${fixed.key}` : `fixed-${fixed.key}`, version: 1, appearance: fixed.appearance };
       } else if (input.tryOnMode === "ai_body_model" && input.bodyModelId) {
         const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");
         const row = (await db.select({ imageUrl: aiBodyModels.imageUrl, modelKey: aiBodyModels.modelKey, version: aiBodyModels.version, hairLength: bodyProfiles.hairLength, hairStyle: bodyProfiles.hairStyle, hairColor: bodyProfiles.hairColor, skinTone: bodyProfiles.skinTone }).from(aiBodyModels).innerJoin(bodyProfiles, eq(aiBodyModels.bodyProfileId, bodyProfiles.id)).where(and(eq(aiBodyModels.id, input.bodyModelId), eq(aiBodyModels.approved, 1), eq(bodyProfiles.visitorId, visitorId))).limit(1))[0];

@@ -6,6 +6,7 @@ import { getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { customerProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { beginAiUsage, finishAiUsage } from "../aiUsageController";
+import { getLiyingReferenceImageUrls } from "../liyingReferenceModels";
 
 export const profileInput = z.object({
   visitorId: z.string().min(1).max(96),
@@ -39,6 +40,10 @@ export const modelPrompt = (input: z.infer<typeof profileInput>) => `Create one 
 const toResult = (model: typeof aiBodyModels.$inferSelect, profile: typeof bodyProfiles.$inferSelect, reused: boolean) => ({ id: model.id, imageUrl: model.imageUrl!, reused, profileId: profile.id, modelKey: model.modelKey, version: model.version, approved: Boolean(model.approved), profile: { heightCm: profile.heightCm, weightKg: profile.weightKg, bustCm: profile.bustCm, waistCm: profile.waistCm, hipCm: profile.hipCm, hairLength: profile.hairLength, hairStyle: profile.hairStyle, hairColor: profile.hairColor, skinTone: profile.skinTone } });
 
 export const bodyModelRouter = router({
+  liyingReferenceModels: customerProcedure.query(async ({ ctx }) => {
+    if (!ctx.user || ctx.user.role !== "vip") throw new Error("LIYING_VIP_ONLY");
+    return { imageUrls: await getLiyingReferenceImageUrls() };
+  }),
   create: customerProcedure.input(profileInput).mutation(async ({ input, ctx }) => {
     const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
     const db = await getDb(); if (!db) throw new Error("AI Body Model service is temporarily unavailable.");

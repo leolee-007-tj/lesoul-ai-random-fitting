@@ -10,9 +10,13 @@ import { hashVipPassword, normalizeVipUsername } from "../vipAccess";
 import { anonymousNickname } from "../../shared/anonymousNickname";
 import { resolveAiProviderStatus } from "../../shared/aiProvider";
 import { TRIAL_STORE_DURATION_MS } from "../trialStore";
+import { decodeImageDataUrl, MAX_PRODUCT_IMAGE_BYTES } from "./uploads";
+import { storagePut } from "../storage";
+import { getLiyingReferenceImageUrls, LIYING_REFERENCE_MODEL_KEYS } from "../liyingReferenceModels";
 
 const rangeSchema = z.enum(["today", "7d", "30d", "all"]).default("30d");
 const cnyFen = z.number().int().min(0).max(10_000_000_00);
+const liyingModelKey = z.enum(["petite", "balanced", "volume"]);
 const startFor = (range: z.infer<typeof rangeSchema>) => {
   const now = new Date();
   if (range === "today") { now.setUTCHours(0, 0, 0, 0); return now; }
@@ -185,6 +189,17 @@ export const operationsRouter = router({
   settings: ownerProcedure.query(async () => {
     const settings = await getCentralSettings();
     return { ...settings, estimatedCostsAreConfigOnly: true };
+  }),
+  liyingReferenceModels: ownerOnlyProcedure.query(async () => ({ imageUrls: await getLiyingReferenceImageUrls() })),
+  uploadLiyingReferenceImage: ownerOnlyProcedure.input(z.object({ modelKey: liyingModelKey, dataUrl: z.string().min(40).max(30_000_000) })).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("LIYING_REFERENCE_SERVICE_UNAVAILABLE");
+    const { buffer, mimeType, extension } = decodeImageDataUrl(input.dataUrl, MAX_PRODUCT_IMAGE_BYTES);
+    const { url } = await storagePut(`lesoul/liying-reference-models/${input.modelKey}/${randomUUID()}.${extension}`, buffer, mimeType);
+    const current = await getLiyingReferenceImageUrls();
+    const imageUrls = { ...current, [input.modelKey]: url };
+    await db.update(releaseSettings).set({ liyingReferenceImageUrls: imageUrls }).where(eq(releaseSettings.id, 1));
+    return { imageUrls, updatedModelKey: input.modelKey };
   }),
   providerStatus: ownerProcedure.query(async () => {
     const settings = await getCentralSettings();

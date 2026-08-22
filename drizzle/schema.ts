@@ -190,6 +190,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   /** Central role-policy feature flags. Quick AI remains the existing Quick Fit pipeline. */
   quickAiAdminOnly: int("quickAiAdminOnly").default(1).notNull(),
   liyingAiVipEnabled: int("liyingAiVipEnabled").default(1).notNull(),
+  /** Owner-uploaded VIP 李瀛 reference images keyed by petite, balanced, or volume. */
+  liyingReferenceImageUrls: json("liyingReferenceImageUrls").$type<Partial<Record<import("../shared/fixedModels").FixedModelKey, string | null>>>(),
   normalStyleMatchEnabled: int("normalStyleMatchEnabled").default(1).notNull(),
   normalStyleMatchLimit: int("normalStyleMatchLimit").default(3).notNull(),
   purchaseMode: mysqlEnum("purchaseMode", ["PURCHASE_LIST", "QR", "DISABLED"]).default("PURCHASE_LIST").notNull(),

@@ -946,3 +946,10 @@
 - [x] Replace technical-looking names and identifiers in every owner User Management list and summary card with the same localized role-appropriate display names used in Account Management.
 - [x] Ensure NORMAL visitor, VIP, and STORE_TRIAL display names remain recognizable and consistent across both owner management surfaces without exposing internal identifiers.
 - [x] Add regression coverage, verify EN/KO/ZH owner UI behavior, run tests/build, checkpoint, and publish.
+
+## Owner-managed VIP 李瀛 AI reference models
+- [x] Add three persisted VIP reference-model slots for petite short-leg proportion, balanced proportion, and fuller-volume proportion, each with an owner-uploaded reference image.
+- [x] Add owner-only upload, replace, preview, and missing-image guidance without changing ordinary product image uploads or exposing reference-model changes to NORMAL users.
+- [x] Let VIP users select one of the three uploaded 李瀛 reference models with EN/KO/ZH descriptions before entering the existing clothing, pose, background, and AI fitting flow.
+- [x] Pass the selected model's current uploaded image to the existing VIP fitting request and preserve selection through the flow without altering product, pose, or background behavior.
+- [ ] Add authorization, storage, missing-image, selected-reference handoff, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
