@@ -12,11 +12,12 @@ describe("central pricing integration contract", () => {
     expect(read("server/routers/purchase.ts")).toContain("pricingMode: settings.pricingMode");
   });
 
-  it("uses the same policy in product display, purchase totals, QR cards, and share cards", () => {
+  it("uses the same policy in price-bearing customer displays while keeping purchase QR cards price-free", () => {
     expect(read("client/src/components/ProductPrice.tsx")).toContain("resolveCentralPrice");
     expect(read("client/src/components/PurchaseListAddButton.tsx")).toContain("resolveCentralPrice");
     expect(read("client/src/pages/PurchaseList.tsx")).toContain("totalUnits = items.reduce");
-    expect(read("client/src/components/PurchaseScreen.tsx")).toContain("resolveCentralPrice");
+    expect(read("client/src/components/PurchaseScreen.tsx")).not.toContain("resolveCentralPrice");
+    expect(read("client/src/components/PurchaseScreen.tsx")).toContain("product.purchaseQrUrl");
     expect(read("client/src/lib/productShareCard.ts")).toContain("resolveCentralPrice");
   });
 

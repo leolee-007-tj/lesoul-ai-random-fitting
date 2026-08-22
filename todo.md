@@ -902,3 +902,8 @@
 - [x] Add a clearly named owner-only Sale Settings button in administrator operations that opens the centralized pricing policy selector.
 - [x] Clearly state that selecting Base, Season Format 1, Season Format 2, or Season Format 3 immediately changes the effective discount for every customer-facing product price.
 - [x] Add owner-only navigation and active-policy regression coverage, verify desktop/mobile UI, run tests/build, checkpoint, and publish.
+
+## Price-free product purchase sharing cards
+- [x] Remove confirmed price, discounted price, and discount-rate information from product purchase QR cards and purchase sharing-card output.
+- [x] Retain product image, product name, payment QR, and localized purchase notice without affecting ordinary catalog and purchase-list price displays.
+- [x] Add price-free card regression coverage, verify QR and notice content, run tests/build, checkpoint, and publish.
