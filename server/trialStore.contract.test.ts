@@ -32,6 +32,7 @@ describe("isolated store trial contract", () => {
     const server = source("server/_core/index.ts");
     expect(server).toContain('"/api/scheduled/trial-store-reset"');
     expect(server).toContain("user.isCron");
+    expect(server).toContain("trialStoreResetCronTaskUid !== user.taskUid");
     expect(server).toContain("resetExpiredTrialStores");
   });
 });

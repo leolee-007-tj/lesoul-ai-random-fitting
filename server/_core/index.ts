@@ -11,6 +11,9 @@ import { serveStatic, setupVite } from "./vite";
 import { registerOgRoutes } from "../og";
 import { sdk } from "./sdk";
 import { resetExpiredTrialStores } from "../trialStore";
+import { getDb } from "../db";
+import { releaseSettings } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -44,6 +47,9 @@ async function startServer() {
     try {
       const user = await sdk.authenticateRequest(req);
       if (!user.isCron || !user.taskUid) return res.status(403).json({ error: "cron-only" });
+      const db = await getDb();
+      const settings = db ? (await db.select().from(releaseSettings).where(eq(releaseSettings.id, 1)).limit(1))[0] : null;
+      if (!settings || settings.trialStoreResetCronTaskUid !== user.taskUid) return res.json({ ok: true, skipped: "orphan" });
       const result = await resetExpiredTrialStores();
       return res.json({ ok: true, ...result });
     } catch (error) {

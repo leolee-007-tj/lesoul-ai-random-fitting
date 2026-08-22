@@ -862,5 +862,5 @@
 ## Isolated two-day store trial workspace
 - [x] Create a separate STORE_TRIAL account role and trial-store workspace data model, with owner-created credentials and a dedicated 48-hour lifecycle independent of NORMAL, VIP, ADMIN, and production-store data.
 - [x] Provide trial-only store name, manual QR notice, product catalog, and four-slot image management so a trial operator can test a realistic store without reading or mutating production settings or products.
-- [ ] Enforce active/expired trial access on the server, automatically reset expired trial-store products, images, settings, and credentials through an idempotent scheduled cleanup, and show an expired-trial screen.
-- [ ] Add owner oversight to create, inspect, reset, and deactivate trial stores; verify role, tenant, data, storage, and API isolation with regression tests; deploy the cleanup handler, checkpoint, and publish.
+- [x] Enforce active/expired trial access on the server, automatically reset expired trial-store products, images, and settings through an idempotent scheduled cleanup while retaining credentials needed to display the expired-trial screen.
+- [x] Add owner oversight to create, inspect, reset, and deactivate trial stores; verify role, tenant, data, storage, and API isolation with regression tests; deploy the cleanup handler, checkpoint, and publish.
