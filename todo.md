@@ -958,4 +958,4 @@
 - [x] Make the managed product-type selector available in existing-product edit mode, with the current type preselected and all active types selectable.
 - [x] Let the owner add a new managed product type from edit mode and select it immediately without discarding the edit draft.
 - [x] Persist the selected edited product type while preserving the stable base category and existing sizing, fit, price, set-product, image, and pricing data.
-- [ ] Add edit-mode category selection/creation regression coverage; verify EN/KO/ZH UI, tests, build, checkpoint, and publish.
+- [x] Add edit-mode category selection/creation regression coverage; verify EN/KO/ZH UI, tests, build, checkpoint, and publish.
