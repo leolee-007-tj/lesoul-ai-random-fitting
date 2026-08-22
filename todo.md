@@ -929,3 +929,9 @@
 - [x] Add owner Product Manager controls to create, edit, add, remove, and reorder two or more set components without duplicating ordinary standalone products.
 - [x] Show a clear set badge and combined price in catalog cards, and show localized component garments with individual prices in the set product detail and purchase-list views.
 - [x] Add EN/KO/ZH regression tests for set persistence, discount calculation on the set total, component display, purchase behavior, mobile UI, TypeScript, production build, checkpoint, and publish.
+
+## Account-management friendly display names
+- [x] Replace internal-looking NORMAL visitor identifiers with stable localized friendly nicknames in owner account management.
+- [x] Show a VIP display name when configured, otherwise a readable VIP account label, without exposing internal numeric identifiers.
+- [x] Show each STORE_TRIAL account by its managed store name in owner account management rather than a technical account identifier.
+- [x] Verify EN/KO/ZH labels, owner-only visibility, existing role isolation, responsive UI, tests, production build, checkpoint, and publish.
