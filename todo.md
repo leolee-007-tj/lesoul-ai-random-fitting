@@ -989,4 +989,4 @@
 ## Remove product-type creation from edit mode
 - [x] Hide the “Add product type” button and its nested creation form when editing an existing product.
 - [x] Keep existing-type selection in edit mode and preserve the type-creation button and flow for new-product registration only.
-- [ ] Add add-versus-edit control regression coverage; run tests/build, checkpoint, and publish.
+- [x] Add add-versus-edit control regression coverage; run tests/build, checkpoint, and publish.
