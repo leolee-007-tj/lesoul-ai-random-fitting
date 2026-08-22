@@ -1006,3 +1006,19 @@
 - [x] Preserve the selected petite, balanced, or fuller body-type key and its matching image through model selection, pose/background selection, and final AI fitting generation.
 - [x] Verify that each body type produces a distinct selected reference and fitting payload rather than silently falling back to balanced; add regression, build, checkpoint, and publish verification.
 
+
+## Body-type-aware fit and stretch guidance
+- [x] Compare each reference model's measurements with product garment measurements, fit type, and stretch level using one shared fit-analysis helper.
+- [x] Produce localized petite, balanced, and volume fit guidance, including small/comfortable/loose outcomes and stretch-aware caution wording.
+- [x] Pass the selected model's fit context into the existing AI fitting request without changing the chosen model image or product data.
+- [x] Add distinct body-type regression cases, EN/KO/ZH UI coverage, responsive verification, tests, build, checkpoint, and publish.
+
+
+## Body-type-aware fit and stretch guidance — verified
+- [x] Compare each reference model's measurements with product garment measurements, fit type, and stretch level using one shared fit-analysis helper.
+- [x] Produce localized petite, balanced, and volume fit guidance, including small/comfortable/loose outcomes and stretch-aware caution wording.
+- [x] Pass the selected model's fit context into the existing AI fitting request without changing the chosen model image or product data.
+- [x] Prevent stale 李瀛 reference-query results after owner uploads and refetch current reference images on VIP model-picker and Studio entry.
+- [x] Preserve the URL-selected petite, balanced, or volume key through Studio access loading and reference-image resolution.
+- [x] Run 198 Vitest tests and production build successfully; perform mobile visual smoke capture for petite, balanced, and volume Studio routes.
+- [ ] Complete authenticated interactive generation test with one garment whose fit differs clearly across all three fixed body types.
