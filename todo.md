@@ -959,3 +959,8 @@
 - [x] Let the owner add a new managed product type from edit mode and select it immediately without discarding the edit draft.
 - [x] Persist the selected edited product type while preserving the stable base category and existing sizing, fit, price, set-product, image, and pricing data.
 - [x] Add edit-mode category selection/creation regression coverage; verify EN/KO/ZH UI, tests, build, checkpoint, and publish.
+
+## VIP 李瀛 AI model-picker image previews
+- [x] Display the current owner-uploaded petite, balanced, and fuller reference images prominently on the VIP model-picker cards.
+- [x] Add clear localized uploaded, missing-image, and selected-model visual states without changing VIP model selection or AI fitting handoff behavior.
+- [ ] Add responsive preview and EN/KO/ZH regression coverage; run tests/build, checkpoint, and publish.

@@ -22,10 +22,14 @@ describe("owner-managed VIP 李瀛 reference models", () => {
     expect(bodyModel).toContain('if (!ctx.user || ctx.user.role !== "vip") throw new Error("LIYING_VIP_ONLY")');
   });
 
-  it("shows VIP users all three uploaded choices and passes the selected model into the existing studio flow", () => {
+  it("shows VIP users all three uploaded choices as preview cards and passes the selected model into the existing studio flow", () => {
     const page = source("client/src/pages/BodyModel.tsx");
     expect(page).toContain("trpc.bodyModel.liyingReferenceModels.useQuery");
-    expect(page).toContain("liyingReferences.data?.imageUrls?.[model.key] || model.imageUrl");
+    expect(page).toContain("const imageUrl = uploadedImageUrl || model.imageUrl");
+    expect(page).toContain("const uploadedImageUrl = liyingReferences.data?.imageUrls?.[model.key]");
+    expect(page).toContain("stateLabel = liyingReferences.isLoading");
+    expect(page).toContain('aria-pressed={active}');
+    expect(page).toContain('aspect-[3/4]');
     expect(page).toContain("navigate(`/studio?fixedModel=${selected}`)");
   });
 
