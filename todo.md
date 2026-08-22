@@ -935,3 +935,9 @@
 - [x] Show a VIP display name when configured, otherwise a readable VIP account label, without exposing internal numeric identifiers.
 - [x] Show each STORE_TRIAL account by its managed store name in owner account management rather than a technical account identifier.
 - [x] Verify EN/KO/ZH labels, owner-only visibility, existing role isolation, responsive UI, tests, production build, checkpoint, and publish.
+
+## Trial-store expiry sorting and paid access extension
+- [x] Sort the owner trial-store list by the nearest expiration date and add localized active, expiring-soon, expired, and all-store filters.
+- [x] Add an owner-only manual paid-access extension that sets a trial store expiry by 1, 3, 6, or 12 months, or by a specified end date, without exposing payment processing or altering production-store isolation.
+- [x] Ensure an extension reactivates the selected trial workspace without deleting its existing trial-store data, while the existing expiry cleanup still applies after the new end date.
+- [ ] Add owner authorization, date-calculation, expiry-lifecycle, filter/sort, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.

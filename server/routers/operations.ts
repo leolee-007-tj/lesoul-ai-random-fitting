@@ -22,6 +22,25 @@ const startFor = (range: z.infer<typeof rangeSchema>) => {
 };
 const billableStatuses = ["REQUESTED", "SUCCESS", "FAILED", "CANCELLED"] as const;
 const featureLabel = (feature: string) => ({ AI_BODY_MODEL: "AI Body Model", AI_FITTING: "AI Fitting", LIYING_AI: "李瀛 AI", QUICK_FIT: "Quick AI", REGENERATION: "Regeneration", AI_STYLIST: "AI Style Match" }[feature] ?? feature);
+const paidExtensionInput = z.object({
+  storeId: z.number().int().positive(),
+  months: z.union([z.literal(1), z.literal(3), z.literal(6), z.literal(12)]).optional(),
+  expiresOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+}).refine((value) => Boolean(value.months) !== Boolean(value.expiresOn), { message: "Choose one extension period." });
+
+function addCalendarMonths(date: Date, months: number) {
+  const result = new Date(date);
+  const day = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate();
+  result.setUTCDate(Math.min(day, lastDay));
+  return result;
+}
+
+function endOfUtcDate(value: string) {
+  return new Date(`${value}T23:59:59.999Z`);
+}
 
 export const operationsRouter = router({
   dashboard: ownerProcedure.input(z.object({ range: rangeSchema })).query(async ({ input }) => {
@@ -141,6 +160,20 @@ export const operationsRouter = router({
       await tx.update(users).set({ isActive: 1 }).where(eq(users.id, store.ownerUserId));
     });
     return { success: true };
+  }),
+  extendTrialStoreAccess: ownerOnlyProcedure.input(paidExtensionInput).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
+    const store = (await db.select().from(trialStores).where(eq(trialStores.id, input.storeId)).limit(1))[0];
+    if (!store) throw new Error("TRIAL_STORE_NOT_FOUND");
+    const now = new Date();
+    const base = store.expiresAt.getTime() > now.getTime() ? store.expiresAt : now;
+    const expiresAt = input.months ? addCalendarMonths(base, input.months) : endOfUtcDate(input.expiresOn!);
+    if (expiresAt.getTime() <= now.getTime()) throw new Error("TRIAL_STORE_EXPIRY_MUST_BE_FUTURE");
+    await db.transaction(async (tx) => {
+      await tx.update(trialStores).set({ status: "ACTIVE", expiresAt }).where(eq(trialStores.id, store.id));
+      await tx.update(users).set({ isActive: 1 }).where(eq(users.id, store.ownerUserId));
+    });
+    return { success: true, storeId: store.id, expiresAt, retainedWorkspace: store.status === "ACTIVE" && store.expiresAt.getTime() > now.getTime() };
   }),
   setTrialStoreActive: ownerOnlyProcedure.input(z.object({ storeId: z.number().int().positive(), isActive: z.boolean() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");

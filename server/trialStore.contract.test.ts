@@ -35,4 +35,25 @@ describe("isolated store trial contract", () => {
     expect(server).toContain("trialStoreResetCronTaskUid !== user.taskUid");
     expect(server).toContain("resetExpiredTrialStores");
   });
+
+  it("lets only the owner extend an isolated store by months or a future end date while retaining the existing expiry cleanup", () => {
+    const operations = source("server/routers/operations.ts");
+    const lifecycle = source("server/trialStore.ts");
+    expect(operations).toContain("extendTrialStoreAccess: ownerOnlyProcedure");
+    expect(operations).toContain("months: z.union([z.literal(1), z.literal(3), z.literal(6), z.literal(12)])");
+    expect(operations).toContain("TRIAL_STORE_EXPIRY_MUST_BE_FUTURE");
+    expect(operations).toContain('status: "ACTIVE", expiresAt');
+    expect(lifecycle).toContain("lte(trialStores.expiresAt, new Date())");
+    expect(lifecycle).toContain("store.expiresAt.getTime() > Date.now()");
+  });
+
+  it("keeps the owner list ordered by nearest expiry with localized lifecycle filters and payment-confirmed extension actions", () => {
+    const manager = source("client/src/components/TrialStoreManager.tsx");
+    expect(manager).toContain('type TrialFilter = "ALL" | "ACTIVE" | "EXPIRING" | "EXPIRED"');
+    expect(manager).toContain("filter === \"ALL\" || storeState(store) === filter");
+    expect(manager).toContain("new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()");
+    expect(manager).toContain("extend.mutate({ storeId: store.id, months })");
+    expect(manager).toContain("extend.mutate({ storeId: store.id, expiresOn: customEndDate })");
+    expect(manager).not.toContain("store.username} · {store.displayName");
+  });
 });

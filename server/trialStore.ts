@@ -25,7 +25,7 @@ export async function expireTrialStore(storeId: number) {
   const db = await getDb();
   if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
   const store = (await db.select().from(trialStores).where(eq(trialStores.id, storeId)).limit(1))[0];
-  if (!store || store.status === "EXPIRED") return false;
+  if (!store || store.status === "EXPIRED" || store.expiresAt.getTime() > Date.now()) return false;
   await db.transaction(async (tx) => {
     await tx.delete(trialStoreProducts).where(eq(trialStoreProducts.storeId, storeId));
     await tx.update(trialStores).set({ status: "EXPIRED", storeName: DEFAULT_STORE_NAME, paymentQrUrl: null, purchaseNotice: null, resetAt: new Date() }).where(eq(trialStores.id, storeId));
