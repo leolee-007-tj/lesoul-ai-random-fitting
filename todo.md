@@ -940,4 +940,4 @@
 - [x] Sort the owner trial-store list by the nearest expiration date and add localized active, expiring-soon, expired, and all-store filters.
 - [x] Add an owner-only manual paid-access extension that sets a trial store expiry by 1, 3, 6, or 12 months, or by a specified end date, without exposing payment processing or altering production-store isolation.
 - [x] Ensure an extension reactivates the selected trial workspace without deleting its existing trial-store data, while the existing expiry cleanup still applies after the new end date.
-- [ ] Add owner authorization, date-calculation, expiry-lifecycle, filter/sort, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
+- [x] Add owner authorization, date-calculation, expiry-lifecycle, filter/sort, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
