@@ -921,4 +921,4 @@
 - [x] Add a clearly named owner-only seasonal sale menu that switches Base or one season format at a time and explains that disabling the season restores each product's selected discounts.
 - [x] Apply the new policy to catalog, detail, purchase list, server purchase calculation, QR purchase flow, and sharing cards with EN/KO percent labels and ZH 折 labels.
 - [x] Verify database persistence defaults, non-owner owner-status handling, product-tier calculations, seasonal override restoration, all tests, TypeScript, and production build before release.
-- [ ] Add per-product selection, seasonal override, restoration, rounding, localization, and UI regression coverage; verify build, checkpoint, and publish.
+- [x] Add per-product selection, seasonal override, restoration, rounding, localization, and UI regression coverage; verify build, checkpoint, and publish.
