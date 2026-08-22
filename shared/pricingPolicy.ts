@@ -17,7 +17,7 @@ export function resolvePricingDiscountPercent(mode: PricingMode | null | undefin
   if (mode === "SEASON_FORMAT_1") return units >= 4 ? 45 : units === 3 ? 40 : units === 2 ? 30 : 20;
   if (mode === "SEASON_FORMAT_2") return units >= 3 ? 45 : units === 2 ? 40 : 30;
   if (mode === "SEASON_FORMAT_3") return 45;
-  if (tier === "VIP") return units >= 3 ? 22 : units === 2 ? 21 : 20;
+  if (tier === "VIP") return 22;
   return 17;
 }
 

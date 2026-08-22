@@ -907,3 +907,8 @@
 - [x] Remove confirmed price, discounted price, and discount-rate information from product purchase QR cards and purchase sharing-card output.
 - [x] Retain product image, product name, payment QR, and localized purchase notice without affecting ordinary catalog and purchase-list price displays.
 - [x] Add price-free card regression coverage, verify QR and notice content, run tests/build, checkpoint, and publish.
+
+## Fixed base-tier pricing and localized discount labels
+- [x] Change Base policy to a fixed NORMAL 17% discount and fixed VIP 22% discount for every purchase quantity, while retaining seasonal formats as the exclusive override.
+- [x] Standardize customer price display as original price plus effective discounted price and add localized discount labels: percent-off for EN/KO and 折 for ZH.
+- [x] Add fixed-tier, seasonal override, rounding, original-price, discounted-price, and EN/KO/ZH presentation regression coverage; verify build, checkpoint, and publish.

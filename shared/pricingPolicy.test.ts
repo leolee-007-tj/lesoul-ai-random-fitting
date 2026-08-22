@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 import { formatCentralDiscount, resolveCentralPrice, resolvePricingDiscountPercent } from "./pricingPolicy";
 
 describe("central pricing policy", () => {
-  it("keeps NORMAL at 17% and increases VIP discount from 20% to 22% by quantity", () => {
+  it("keeps NORMAL at 17% and VIP at a fixed 22% for every quantity", () => {
     expect(resolvePricingDiscountPercent("BASE", "NORMAL", 1)).toBe(17);
     expect(resolvePricingDiscountPercent("BASE", "NORMAL", 4)).toBe(17);
-    expect(resolvePricingDiscountPercent("BASE", "VIP", 1)).toBe(20);
-    expect(resolvePricingDiscountPercent("BASE", "VIP", 2)).toBe(21);
+    expect(resolvePricingDiscountPercent("BASE", "VIP", 1)).toBe(22);
+    expect(resolvePricingDiscountPercent("BASE", "VIP", 2)).toBe(22);
     expect(resolvePricingDiscountPercent("BASE", "VIP", 3)).toBe(22);
+    expect(resolveCentralPrice(1000, { mode: "BASE", tier: "VIP", quantity: 4 }).unitPrice).toBe(780);
   });
 
   it("overrides base discounts with each seasonal format", () => {
