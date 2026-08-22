@@ -15,6 +15,16 @@ describe("set-product manager contract", () => {
     expect(manager).toContain("priceReadOnly={draft.productType === \"SET\"}");
   });
 
+  it("keeps product-type selection and new-category creation available while editing an existing product", () => {
+    const manager = source("client/src/pages/ProductManagerV2.tsx");
+    const categories = source("client/src/components/CategoryManagementPanel.tsx");
+    expect(manager).toContain("displayCategoryId: item.displayCategoryId ?? null");
+    expect(manager).toContain('event.target.value === "__add_category__"');
+    expect(manager).toContain('value="__add_category__"');
+    expect(manager).toContain("setCategoryPanelOpen(true)");
+    expect(categories).toContain('open ? "z-50" : "z-0"');
+  });
+
   it("keeps the customer-facing set total and individual components together through catalog and purchase flows", () => {
     const detail = source("client/src/components/ProductDetailScreen.tsx");
     const list = source("client/src/pages/PurchaseList.tsx");

@@ -953,3 +953,9 @@
 - [x] Let VIP users select one of the three uploaded 李瀛 reference models with EN/KO/ZH descriptions before entering the existing clothing, pose, background, and AI fitting flow.
 - [x] Pass the selected model's current uploaded image to the existing VIP fitting request and preserve selection through the flow without altering product, pose, or background behavior.
 - [x] Add authorization, storage, missing-image, selected-reference handoff, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
+
+## Product-type selection and creation in edit mode
+- [x] Make the managed product-type selector available in existing-product edit mode, with the current type preselected and all active types selectable.
+- [x] Let the owner add a new managed product type from edit mode and select it immediately without discarding the edit draft.
+- [x] Persist the selected edited product type while preserving the stable base category and existing sizing, fit, price, set-product, image, and pricing data.
+- [ ] Add edit-mode category selection/creation regression coverage; verify EN/KO/ZH UI, tests, build, checkpoint, and publish.
