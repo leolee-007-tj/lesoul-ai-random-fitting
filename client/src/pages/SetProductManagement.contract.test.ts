@@ -25,6 +25,18 @@ describe("set-product manager contract", () => {
     expect(categories).toContain('open ? "z-50" : "z-0"');
   });
 
+  it("opens a Korean category form with a measurement checklist and keeps saving usable if translation is unavailable", () => {
+    const categories = source("client/src/components/CategoryManagementPanel.tsx");
+    const fitManager = source("client/src/pages/ProductFitManager.tsx");
+    expect(categories).toContain("useEffect(() => { if (open) startCreate(); }, [open])");
+    expect(categories).toContain("translateCustomerText.useMutation");
+    expect(categories).toContain("name: \"상품 종류 이름 (한국어)\"");
+    expect(categories).toContain('type="checkbox" checked={draft.measurementFields?.includes(field) ?? false}');
+    expect(categories).toContain("A translation outage must not prevent a Korean owner from creating a usable type.");
+    expect(fitManager).toContain("categoryMeasurementFields(product.displayCategory");
+    expect(fitManager).toContain("relevant(selected).map((key)");
+  });
+
   it("keeps the customer-facing set total and individual components together through catalog and purchase flows", () => {
     const detail = source("client/src/components/ProductDetailScreen.tsx");
     const list = source("client/src/pages/PurchaseList.tsx");

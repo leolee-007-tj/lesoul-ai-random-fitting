@@ -964,3 +964,9 @@
 - [x] Display the current owner-uploaded petite, balanced, and fuller reference images prominently on the VIP model-picker cards.
 - [x] Add clear localized uploaded, missing-image, and selected-model visual states without changing VIP model selection or AI fitting handoff behavior.
 - [x] Add responsive preview and EN/KO/ZH regression coverage; run tests/build, checkpoint, and publish.
+
+## Product-type creation and measurement checklist repair
+- [x] Diagnose and repair the owner product-type add action so the category form opens and saves instead of failing silently.
+- [x] Require a Korean product-type name, automatically create EN/ZH display values, and allow the current UI language to show the localized saved name.
+- [x] Provide an explicit checklist of required garment measurements during type creation and ensure only the selected fields appear in later Fit Manager inputs.
+- [ ] Add creation, translation fallback, measurement checklist, Fit Manager handoff, EN/KO/ZH, regression, build, checkpoint, and publish verification.
