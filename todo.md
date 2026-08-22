@@ -994,4 +994,4 @@
 ## Dashboard-only product-type creation
 - [x] Remove the “Add product type” button and nested type-creation form from both new-product and existing-product modals.
 - [x] Keep product modals limited to selecting existing active types, with all type creation and measurement-list management available only through the owner dashboard Categories & Fit Fields entry.
-- [ ] Add dashboard-only entry-point regression coverage; run tests/build, checkpoint, and publish.
+- [x] Add dashboard-only entry-point regression coverage; run tests/build, checkpoint, and publish.
