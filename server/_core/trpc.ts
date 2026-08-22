@@ -47,6 +47,10 @@ const requireUser = t.middleware(async opts => {
 
 export const protectedProcedure = t.procedure.use(requireUser);
 
+export function isPrimaryOperator(user: NonNullable<TrpcContext["user"]>) {
+  return Boolean((ENV.ownerOpenId && user.openId === ENV.ownerOpenId) || (user.role === "admin" && user.isPrimaryAdmin));
+}
+
 export const trialStoreSessionProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
@@ -104,7 +108,7 @@ export const adminProcedure = t.procedure.use(
 export const ownerProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
-    const isOwner = Boolean(ctx.user && ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId);
+    const isOwner = Boolean(ctx.user && isPrimaryOperator(ctx.user));
     if (!ctx.user || (ctx.user.role !== "admin" && !isOwner)) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
@@ -117,7 +121,7 @@ export const ownerProcedure = t.procedure.use(
 export const ownerOnlyProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
-    const isOwner = Boolean(ctx.user && ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId);
+    const isOwner = Boolean(ctx.user && isPrimaryOperator(ctx.user));
     if (!isOwner || !ctx.user) throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     if (ctx.user.role === "admin") await ensureActiveAdministratorTrial(ctx.user.id);
     return next({ ctx: { ...ctx, user: ctx.user } });

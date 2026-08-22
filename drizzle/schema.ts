@@ -13,6 +13,8 @@ export const users = mysqlTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "vip", "admin", "store_trial"]).default("user").notNull(),
   isActive: int("isActive").default(1).notNull(),
+  /** Exactly one password-based administrator can be designated as the primary operator. */
+  isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull(),
   /** Password-based administrator trial begins independently on that account's first protected console visit. */
   adminTrialStartedAt: timestamp("adminTrialStartedAt"),
   adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),

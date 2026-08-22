@@ -4,7 +4,7 @@ import { z } from "zod";
 import { aiAccessBlocks, aiUsageEvents, productShareVisits, products, redeemCodes, releaseSettings, trialStoreProducts, trialStores, users, visitorEntitlements } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getCentralEntitlement, getCentralSettings } from "../aiUsageController";
-import { ownerOnlyProcedure, ownerProcedure, router } from "../_core/trpc";
+import { isPrimaryOperator, ownerOnlyProcedure, ownerProcedure, router } from "../_core/trpc";
 import { ENV } from "../_core/env";
 import { hashVipPassword, normalizeVipUsername } from "../vipAccess";
 import { anonymousNickname } from "../../shared/anonymousNickname";
@@ -80,7 +80,7 @@ export const operationsRouter = router({
     const visitorAggregates = Array.from(usageByVisitor.entries()).filter(([visitorId]) => !visitorId.startsWith("account:")).map(([visitorId, usage]) => ({ kind: "visitor" as const, visitorId, user: { id: null, openId: null, username: null, name: anonymousNickname(visitorId, input.locale), email: null, role: "user", isActive: 1, createdAt: null, lastSignedIn: null }, aiRequestCount: usage.length, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: false, generationAllowance: null, generationUsed: null, entitlementExpiresAt: null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null }));
     return { accounts, visitors: visitorAggregates };
   }),
-  ownerStatus: ownerProcedure.query(({ ctx }) => ({ isOwner: Boolean(ENV.ownerOpenId && ctx.user.openId === ENV.ownerOpenId) })),
+  ownerStatus: ownerProcedure.query(({ ctx }) => ({ isOwner: isPrimaryOperator(ctx.user) })),
   setUserAccess: ownerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), isBlocked: z.boolean(), reason: z.string().trim().max(240).optional() })).mutation(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");

@@ -879,3 +879,9 @@
 - [x] Trace selected-file previews, upload payload preparation, storage upload behavior, and product image rendering to identify the remaining cause of blurred images.
 - [x] Remove or correct the fidelity-reducing transformation while preserving original file quality, orientation, and standard upload safety validation.
 - [x] Add regression coverage and verify selected preview, stored URL, four-slot product display, and isolated trial-store display before checkpoint and publish.
+
+## Owner account-management access repair
+- [x] Diagnose the owner account-management route, owner-status query, administrator trial gate, and loading/error handling that prevent the project owner from opening the tab.
+- [x] Repair owner access without loosening the existing non-owner restrictions for NORMAL, VIP, ADMIN, and STORE TRIAL accounts.
+- [x] Add access-path regression coverage, verify the owner UI and non-owner restriction, run tests/build, checkpoint, and publish.
+- [x] Add a single designated primary password-ADMIN identity so the user's intended administrator login can access owner-only account management without granting the same access to ordinary ADMIN accounts.
