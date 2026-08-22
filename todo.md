@@ -928,4 +928,4 @@
 - [x] Keep the set's outer price as the combined customer-facing price, while recording and validating its individual component prices inside the set.
 - [x] Add owner Product Manager controls to create, edit, add, remove, and reorder two or more set components without duplicating ordinary standalone products.
 - [x] Show a clear set badge and combined price in catalog cards, and show localized component garments with individual prices in the set product detail and purchase-list views.
-- [ ] Add EN/KO/ZH regression tests for set persistence, discount calculation on the set total, component display, purchase behavior, mobile UI, TypeScript, production build, checkpoint, and publish.
+- [x] Add EN/KO/ZH regression tests for set persistence, discount calculation on the set total, component display, purchase behavior, mobile UI, TypeScript, production build, checkpoint, and publish.
