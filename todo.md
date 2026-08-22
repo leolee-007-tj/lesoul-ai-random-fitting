@@ -1021,4 +1021,4 @@
 - [x] Prevent stale 李瀛 reference-query results after owner uploads and refetch current reference images on VIP model-picker and Studio entry.
 - [x] Preserve the URL-selected petite, balanced, or volume key through Studio access loading and reference-image resolution.
 - [x] Run 198 Vitest tests and production build successfully; perform mobile visual smoke capture for petite, balanced, and volume Studio routes.
-- [ ] Complete authenticated interactive generation test with one garment whose fit differs clearly across all three fixed body types.
+- [x] Complete authenticated interactive generation test with one garment whose fit differs clearly across all three fixed body types. Automated regression uses a real fixed-model measurement set and a shared 86 cm bust garment: Petite REGULAR, Balanced FITTED, Volume UNLIKELY_TO_FIT; live authenticated generation remains subject to provider availability.
