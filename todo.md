@@ -853,3 +853,8 @@
 - [x] Remove the central pure-white processing setting and all Release Control, Product Manager, review, and quality-warning UI related to this credit-consuming feature.
 - [x] Remove the server generation route and supporting imports so no app flow can invoke pure-white AI image generation, while retaining normal product image upload and existing approved images.
 - [x] Add regression coverage, verify ordinary product image management, run tests/build, checkpoint, and publish the removal.
+
+## Product image upload compression
+- [x] Add a reusable browser-side product image compression helper that preserves aspect ratio, prevents unwanted upscaling, and converts large camera uploads to optimized WebP or JPEG files before upload.
+- [x] Apply compression consistently to front, back, detail, and bulk-tray assignments while preserving the existing four-slot product image workflow.
+- [x] Show localized compression/upload feedback, add deterministic regression coverage for compression decisions, verify product management, run tests/build, checkpoint, and publish.
