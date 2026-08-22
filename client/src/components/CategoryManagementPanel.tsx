@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Check, ChevronDown, GripVertical, Languages, LoaderCircle, Pencil, Plus, Ruler, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { defaultMeasurementFields, MEASUREMENT_FIELD_KEYS, moveMeasurementField, reorderMeasurementFields, type MeasurementFieldKey } from "@shared/categoryMeasurementFields";
 
@@ -16,7 +16,7 @@ const fieldCopy: Record<Locale, Record<MeasurementFieldKey, string>> = {
   zh: { shoulderCm: "肩宽", bustCm: "胸围", waistCm: "腰围", hipCm: "臀围", sleeveCm: "袖长", totalLengthCm: "衣长", riseCm: "前裆", thighCm: "大腿围", inseamCm: "内腿长" },
 };
 
-export default function CategoryManagementPanel({ locale, categories, open, onOpenChange, onCreated }: { locale: Locale; categories: ManagedCategory[]; open: boolean; onOpenChange: (next: boolean) => void; onCreated?: (category: ManagedCategory) => void }) {
+export default function CategoryManagementPanel({ locale, categories, open, onOpenChange, onCreated, autoStartCreate = false }: { locale: Locale; categories: ManagedCategory[]; open: boolean; onOpenChange: (next: boolean) => void; onCreated?: (category: ManagedCategory) => void; autoStartCreate?: boolean }) {
   const copy = locale === "ko"
     ? { title: "상품 종류 · 치수 항목 관리", add: "상품 종류 추가", name: "상품 종류 이름 (한국어)", auto: "상품 종류는 한국어로 입력하세요. 저장하면 영어·중국어 이름이 자동으로 만들어지고, 시스템 언어에 맞게 표시됩니다.", base: "기본 대분류", active: "활성", inactive: "비활성", order: "정렬 순서", save: "저장 및 자동 번역", cancel: "취소", edit: "수정", fields: "나중에 입력할 실제 의류 치수", fieldsHelp: "아래에서 체크한 항목만 이 종류 상품의 핏 정보 입력 화면에 표시됩니다.", dragHelp: "선택한 항목을 길게 눌러 드래그하면 입력 순서를 바꿀 수 있습니다.", fieldsOpen: "치수 항목", fieldsSave: "치수 항목 저장", used: "이 분류를 사용하는 상품 {{count}}개", inactiveNote: "사용 중인 분류는 삭제하지 않고 비활성화합니다.", empty: "등록된 상품 종류가 없습니다.", required: "한국어 상품 종류 이름을 입력하세요.", chooseOne: "실측 항목을 하나 이상 체크하세요.", saved: "상품 종류와 치수 항목을 저장했습니다." }
     : locale === "zh"
@@ -37,6 +37,7 @@ export default function CategoryManagementPanel({ locale, categories, open, onOp
   const updateDraft = (next: Partial<Draft>) => setDraft((current) => ({ ...current, ...next }));
   const reset = () => { setCreating(false); setEditingId(null); setDraft(emptyDraft()); setMessage(""); };
   const startCreate = () => { reset(); setCreating(true); };
+  useEffect(() => { if (open && autoStartCreate) startCreate(); }, [open, autoStartCreate]);
   const startEdit = (item: ManagedCategory) => { setCreating(true); setEditingId(item.id); setDraft({ nameEn: item.nameEn, nameKo: item.nameKo, nameZh: item.nameZh, baseCategory: item.baseCategory, measurementFields: item.measurementFields?.length ? item.measurementFields : defaultMeasurementFields(item.baseCategory), isActive: item.isActive, sortOrder: item.sortOrder }); setMessage(""); };
   const openFields = (item: ManagedCategory) => { setMeasurementCategory(item); setMeasurementFields(item.measurementFields?.length ? item.measurementFields : defaultMeasurementFields(item.baseCategory)); setMessage(""); };
   const toggleField = (field: MeasurementFieldKey) => setMeasurementFields((current) => current.includes(field) ? (current.length === 1 ? current : current.filter((value) => value !== field)) : [...current, field]);

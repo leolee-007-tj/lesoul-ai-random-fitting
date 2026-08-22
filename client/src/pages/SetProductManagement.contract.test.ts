@@ -48,6 +48,16 @@ describe("set-product manager contract", () => {
     expect(productManager).toContain('onClick={() => setCategoryPanelOpen(true)}');
   });
 
+  it("opens product-type creation visibly above the active product modal and retains the draft after creation", () => {
+    const productManager = source("client/src/pages/ProductManagerV2.tsx");
+    const categories = source("client/src/components/CategoryManagementPanel.tsx");
+    expect(productManager).toContain('categoryPanelOpen && <div className="lesoul-safe-modal z-50 overflow-y-auto">');
+    expect(productManager).toContain("autoStartCreate");
+    expect(productManager).toContain("displayCategoryId: category.id");
+    expect(categories).toContain("autoStartCreate = false");
+    expect(categories).toContain("if (open && autoStartCreate) startCreate()");
+  });
+
   it("keeps the customer-facing set total and individual components together through catalog and purchase flows", () => {
     const detail = source("client/src/components/ProductDetailScreen.tsx");
     const list = source("client/src/pages/PurchaseList.tsx");
