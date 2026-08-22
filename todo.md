@@ -984,4 +984,4 @@
 ## Visible product-modal product-type creation
 - [x] Make the in-product-modal “Add product type” button open the Korean type-name and measurement-checklist form visibly above the active add/edit modal.
 - [x] Preserve the current product draft and select the newly created type immediately after saving.
-- [ ] Add modal visibility, creation handoff, draft preservation regression coverage; run tests/build, checkpoint, and publish.
+- [x] Add modal visibility, creation handoff, draft preservation regression coverage; run tests/build, checkpoint, and publish.
