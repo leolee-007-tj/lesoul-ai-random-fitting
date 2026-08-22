@@ -30,11 +30,14 @@ describe("unified owner account management", () => {
 
   it("uses friendly display names instead of visitor, VIP, and trial technical identifiers", () => {
     const page = source("client/src/pages/AccountManagement.tsx");
+    const dashboard = source("client/src/pages/OperationsDashboard.tsx");
     const operations = source("server/routers/operations.ts");
     const vip = source("client/src/components/VipAccountManager.tsx");
     const trial = source("client/src/components/TrialStoreManager.tsx");
     expect(page).toContain("visitor.displayName || visitor.user?.name");
     expect(page).not.toContain("visitor.nickname || visitor.visitorId");
+    expect(dashboard).toContain("person.displayName || person.user?.name || person.user?.email || copy.normalUser");
+    expect(dashboard).not.toContain("person.user?.name || person.user?.email || person.visitorId");
     expect(operations).toContain("displayName: anonymousNickname(visitorId, input.locale)");
     expect(vip).toContain('account.displayName || account.user.name || t("vipAdmin.title")');
     expect(trial).toContain("store.displayName || copy.operator");

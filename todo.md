@@ -941,3 +941,8 @@
 - [x] Add an owner-only manual paid-access extension that sets a trial store expiry by 1, 3, 6, or 12 months, or by a specified end date, without exposing payment processing or altering production-store isolation.
 - [x] Ensure an extension reactivates the selected trial workspace without deleting its existing trial-store data, while the existing expiry cleanup still applies after the new end date.
 - [x] Add owner authorization, date-calculation, expiry-lifecycle, filter/sort, EN/KO/ZH, responsive UI, regression, build, checkpoint, and publish verification.
+
+## User-management nickname consistency
+- [x] Replace technical-looking names and identifiers in every owner User Management list and summary card with the same localized role-appropriate display names used in Account Management.
+- [x] Ensure NORMAL visitor, VIP, and STORE_TRIAL display names remain recognizable and consistent across both owner management surfaces without exposing internal identifiers.
+- [ ] Add regression coverage, verify EN/KO/ZH owner UI behavior, run tests/build, checkpoint, and publish.
