@@ -28,6 +28,7 @@ import Profile from "./pages/Profile";
 import PublicIntroduction from "./pages/PublicIntroduction";
 import TrialStoreConsole from "./pages/TrialStoreConsole";
 import AccountManagement from "./pages/AccountManagement";
+import SaleSettings from "./pages/SaleSettings";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -52,6 +53,7 @@ function Router() {
       <Route path={"/purchase-notices"} component={() => <AdminGate><PurchaseNoticeManager /></AdminGate>} />
       <Route path={"/operations"} component={() => <AdminGate><OperationsDashboard /></AdminGate>} />
       <Route path={"/account-management"} component={() => <AdminGate><AccountManagement /></AdminGate>} />
+      <Route path={"/sale-settings"} component={() => <AdminGate><SaleSettings /></AdminGate>} />
       <Route path={"/outfit-management"} component={() => <AdminGate><OutfitManager /></AdminGate>} />
       <Route path={"/style-match"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/result-preview"} component={() => <CustomerGate><ResultPreview /></CustomerGate>} />

@@ -897,3 +897,8 @@
 - [x] Add owner controls to enable one sale format at a time and show the active policy in EN/KO/ZH, including ZH 折 display.
 - [x] Apply the effective price and quantity discount across catalog, detail, purchase list, purchase QR card, product share card, and all customer tiers without duplicating limit logic.
 - [x] Add deterministic pricing, rounding, localization, seasonal override, and UI regression tests; verify build, checkpoint, and publish.
+
+## Dedicated storewide sale settings control
+- [x] Add a clearly named owner-only Sale Settings button in administrator operations that opens the centralized pricing policy selector.
+- [x] Clearly state that selecting Base, Season Format 1, Season Format 2, or Season Format 3 immediately changes the effective discount for every customer-facing product price.
+- [x] Add owner-only navigation and active-policy regression coverage, verify desktop/mobile UI, run tests/build, checkpoint, and publish.
