@@ -15,13 +15,12 @@ describe("set-product manager contract", () => {
     expect(manager).toContain("priceReadOnly={draft.productType === \"SET\"}");
   });
 
-  it("keeps product-type selection and new-category creation available while editing an existing product", () => {
+  it("keeps product-type selection and dedicated category creation available while editing an existing product", () => {
     const manager = source("client/src/pages/ProductManagerV2.tsx");
     const categories = source("client/src/components/CategoryManagementPanel.tsx");
     expect(manager).toContain("displayCategoryId: item.displayCategoryId ?? null");
-    expect(manager).toContain('event.target.value === "__add_category__"');
-    expect(manager).toContain('value="__add_category__"');
     expect(manager).toContain("setCategoryPanelOpen(true)");
+    expect(manager).not.toContain("__add_category__");
     expect(categories).toContain('open ? "z-50" : "z-0"');
   });
 
@@ -41,6 +40,12 @@ describe("set-product manager contract", () => {
     expect(categories).toContain('!creating && !editingId && <button type="button" onClick={startCreate}');
     expect(categories).not.toContain('justify-between gap-2"><p className="text-[11px] leading-5 text-[#746d64]">{copy.inactiveNote}</p><button type="button" onClick={startCreate}');
     expect(categories).not.toContain("useEffect(() => { if (open) startCreate(); }, [open])");
+  });
+
+  it("does not expose category creation as a product edit dropdown option", () => {
+    const productManager = source("client/src/pages/ProductManagerV2.tsx");
+    expect(productManager).not.toContain("__add_category__");
+    expect(productManager).toContain('onClick={() => setCategoryPanelOpen(true)}');
   });
 
   it("keeps the customer-facing set total and individual components together through catalog and purchase flows", () => {

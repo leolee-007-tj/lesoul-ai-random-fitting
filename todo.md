@@ -975,3 +975,8 @@
 - [x] Remove the in-list product-type add control so existing categories are shown only as a list.
 - [x] Keep one bottom “Add new product type” button that alone opens the Korean-name and measurement-checklist form.
 - [x] Add placement/behavior regression coverage; run tests/build, checkpoint, and publish.
+
+## Remove product-type creation from edit dropdown
+- [x] Remove the “Add new product type” action option from the existing-product type dropdown.
+- [x] Keep the dropdown limited to existing active managed types and direct creation only to the dedicated bottom button.
+- [ ] Add dropdown-content regression coverage; run tests/build, checkpoint, and publish.
