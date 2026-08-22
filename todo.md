@@ -970,3 +970,8 @@
 - [x] Require a Korean product-type name, automatically create EN/ZH display values, and allow the current UI language to show the localized saved name.
 - [x] Provide an explicit checklist of required garment measurements during type creation and ensure only the selected fields appear in later Fit Manager inputs.
 - [x] Add creation, translation fallback, measurement checklist, Fit Manager handoff, EN/KO/ZH, regression, build, checkpoint, and publish verification.
+
+## Single bottom product-type add button
+- [x] Remove the in-list product-type add control so existing categories are shown only as a list.
+- [x] Keep one bottom “Add new product type” button that alone opens the Korean-name and measurement-checklist form.
+- [ ] Add placement/behavior regression coverage; run tests/build, checkpoint, and publish.
