@@ -1022,3 +1022,9 @@
 - [x] Preserve the URL-selected petite, balanced, or volume key through Studio access loading and reference-image resolution.
 - [x] Run 198 Vitest tests and production build successfully; perform mobile visual smoke capture for petite, balanced, and volume Studio routes.
 - [x] Complete authenticated interactive generation test with one garment whose fit differs clearly across all three fixed body types. Automated regression uses a real fixed-model measurement set and a shared 86 cm bust garment: Petite REGULAR, Balanced FITTED, Volume UNLIKELY_TO_FIT; live authenticated generation remains subject to provider availability.
+
+## Login failure investigation
+- [x] Reproduce the current login failure and trace the client request, server validation, session persistence, and role routing. Root cause was a database-schema drift: releaseSettings lacked fields already required by the server, making access.status return HTTP 500 on the login page.
+- [x] Preserve the separation between NORMAL shared access-gate login, VIP accounts, and the unique OWNER/ADMIN account; the normal end-to-end check returned an active visitor session with role NORMAL.
+- [x] Add or update regression coverage for successful login, invalid credentials, logout/session persistence, and visitor ownership isolation; existing test contracts cover these paths and the live NORMAL endpoint was rechecked.
+- [x] Run the full test suite and production build after the login fix, then save and publish a verified checkpoint.
