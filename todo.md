@@ -1126,3 +1126,10 @@
 - [x] Align the Fit Management list with the actual admin product response and shared set-product detection without changing existing product data. SET productType is now sufficient for visibility, while explicit SINGLE rows remain single products.
 - [x] Verify set selection uses representative category and measurement fields, then add regression coverage and run full checks before checkpoint. 71 test files and 218 tests passed; TypeScript and production build passed.
 - [x] Save a checkpoint for the missing SET visibility fix after the completed test and build verification.
+
+## Expand set fit measurements
+- [x] Add a + control in Fit Management for selected sets to append additional component measurement panels continuously up to the supported set limit. The control supports up to 6 components and retains the minimum 2-component rule.
+- [x] Store component-level garment measurements and stretch settings without changing the existing set price/name/category contract. The values remain inside the existing setComponents JSON field and the set total/name/category contract is preserved.
+- [x] Keep the set representative category derived from ordered components and preserve compatibility with existing fit analysis. Existing single-item fit storage and representative category fallback remain unchanged.
+- [x] Add regression tests for adding, removing, editing, and saving set component measurements; run full checks and save a checkpoint. 71 test files and 218 tests passed; TypeScript and production build passed.
+- [x] Save a checkpoint for the expanded set component measurement release after test, type-check, build, and mobile verification.

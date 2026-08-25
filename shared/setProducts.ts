@@ -1,3 +1,5 @@
+import type { GarmentMeasurements, StretchLevel } from "./fitEngine";
+
 export const SET_COMPONENT_CATEGORIES = ["top", "bottom", "outer", "dress", "shoes", "bag"] as const;
 
 export type SetComponentCategory = (typeof SET_COMPONENT_CATEGORIES)[number];
@@ -11,6 +13,8 @@ export type SetProductComponent = {
   nameKo?: string | null;
   nameZh?: string | null;
   price: number;
+  garmentMeasurements?: GarmentMeasurements | null;
+  stretchLevel?: StretchLevel | null;
 };
 
 export type SetAwareProduct = {

@@ -31,7 +31,10 @@ describe("set-product manager contract", () => {
     expect(fitManager).toContain('useState<"all" | "single" | "set">("all")');
     expect(fitManager).toContain('productFilter === "set" ? isSetProduct(product)');
     expect(fitManager).toContain("representativeSetCategory(product.setComponents");
-    expect(fitManager).toContain("categoryMeasurementFields(isSetProduct(product)");
+    expect(fitManager).toContain("categoryMeasurementFields(");
+    expect(fitManager).toContain("componentDrafts.length >= MAX_SET_COMPONENTS");
+    expect(fitManager).toContain("onClick={addComponent}");
+    expect(fitManager).toContain("setComponents: componentDrafts.map");
   });
 
   it("opens a Korean category form with a measurement checklist and keeps saving usable if translation is unavailable", () => {
@@ -41,8 +44,8 @@ describe("set-product manager contract", () => {
     expect(categories).toContain("name: \"상품 종류 이름 (한국어)\"");
     expect(categories).toContain('type="checkbox" checked={draft.measurementFields?.includes(field) ?? false}');
     expect(categories).toContain("A translation outage must not prevent a Korean owner from creating a usable type.");
-    expect(fitManager).toContain("categoryMeasurementFields(isSetProduct(product)");
-    expect(fitManager).toContain("relevant(selected).map((key)");
+    expect(fitManager).toContain("const fieldsFor = (category: CoreCategory)");
+    expect(fitManager).toContain("renderFields(measurements, category");
   });
 
   it("keeps category creation out of the list and exposes one bottom add button", () => {
