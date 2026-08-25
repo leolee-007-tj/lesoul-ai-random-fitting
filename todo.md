@@ -1034,3 +1034,9 @@
 - [x] Fix the exact remaining browser/deployment/session issue while keeping NORMAL, VIP, and OWNER login paths isolated. The server confirmed login and issued the cookie, but the client awaited cache invalidation before navigation; it now navigates immediately and refreshes auth queries in the background.
 - [x] Add regression coverage for the reproduced browser failure and verify the real preview flow. Added Login.contract.test.ts and confirmed the current browser session reaches Home after NORMAL login.
 - [x] Run full checks and save a new verified checkpoint. 200 tests, TypeScript check, and production build passed.
+
+## Products query failure on Home
+- [x] Reproduce the products query failure and compare the live products table with drizzle/schema.ts. The live database was missing productType, setComponents, normalDiscountPercent, and vipDiscountPercent; the exact ORM error was Unknown column 'producttype' in field list.
+- [x] Add only the missing products columns with schema-compatible defaults, preserving existing catalog, pricing, and image data. Added the four missing columns with SINGLE/17/20 defaults and nullable JSON setComponents.
+- [x] Add or update regression coverage for catalog loading and run the full test suite and production build. Existing catalog contracts plus direct catalog.bootstrap verification passed; 200 tests, TypeScript, and build passed.
+- [x] Verify Home catalog rendering and save a new checkpoint. Home renders normally in preview and catalog.bootstrap returns HTTP 200 with products.
