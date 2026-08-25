@@ -75,7 +75,10 @@ export function resolveCatalogDisplay<T extends PresentationProduct>(products: T
     const manualScale = validDisplayScale(product.catalogDisplay?.manualScale);
     const objectPositionX = clamp(product.catalogDisplay?.objectPositionX ?? 50, 0, 100);
     const objectPositionY = clamp(product.catalogDisplay?.objectPositionY ?? 50, 0, 100);
-    return { ...product, catalogDisplay: { manualScale, autoScale, effectiveScale: manualScale ?? autoScale, objectPositionX, objectPositionY, measurementKey: physical.key, measurementCm: physical.centimeters, categoryMedianCm } };
+    // Catalog cards use contain rendering; never enlarge a source image past its
+    // natural bounds, otherwise a valid object-position can still crop the garment.
+    const effectiveScale = Math.min(manualScale ?? autoScale, 1);
+    return { ...product, catalogDisplay: { manualScale, autoScale, effectiveScale, objectPositionX, objectPositionY, measurementKey: physical.key, measurementCm: physical.centimeters, categoryMedianCm } };
   });
 }
 

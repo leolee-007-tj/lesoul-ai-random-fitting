@@ -1107,3 +1107,9 @@
 - [x] Inspect server, browser-console, and network logs for failed API, cookie, redirect, or deployment requests. Auth API responses were healthy, and explicit logout returned active:false with no matching runtime 500.
 - [x] Apply the smallest safe fix without deleting visitor, VIP, trial-store, or owner data. Added the connected Google/Manus owner login button to the ADMIN tab; existing ID/password, VIP, store-trial, visitor, and owner data remain unchanged.
 - [x] Add regression coverage and run full tests, type-check, production build, mobile verification, and checkpoint. 70 test files and 214 tests passed; TypeScript and production build passed; mobile ADMIN UI was verified in the preview.
+
+## Complete product image display
+- [x] Reproduce the image cropping path in BrowseProducts, ProductDetailScreen, and trial-store catalog cards.
+- [x] Prevent catalog display scale from enlarging source images beyond 100% and use object-contain for complete garment visibility.
+- [x] Add regression coverage for browse, detail, trial-store, and scale behavior; verify mobile catalog rendering and run the full test/build suite.
+- [x] Save a checkpoint for the complete product image display release.
