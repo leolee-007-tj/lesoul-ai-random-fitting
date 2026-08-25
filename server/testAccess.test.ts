@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTestAccessToken, isValidVisitorId, verifyTestLogin } from "./testAccess";
+import { createTestAccessToken, isValidVisitorId, readPersistedVisitorId, verifyTestLogin, VISITOR_ID_COOKIE } from "./testAccess";
 
 describe("shared test access", () => {
   it("validates the configured shared credential on the server and rejects invalid credentials", () => {
@@ -12,5 +12,11 @@ describe("shared test access", () => {
     expect(isValidVisitorId(visitorId)).toBe(true);
     expect(createTestAccessToken(visitorId)).toContain(".");
     expect(isValidVisitorId("ko")).toBe(false);
+  });
+
+  it("recovers a valid visitor identifier from the non-authentication cookie", () => {
+    const request = { headers: { cookie: `${VISITOR_ID_COOKIE}=visitor_saved_device` } } as any;
+    expect(readPersistedVisitorId(request)).toBe("visitor_saved_device");
+    expect(readPersistedVisitorId({ headers: { cookie: `${VISITOR_ID_COOKIE}=bad` } } as any)).toBeNull();
   });
 });

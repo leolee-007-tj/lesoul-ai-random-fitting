@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
-import { createTestAccessToken, TEST_ACCESS_COOKIE, TEST_ACCESS_MAX_AGE_MS, verifyTestLogin } from "./testAccess";
+import { createTestAccessToken, TEST_ACCESS_COOKIE, TEST_ACCESS_MAX_AGE_MS, verifyTestLogin, VISITOR_ID_COOKIE, VISITOR_ID_MAX_AGE_MS, readPersistedVisitorId } from "./testAccess";
 import { ADMIN_ACCESS_COOKIE, ADMIN_ACCESS_MAX_AGE_MS, createAdminAccessToken, createVipAccessToken, hashVipPassword, normalizeVipUsername, verifyBootstrapSecret, verifyVipPassword, VIP_ACCESS_COOKIE, VIP_ACCESS_MAX_AGE_MS } from "./vipAccess";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
@@ -32,9 +32,14 @@ export const appRouter = router({
       if (!verifyTestLogin(input.username, input.password)) {
         return { success: false as const };
       }
+      const visitorId = readPersistedVisitorId(ctx.req) ?? input.visitorId;
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.cookie(TEST_ACCESS_COOKIE, createTestAccessToken(input.visitorId), { ...cookieOptions, maxAge: TEST_ACCESS_MAX_AGE_MS });
-      return { success: true as const };
+      // Keep identity recovery separate from authentication: logout clears the
+      // access token, but this long-lived cookie preserves the visitor's data
+      // when the browser's local storage is reset.
+      ctx.res.cookie(VISITOR_ID_COOKIE, visitorId, { ...cookieOptions, maxAge: VISITOR_ID_MAX_AGE_MS });
+      ctx.res.cookie(TEST_ACCESS_COOKIE, createTestAccessToken(visitorId), { ...cookieOptions, maxAge: TEST_ACCESS_MAX_AGE_MS });
+      return { success: true as const, visitorId };
     }),
     vipLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
       const db = await getDb();

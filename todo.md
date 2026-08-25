@@ -1046,3 +1046,10 @@
 - [x] Make NORMAL shared access login reliable on mobile browsers without changing VIP or OWNER authentication isolation. The login mutation returns success and the visitor-bound session is recognized in the preview; the latest checkpoint republish is required to refresh the customer-domain edge binding.
 - [x] Add mobile login/session regression coverage and verify visitorId persistence across refresh and language changes. Existing Login.contract.test.ts covers non-blocking navigation; the mobile-width preview session was visually verified.
 - [x] Run the full tests and production build, then save a new checkpoint.
+
+## Reset-safe login and data preservation
+- [x] Trace every reset, logout, visitorId, sessionStorage, localStorage, and server ownership path.
+- [x] Define reset behavior so only the active session is cleared while My Looks, purchase list, AI usage, recommendations, saved looks, and account records remain intact. Logout clears only authentication cookies; the visitor recovery cookie is preserved.
+- [x] Implement re-login recovery with stable visitor identity and preserve language-independent ownership. NORMAL re-login reuses a long-lived server visitor cookie and restores localStorage; purchase requests and lists are owner-scoped.
+- [x] Add regression tests for reset, re-login, logout, visitor ownership isolation, and mobile persistence. Added server visitor-cookie, client scoped-storage, and login contract coverage; 203 tests pass.
+- [x] Run full checks and save a new checkpoint. TypeScript check and production build pass.

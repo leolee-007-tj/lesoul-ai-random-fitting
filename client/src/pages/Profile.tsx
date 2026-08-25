@@ -1,7 +1,7 @@
 import MobileScreen from "@/components/MobileScreen";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { usePurchaseList, type PurchaseListItem } from "@/contexts/PurchaseListContext";
-import { getVisitorId } from "@/lib/visitor";
+import { getClientOwnerId, getScopedStorageKey } from "@/lib/visitor";
 import { readHistory, type LookHistory } from "@/lib/mvpStore";
 import { anonymousNickname } from "@shared/anonymousNickname";
 import { Archive, ArrowRight, Heart, ReceiptText, ShoppingBag, Sparkles } from "lucide-react";
@@ -23,7 +23,8 @@ export default function Profile() {
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const [looks, setLooks] = useState<LookHistory[]>([]);
   const [previousRequest, setPreviousRequest] = useState<PreviousRequest | null>(null);
-  const visitorId = user?.openId ? `account:${user.openId}` : getVisitorId();
+  const visitorId = getClientOwnerId(user?.openId);
+  const requestStorageKey = getScopedStorageKey("lesoulPurchaseRequest", visitorId);
   const displayName = user?.name || anonymousNickname(visitorId, locale);
   const copy = {
     en: { eyebrow: "MY LESOUL", welcome: `${displayName}, welcome back`, vip: "VIP MEMBER", normal: "LESOUL MEMBER", looks: "SAVED LOOKS", interest: "INTERESTED PIECES", purchase: "PREVIOUS PURCHASE REQUEST", noLooks: "No saved looks yet.", noInterest: "Add pieces you love from the catalog.", noPurchase: "Your purchase request will appear here.", viewAll: "View all", explore: "Browse products", create: "Create a LOOK", request: "Open purchase list", requestItems: "items" },
@@ -34,10 +35,10 @@ export default function Profile() {
   useEffect(() => {
     setLooks(readHistory().slice(0, 3));
     try {
-      const raw = localStorage.getItem("lesoulPurchaseRequest");
+      const raw = localStorage.getItem(requestStorageKey);
       setPreviousRequest(raw ? JSON.parse(raw) as PreviousRequest : null);
     } catch { setPreviousRequest(null); }
-  }, []);
+  }, [requestStorageKey]);
 
   const recentInterest = useMemo(() => items.slice(0, 3), [items]);
   const requestItems = previousRequest?.items ?? [];

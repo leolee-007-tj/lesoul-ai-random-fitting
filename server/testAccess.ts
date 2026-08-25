@@ -4,7 +4,10 @@ import type { Request } from "express";
 import { ENV } from "./_core/env";
 
 export const TEST_ACCESS_COOKIE = "lesoul_test_access";
+/** Non-authentication recovery cookie. It preserves NORMAL browser ownership when local storage is reset. */
+export const VISITOR_ID_COOKIE = "lesoul_visitor_id";
 const TEST_ACCESS_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+export const VISITOR_ID_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 365;
 
 export type TestAccessSession = {
   visitorId: string;
@@ -43,6 +46,11 @@ export function isValidVisitorId(visitorId: string) {
 export function verifyTestLogin(username: string, password: string) {
   const configured = configuredLogin();
   return Boolean(configured.username && configured.password && equal(username, configured.username) && equal(password, configured.password));
+}
+
+export function readPersistedVisitorId(req: Request) {
+  const value = parseCookieHeader(req.headers.cookie ?? "")[VISITOR_ID_COOKIE];
+  return value && isValidVisitorId(value) ? value : null;
 }
 
 export function createTestAccessToken(visitorId: string, now = Date.now()) {

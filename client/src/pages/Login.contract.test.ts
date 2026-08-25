@@ -7,6 +7,7 @@ describe("login navigation", () => {
   it("navigates immediately after the server confirms login", () => {
     expect(source).toContain("void utils.auth.testSession.invalidate().catch(() => undefined);");
     expect(source).toContain("void utils.auth.me.invalidate().catch(() => undefined);");
+    expect(source).toContain("restoreVisitorId(result.visitorId);");
     expect(source).not.toContain("await utils.auth.testSession.invalidate();");
     expect(source).not.toContain("await utils.auth.me.invalidate();");
   });

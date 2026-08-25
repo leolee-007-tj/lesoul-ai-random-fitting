@@ -1,7 +1,7 @@
 import MobileScreen from "@/components/MobileScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getVisitorId } from "@/lib/visitor";
+import { getVisitorId, restoreVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -31,6 +31,7 @@ export default function Login() {
       if (mode === "normal") {
         const result = await testLogin.mutateAsync({ username, password, visitorId });
         if (!result.success) return setMessage(t("auth.invalid"));
+        restoreVisitorId(result.visitorId);
       } else if (mode === "vip") {
         const result = await vipLogin.mutateAsync({ username, password });
         if (!result.success) return setMessage(result.reason === "inactive" ? t("auth.vipInactive") : t("auth.vipInvalid"));
