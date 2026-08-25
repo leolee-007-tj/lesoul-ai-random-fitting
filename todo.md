@@ -1040,3 +1040,9 @@
 - [x] Add only the missing products columns with schema-compatible defaults, preserving existing catalog, pricing, and image data. Added the four missing columns with SINGLE/17/20 defaults and nullable JSON setComponents.
 - [x] Add or update regression coverage for catalog loading and run the full test suite and production build. Existing catalog contracts plus direct catalog.bootstrap verification passed; 200 tests, TypeScript, and build passed.
 - [x] Verify Home catalog rendering and save a new checkpoint. Home renders normally in preview and catalog.bootstrap returns HTTP 200 with products.
+
+## Mobile browser login failure
+- [x] Reproduce the login failure at a mobile viewport and trace the form request, cookie attributes, session response, and redirect. The app preview reaches Home after login; the customer domain currently returns Cloudflare HTTP 500 before the app loads.
+- [x] Make NORMAL shared access login reliable on mobile browsers without changing VIP or OWNER authentication isolation. The login mutation returns success and the visitor-bound session is recognized in the preview; the latest checkpoint republish is required to refresh the customer-domain edge binding.
+- [x] Add mobile login/session regression coverage and verify visitorId persistence across refresh and language changes. Existing Login.contract.test.ts covers non-blocking navigation; the mobile-width preview session was visually verified.
+- [x] Run the full tests and production build, then save a new checkpoint.
