@@ -1028,3 +1028,9 @@
 - [x] Preserve the separation between NORMAL shared access-gate login, VIP accounts, and the unique OWNER/ADMIN account; the normal end-to-end check returned an active visitor session with role NORMAL.
 - [x] Add or update regression coverage for successful login, invalid credentials, logout/session persistence, and visitor ownership isolation; existing test contracts cover these paths and the live NORMAL endpoint was rechecked.
 - [x] Run the full test suite and production build after the login fix, then save and publish a verified checkpoint.
+
+## Repeated login failure after schema repair
+- [x] Reproduce the failure in the current browser session, including form submission, response, cookie persistence, and post-login navigation. Preview and production both confirmed the server success response; production appeared stuck because the UI waited on cache invalidation.
+- [x] Fix the exact remaining browser/deployment/session issue while keeping NORMAL, VIP, and OWNER login paths isolated. The server confirmed login and issued the cookie, but the client awaited cache invalidation before navigation; it now navigates immediately and refreshes auth queries in the background.
+- [x] Add regression coverage for the reproduced browser failure and verify the real preview flow. Added Login.contract.test.ts and confirmed the current browser session reaches Home after NORMAL login.
+- [x] Run full checks and save a new verified checkpoint. 200 tests, TypeScript check, and production build passed.

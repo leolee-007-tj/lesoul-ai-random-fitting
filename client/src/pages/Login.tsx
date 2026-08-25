@@ -41,8 +41,11 @@ export default function Login() {
         const result = await trialLogin.mutateAsync({ username, password });
         if (!result.success) return setMessage(result.reason === "inactive" ? trialText.inactive : trialText.invalid);
       }
-      await utils.auth.testSession.invalidate();
-      await utils.auth.me.invalidate();
+      // The auth mutation has already set the secure cookie. Do not block navigation
+      // on a cache refetch: a slow/blocked refetch made the successful login look stuck
+      // on the production domain. The destination route re-reads the session itself.
+      void utils.auth.testSession.invalidate().catch(() => undefined);
+      void utils.auth.me.invalidate().catch(() => undefined);
       navigate(mode === "admin" ? "/operations" : mode === "trial" ? "/trial-store" : next.startsWith("/") ? next : "/");
     } catch {
       setMessage(t("auth.unavailable"));
