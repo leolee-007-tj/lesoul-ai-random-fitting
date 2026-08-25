@@ -22,7 +22,6 @@ import PurchaseList from "./pages/PurchaseList";
 import OperationsDashboard from "./pages/OperationsDashboard";
 import StyleMatch from "./pages/StyleMatch";
 import Login from "./pages/Login";
-import AdminSetup from "./pages/AdminSetup";
 import OutfitManager from "./pages/OutfitManager";
 import Profile from "./pages/Profile";
 import PublicIntroduction from "./pages/PublicIntroduction";
@@ -35,7 +34,6 @@ function Router() {
   return (
     <Switch>
       <Route path={"/login"} component={Login} />
-      <Route path={"/setup-admin"} component={AdminSetup} />
       <Route path={"/about"} component={PublicIntroduction} />
       <Route path={"/trial-store"} component={TrialStoreConsole} />
       <Route path={"/"} component={() => <CustomerGate><Home /></CustomerGate>} />

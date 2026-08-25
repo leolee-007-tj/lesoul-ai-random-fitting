@@ -1064,3 +1064,10 @@
 - [x] Generate a strong replacement password and update only the existing primary password-based administrator account.
 - [x] Verify the new administrator login and confirm NORMAL/VIP/OWNER authentication remains isolated.
 - [x] Run the full test suite and production build, then save a checkpoint.
+
+## Credential-free normal entry and owner Google administration
+- [x] Allow NORMAL visitors to enter without an ID/password while creating or retaining one stable browser visitorId for ownership. Added auth.guestLogin and automatic CustomerGate entry.
+- [x] Keep My Looks, purchase list, AI usage, recommendations, and saved data isolated by visitorId for normal visitors and unique userId for VIP/OWNER accounts. Existing scoped ownership remains unchanged.
+- [x] Route the connected Google/Manus owner account as the sole administrator and remove the confusing password-admin login path without deleting existing data. Password-admin records remain intact but are inactive; adminLogin returns owner_oauth_only.
+- [x] Localize the new entry and owner-login states in EN/KO/ZH and add regression coverage for role isolation and redirects. OAuth next-path handling is internal-path-only.
+- [x] Run full checks and save a new checkpoint. 205 tests, TypeScript, and production build pass.

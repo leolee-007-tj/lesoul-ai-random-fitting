@@ -5,13 +5,14 @@ import { resolve } from "node:path";
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("single-owner administrator model", () => {
-  it("allows password admin login only for the designated primary administrator", () => {
+  it("keeps owner OAuth as the only public administrator entry", () => {
     const router = source("server/routers.ts");
     const schema = source("drizzle/schema.ts");
-    expect(router).toContain('account.role !== "admin" || !account.isPrimaryAdmin');
-    expect(router).toContain('isPrimaryAdmin: 1');
-    expect(router).toContain('ctx.res.cookie(ADMIN_ACCESS_COOKIE');
+    const oauth = source("server/_core/oauth.ts");
+    expect(router).toContain('reason: "owner_oauth_only"');
     expect(schema).toContain('isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull()');
+    expect(oauth).toContain("sdk.getUserInfo");
+    expect(oauth).toContain("res.redirect(302, next)");
   });
 
   it("removes secondary admin creation and management from operations and account UI", () => {

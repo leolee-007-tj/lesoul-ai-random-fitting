@@ -28,6 +28,13 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user ? ({ id: opts.ctx.user.id, openId: opts.ctx.user.openId, name: opts.ctx.user.name, email: opts.ctx.user.email, loginMethod: opts.ctx.user.loginMethod, role: opts.ctx.user.role, isActive: opts.ctx.user.isActive, createdAt: opts.ctx.user.createdAt, updatedAt: opts.ctx.user.updatedAt, lastSignedIn: opts.ctx.user.lastSignedIn }) : null),
     testSession: publicProcedure.query(({ ctx }) => ctx.testAccess ? { active: true, visitorId: ctx.testAccess.visitorId } : { active: false, visitorId: null }),
+    guestLogin: publicProcedure.input(z.object({ visitorId: z.string().min(8).max(96) })).mutation(({ ctx, input }) => {
+      const visitorId = readPersistedVisitorId(ctx.req) ?? input.visitorId;
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(VISITOR_ID_COOKIE, visitorId, { ...cookieOptions, maxAge: VISITOR_ID_MAX_AGE_MS });
+      ctx.res.cookie(TEST_ACCESS_COOKIE, createTestAccessToken(visitorId), { ...cookieOptions, maxAge: TEST_ACCESS_MAX_AGE_MS });
+      return { success: true as const, visitorId };
+    }),
     testLogin: publicProcedure.input(z.object({ username: z.string().trim().min(1).max(48), password: z.string().min(1).max(96), visitorId: z.string().min(8).max(96) })).mutation(({ ctx, input }) => {
       if (!verifyTestLogin(input.username, input.password)) {
         return { success: false as const };
@@ -51,16 +58,8 @@ export const appRouter = router({
       ctx.res.cookie(VIP_ACCESS_COOKIE, createVipAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: VIP_ACCESS_MAX_AGE_MS });
       return { success: true as const };
     }),
-    adminLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) throw new Error("ADMIN_LOGIN_UNAVAILABLE");
-      const account = (await db.select().from(users).where(eq(users.username, normalizeVipUsername(input.username))).limit(1))[0];
-      if (!account || account.role !== "admin" || !account.isPrimaryAdmin || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
-      if (!account.isActive) return { success: false as const, reason: "inactive" as const };
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.cookie(ADMIN_ACCESS_COOKIE, createAdminAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: ADMIN_ACCESS_MAX_AGE_MS });
-      return { success: true as const };
-    }),
+    /** Password-admin records remain intact for audit, but the public login path is owner OAuth only. */
+    adminLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(() => ({ success: false as const, reason: "owner_oauth_only" as const })),
     trialStoreLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("TRIAL_STORE_LOGIN_UNAVAILABLE");
