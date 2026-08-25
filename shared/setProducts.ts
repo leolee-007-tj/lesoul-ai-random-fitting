@@ -22,6 +22,11 @@ export function isSetProduct(product: SetAwareProduct) {
   return product.productType === "SET" && Array.isArray(product.setComponents) && product.setComponents.length >= 2;
 }
 
+export function representativeSetCategory(components: readonly Pick<SetProductComponent, "category" | "sortOrder">[] | null | undefined, fallback: SetComponentCategory = "top") {
+  const first = [...(components ?? [])].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  return first?.category ?? fallback;
+}
+
 export function sumSetComponentPrices(components: readonly Pick<SetProductComponent, "price">[] | null | undefined) {
   return Math.round((components ?? []).reduce((total, component) => total + Math.max(0, Number(component.price) || 0), 0));
 }

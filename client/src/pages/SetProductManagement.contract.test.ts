@@ -13,15 +13,25 @@ describe("set-product manager contract", () => {
     expect(manager).toContain("draft.setComponents.length <= 2");
     expect(manager).toContain("sumSetComponentPrices(draft.setComponents)");
     expect(manager).toContain("priceReadOnly={draft.productType === \"SET\"}");
+    expect(manager).toContain("representativeSetCategory(normalized)");
+    expect(manager).toContain("updates.displayCategoryId = matchedCategory.id");
   });
 
   it("keeps product-type selection available while editing an existing product", () => {
     const manager = source("client/src/pages/ProductManagerV2.tsx");
     const categories = source("client/src/components/CategoryManagementPanel.tsx");
-    expect(manager).toContain("displayCategoryId: item.displayCategoryId ?? null");
+    expect(manager).toContain("displayCategoryId: item.displayCategoryId ?? fallbackDisplayCategory");
     expect(manager).not.toContain("CategoryManagementPanel");
     expect(manager).not.toContain("categoryPanelOpen");
     expect(categories).toContain('open ? "z-50" : "z-0"');
+  });
+
+  it("lets Fit Manager filter and select set products using their representative category", () => {
+    const fitManager = source("client/src/pages/ProductFitManager.tsx");
+    expect(fitManager).toContain('useState<"all" | "single" | "set">("all")');
+    expect(fitManager).toContain('productFilter === "set" ? isSetProduct(product)');
+    expect(fitManager).toContain("representativeSetCategory(product.setComponents");
+    expect(fitManager).toContain("categoryMeasurementFields(isSetProduct(product)");
   });
 
   it("opens a Korean category form with a measurement checklist and keeps saving usable if translation is unavailable", () => {
@@ -31,7 +41,7 @@ describe("set-product manager contract", () => {
     expect(categories).toContain("name: \"상품 종류 이름 (한국어)\"");
     expect(categories).toContain('type="checkbox" checked={draft.measurementFields?.includes(field) ?? false}');
     expect(categories).toContain("A translation outage must not prevent a Korean owner from creating a usable type.");
-    expect(fitManager).toContain("categoryMeasurementFields(product.displayCategory");
+    expect(fitManager).toContain("categoryMeasurementFields(isSetProduct(product)");
     expect(fitManager).toContain("relevant(selected).map((key)");
   });
 

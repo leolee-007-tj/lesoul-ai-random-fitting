@@ -1113,3 +1113,10 @@
 - [x] Prevent catalog display scale from enlarging source images beyond 100% and use object-contain for complete garment visibility.
 - [x] Add regression coverage for browse, detail, trial-store, and scale behavior; verify mobile catalog rendering and run the full test/build suite.
 - [x] Save a checkpoint for the complete product image display release.
+
+## Fix set representative category and fit management
+- [x] Reproduce the stale set representative-category path in ProductManagerV2, admin save mutations, and ProductFitManager.
+- [x] Sync a set's representative category to its first ordered component when components change, while preserving explicit display-category selections and existing product data.
+- [x] Add an All / Single / Set filter in Fit Management and calculate set measurement fields from the set representative category with localized labels.
+- [x] Add regression coverage for representative-category sorting, set persistence, Fit Management set selection, and existing category-management contracts. 71 test files and 218 tests passed; TypeScript and production build passed.
+- [x] Save a checkpoint for the set category and Fit Management release.

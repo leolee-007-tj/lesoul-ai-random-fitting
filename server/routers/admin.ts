@@ -11,7 +11,7 @@ import { BASE_CATEGORY_OPTIONS } from "../../shared/productCategories";
 import { MEASUREMENT_FIELD_KEYS } from "../../shared/categoryMeasurementFields";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
-import { SET_COMPONENT_CATEGORIES, sumSetComponentPrices, type SetProductComponent } from "../../shared/setProducts";
+import { representativeSetCategory, SET_COMPONENT_CATEGORIES, sumSetComponentPrices, type SetProductComponent } from "../../shared/setProducts";
 
 const setComponentInput = z.object({
   componentId: z.string().trim().min(1).max(64),
@@ -251,10 +251,11 @@ export const adminRouter = router({
   }),
   createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
     const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
-    const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, input.category);
-    const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
     const { productType: _productType, setComponents: _setComponents, ...productInputFields } = input;
     const setFields = resolveSetFields(input);
+    const representativeCategory = setFields.productType === "SET" ? representativeSetCategory(setFields.setComponents, input.category) : input.category;
+    const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, representativeCategory);
+    const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
     const sale = resolveSaleFields({ ...productInputFields, ...setFields });
     await createAdminProduct({ ...productInputFields, ...setFields, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), isActive: input.isActive ?? 1, availabilityStatus, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
     return { success: true };
@@ -263,11 +264,14 @@ export const adminRouter = router({
     const { id, ...updates } = input;
     const existing = (await getCatalog()).products.find((product) => product.id === id);
     if (!existing) throw new Error("PRODUCT_NOT_FOUND");
-    const categoryLink = updates.displayCategoryId === undefined ? null : await resolveDisplayCategoryId(updates.displayCategoryId, updates.category ?? "top");
     const availabilityStatus = updates.availabilityStatus ? normaliseAvailabilityStatus(updates.availabilityStatus, updates.status) : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
     const { productType: _productType, setComponents: _setComponents, ...productUpdates } = updates;
     const setFields = resolveSetFields(updates, existing);
+    const representativeCategory = setFields.productType === "SET" && setFields.setComponents ? representativeSetCategory(setFields.setComponents, updates.category ?? existing.category) : updates.category ?? existing.category;
+    const refreshSetRepresentative = setFields.productType === "SET" && Boolean(setFields.setComponents);
+    const categoryId = refreshSetRepresentative && updates.displayCategoryId === undefined ? undefined : updates.displayCategoryId ?? existing.displayCategoryId;
+    const categoryLink = updates.displayCategoryId === undefined && !refreshSetRepresentative && updates.category === undefined ? null : await resolveDisplayCategoryId(categoryId, representativeCategory);
     const touchesSale = ["price", "priceOriginal", "discountRate", "priceSale", "saleEnabled"].some((key) => Object.prototype.hasOwnProperty.call(updates, key)) || Object.prototype.hasOwnProperty.call(setFields, "price");
     const sale = touchesSale ? resolveSaleFields({ ...productUpdates, ...setFields }, existing) : {};
     await updateAdminProduct(id, { ...productUpdates, ...setFields, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });

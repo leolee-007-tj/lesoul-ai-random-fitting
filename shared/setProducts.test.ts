@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSetProduct, localizedSetComponentCategory, localizedSetComponentName, sumSetComponentPrices, type SetProductComponent } from "./setProducts";
+import { isSetProduct, localizedSetComponentCategory, localizedSetComponentName, representativeSetCategory, sumSetComponentPrices, type SetProductComponent } from "./setProducts";
 import { resolveCentralPrice } from "./pricingPolicy";
 
 const components: SetProductComponent[] = [
@@ -12,6 +12,11 @@ describe("grouped set products", () => {
     expect(sumSetComponentPrices(components)).toBe(2000);
     expect(isSetProduct({ productType: "SET", setComponents: components })).toBe(true);
     expect(isSetProduct({ productType: "SINGLE", setComponents: components })).toBe(false);
+  });
+
+  it("uses the first ordered component as the representative garment category", () => {
+    expect(representativeSetCategory([{ category: "bottom", sortOrder: 2 }, { category: "outer", sortOrder: 1 }])).toBe("outer");
+    expect(representativeSetCategory([], "dress")).toBe("dress");
   });
 
   it("selects individual garment names and categories for the active locale", () => {
