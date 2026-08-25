@@ -1083,3 +1083,9 @@
 - [x] Repair only the missing schema/query contract while preserving existing visit records and product IDs. Restored the table with its daily unique key and product foreign key; no existing visit rows were altered.
 - [x] Add regression coverage for grouped share-visit counts and Operations dashboard loading. Added grouped-count ranking, stale-product filtering, owner-only procedure, and migration contract coverage.
 - [x] Run full tests and production build, then save a checkpoint. 207 tests passed, TypeScript passed, production build passed, and /operations returned HTTP 200 with productShareAnalytics total 0 and no runtime error.
+
+## Restore VIP and trial-store access
+- [x] Restore VIP and store-trial login/access options without deleting existing accounts or data. Reconnected the existing server-side VIP and trial-store login procedures to the login screen.
+- [x] Restore owner/admin controls for VIP, trial stores, entitlements, and related management screens. Preserved the existing Account Management tabs, VIP account manager, LiYing reference model controls, and Trial Store Manager; also restored the Account Management header menu entry.
+- [x] Verify NORMAL, VIP, trial-store, and OWNER role-specific navigation and localized login states in EN/KO/ZH. Trial accounts route to /trial-store, VIP retains customer navigation plus VIP home access, and owner/admin navigation remains separated.
+- [x] Run regression tests, type-check, production build, and save a checkpoint. 70 test files and 209 tests passed; TypeScript and production build passed.

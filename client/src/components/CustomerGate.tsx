@@ -27,9 +27,11 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
 
   useEffect(() => {
     if (!allowAdmin && !loading && user?.role === "admin" && location !== "/operations") navigate("/operations");
+    if (!loading && user?.role === "store_trial" && location !== "/trial-store") navigate("/trial-store");
   }, [allowAdmin, loading, location, navigate, user?.role]);
 
-  if (loading || !isAuthenticated || guestLogin.isPending || (!allowAdmin && user?.role === "admin")) {
+  const redirectedRole = (!allowAdmin && user?.role === "admin") || (user?.role === "store_trial" && location !== "/trial-store");
+  if (loading || !isAuthenticated || guestLogin.isPending || redirectedRole) {
     return <main className="grid min-h-svh place-items-center bg-[#fbfaf8] text-[#5f574f]"><LoaderCircle className="animate-spin" size={22} /><span className="sr-only">Checking access</span></main>;
   }
   return <>{children}</>;

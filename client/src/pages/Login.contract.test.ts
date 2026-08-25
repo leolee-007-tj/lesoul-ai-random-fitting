@@ -9,16 +9,35 @@ describe("login navigation", () => {
     expect(source).toContain("trpc.auth.guestLogin.useMutation()");
     expect(source).toContain("restoreVisitorId(result.visitorId);");
     expect(source).toContain("t(\"auth.guestSubmit\")");
-    expect(source).toContain("auth.normalTab");
+    expect(source).toContain('item === "normal" ? "normalTab"');
   });
 
-  it("keeps only the administrator credential form", () => {
+  it("restores VIP and store-trial credential entry without changing server-side verification", () => {
+    expect(source).toContain('type LoginMode = "normal" | "vip" | "trial" | "admin"');
+    expect(source).toContain("trpc.auth.vipLogin.useMutation()");
+    expect(source).toContain("trpc.auth.trialStoreLogin.useMutation()");
+    expect(source).toContain('item === "vip" ? "vipTab"');
+    expect(source).toContain('item === "trial" ? "trialTab"');
+    expect(source).toContain("navigate(\"/trial-store\")");
+    expect(router).toContain("vipLogin:");
+    expect(router).toContain("trialStoreLogin:");
+  });
+
+  it("keeps the administrator credential form separate from customer accounts", () => {
     expect(source).toContain("trpc.auth.adminLogin.useMutation()");
-    expect(source).toContain("submitAdmin");
-    expect(source).toContain("auth.adminTab");
-    expect(source).not.toContain("auth.vipTab");
-    expect(source).not.toContain("trialLogin");
+    expect(source).toContain('"adminTab"');
     expect(router).toContain("adminLogin:");
+  });
+
+  it("preserves the existing role-specific routes and navigation guards", () => {
+    const gate = readFileSync(new URL("../components/CustomerGate.tsx", import.meta.url), "utf8");
+    const nav = readFileSync(new URL("../components/MobileBottomNav.tsx", import.meta.url), "utf8");
+    const header = readFileSync(new URL("../components/AppHeader.tsx", import.meta.url), "utf8");
+    expect(gate).toContain('user?.role === "store_trial"');
+    expect(gate).toContain('navigate("/trial-store")');
+    expect(nav).toContain('const isTrial = user?.role === "store_trial"');
+    expect(nav).toContain('href: "/trial-store"');
+    expect(header).toContain('path: "/account-management"');
   });
 
   it("navigates immediately after the server confirms login", () => {
