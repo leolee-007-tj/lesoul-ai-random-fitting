@@ -1077,3 +1077,9 @@
 - [x] Keep only the administrator ID/password form in the login UI; remove VIP and trial-store tabs and forms when unused. No VIP or store_trial accounts were used by the login UI, so no account data was deleted.
 - [x] Preserve existing visitor ownership, administrator role isolation, and unrelated account/data records. The primary admin account remains active and the existing guestLogin/visitor scope is unchanged.
 - [x] Update EN/KO/ZH copy and contract tests, then run full checks and save a checkpoint. 205 tests passed, TypeScript passed, production build passed, and the 390px mobile login view was verified.
+
+## Operations product-share visit aggregation failure
+- [x] Reproduce the productShareVisits aggregation error and compare the live table with drizzle/schema.ts. Confirmed the live table was missing while Drizzle schema and migration defined it.
+- [x] Repair only the missing schema/query contract while preserving existing visit records and product IDs. Restored the table with its daily unique key and product foreign key; no existing visit rows were altered.
+- [x] Add regression coverage for grouped share-visit counts and Operations dashboard loading. Added grouped-count ranking, stale-product filtering, owner-only procedure, and migration contract coverage.
+- [x] Run full tests and production build, then save a checkpoint. 207 tests passed, TypeScript passed, production build passed, and /operations returned HTTP 200 with productShareAnalytics total 0 and no runtime error.

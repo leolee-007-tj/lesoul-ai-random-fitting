@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { rankProductShareVisits } from "./routers/operations";
 
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
@@ -22,5 +23,25 @@ describe("WeChat product-share referral contract", () => {
     expect(catalog).toContain('ctx.user?.role === "admin" ? false');
     expect(operations).toContain("productShareAnalytics: ownerProcedure");
     expect(operations).toContain("groupBy(productShareVisits.productId)");
+  });
+
+  it("ranks grouped counts and excludes visits for deleted products", () => {
+    const result = rankProductShareVisits(
+      [{ productId: 7, visits: "4" }, { productId: 3, visits: 2 }, { productId: 999, visits: 20 }],
+      [
+        { id: 7, name: "Jacket", nameEn: null, nameKo: null, nameZh: null, imageUrl: null, imageViews: null },
+        { id: 3, name: "Pants", nameEn: null, nameKo: null, nameZh: null, imageUrl: null, imageViews: null },
+      ],
+    );
+    expect(result.total).toBe(6);
+    expect(result.products.map((item) => [item.product.id, item.visits])).toEqual([[7, 4], [3, 2]]);
+  });
+
+  it("keeps the migration contract for the Operations dashboard table", () => {
+    const migration = source("../drizzle/0034_strange_miracleman.sql");
+    expect(migration).toContain("CREATE TABLE `productShareVisits`");
+    expect(migration).toContain("`productId` int NOT NULL");
+    expect(migration).toContain("UNIQUE(`productId`,`visitorId`,`source`,`visitDay`)");
+    expect(migration).toContain("REFERENCES `products`(`id`)");
   });
 });

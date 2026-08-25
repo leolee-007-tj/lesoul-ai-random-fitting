@@ -13,6 +13,7 @@ import { TRIAL_STORE_DURATION_MS } from "../trialStore";
 import { decodeImageDataUrl, MAX_PRODUCT_IMAGE_BYTES } from "./uploads";
 import { storagePut } from "../storage";
 import { getLiyingReferenceImageUrls, LIYING_REFERENCE_MODEL_KEYS } from "../liyingReferenceModels";
+import type { ProductImageViews } from "../../shared/bodyMeasurements";
 
 const rangeSchema = z.enum(["today", "7d", "30d", "all"]).default("30d");
 const cnyFen = z.number().int().min(0).max(10_000_000_00);
@@ -26,6 +27,19 @@ const startFor = (range: z.infer<typeof rangeSchema>) => {
 };
 const billableStatuses = ["REQUESTED", "SUCCESS", "FAILED", "CANCELLED"] as const;
 const featureLabel = (feature: string) => ({ AI_BODY_MODEL: "AI Body Model", AI_FITTING: "AI Fitting", LIYING_AI: "李瀛 AI", QUICK_FIT: "Quick AI", REGENERATION: "Regeneration", AI_STYLIST: "AI Style Match" }[feature] ?? feature);
+
+type ProductShareAggregate = { productId: number; visits: number | string | bigint };
+type ProductShareProduct = { id: number; name: string; nameEn: string | null; nameKo: string | null; nameZh: string | null; imageUrl: string | null; imageViews: ProductImageViews | null };
+
+/** Joins grouped visit counts to existing products, excluding stale product IDs. */
+export function rankProductShareVisits(rows: ProductShareAggregate[], productRows: ProductShareProduct[]) {
+  const productsById = new Map(productRows.map((product) => [product.id, product]));
+  const ranked = rows.flatMap((item) => {
+    const product = productsById.get(item.productId);
+    return product ? [{ product, visits: Number(item.visits) }] : [];
+  });
+  return { total: ranked.reduce((sum, item) => sum + item.visits, 0), products: ranked };
+}
 const paidExtensionInput = z.object({
   storeId: z.number().int().positive(),
   months: z.union([z.literal(1), z.literal(3), z.literal(6), z.literal(12)]).optional(),
@@ -219,12 +233,7 @@ export const operationsRouter = router({
     const rows = await db.select({ productId: productShareVisits.productId, visits: count() }).from(productShareVisits).groupBy(productShareVisits.productId).orderBy(desc(count()));
     if (!rows.length) return { total: 0, products: [] };
     const productRows = await db.select({ id: products.id, name: products.name, nameEn: products.nameEn, nameKo: products.nameKo, nameZh: products.nameZh, imageUrl: products.imageUrl, imageViews: products.imageViews }).from(products).where(inArray(products.id, rows.map((item) => item.productId)));
-    const productsById = new Map(productRows.map((item) => [item.id, item]));
-    const ranked = rows.flatMap((item) => {
-      const product = productsById.get(item.productId);
-      return product ? [{ product, visits: Number(item.visits) }] : [];
-    });
-    return { total: ranked.reduce((sum, item) => sum + item.visits, 0), products: ranked };
+    return rankProductShareVisits(rows, productRows);
   }),
   updateSettings: ownerProcedure.input(z.object({ generationEnabled: z.boolean().optional(), normalAiGenerationLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchLimit: z.number().int().min(0).max(100).optional(), normalStyleMatchEnabled: z.boolean().optional(), quickAiAdminOnly: z.boolean().optional(), liyingAiVipEnabled: z.boolean().optional(), curatedOutfitsPriority: z.boolean().optional(), aiImageProviderPreference: z.enum(["FORGE", "QWEN"]).optional(), aiTextProviderPreference: z.enum(["FORGE", "QWEN"]).optional(), dailyAiRequestLimit: z.number().int().min(0).max(100_000).optional(), monthlyAiBudgetFen: cnyFen.optional(), stopAiAtBudgetLimit: z.boolean().optional(), monthlyActualAiCostFen: cnyFen.nullable().optional(), aiBodyModelEstimatedCostFen: cnyFen.optional(), aiFittingEstimatedCostFen: cnyFen.optional(), quickFitEstimatedCostFen: cnyFen.optional(), regenerationEstimatedCostFen: cnyFen.optional() })).mutation(async ({ input }) => {
     const db = await getDb();
