@@ -1,4 +1,5 @@
 const KEY = "lesoul-visitor-id";
+const EXPLICIT_LOGOUT_KEY = "lesoul-explicit-logout";
 
 export function isValidVisitorId(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9_-]{8,96}$/.test(value);
@@ -10,6 +11,18 @@ export function getVisitorId() {
   const created = `visitor_${crypto.randomUUID()}`;
   window.localStorage.setItem(KEY, created);
   return created;
+}
+
+export function markExplicitLogout() {
+  try { window.localStorage.setItem(EXPLICIT_LOGOUT_KEY, "1"); } catch {}
+}
+
+export function clearExplicitLogout() {
+  try { window.localStorage.removeItem(EXPLICIT_LOGOUT_KEY); } catch {}
+}
+
+export function hasExplicitLogout() {
+  try { return window.localStorage.getItem(EXPLICIT_LOGOUT_KEY) === "1"; } catch { return false; }
 }
 
 /** Rehydrates the browser key after a storage reset using the server-confirmed visitor identity. */

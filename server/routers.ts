@@ -97,6 +97,7 @@ export const appRouter = router({
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(TEST_ACCESS_COOKIE, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(VISITOR_ID_COOKIE, { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(VIP_ACCESS_COOKIE, { ...cookieOptions, maxAge: -1 });
       ctx.res.clearCookie(ADMIN_ACCESS_COOKIE, { ...cookieOptions, maxAge: -1 });
       return {

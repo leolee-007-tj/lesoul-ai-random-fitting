@@ -47,4 +47,19 @@ describe("login navigation", () => {
     expect(source).not.toContain("await utils.auth.testSession.invalidate();");
     expect(source).not.toContain("await utils.auth.me.invalidate();");
   });
+
+  it("clears explicit logout state when normal entry succeeds", () => {
+    expect(source).toContain('import { clearExplicitLogout, getVisitorId, restoreVisitorId } from "@/lib/visitor";');
+    expect(source).toContain("clearExplicitLogout();");
+  });
+
+  it("routes explicit logout away from CustomerGate and blocks immediate guest recreation", () => {
+    const gate = readFileSync(new URL("../components/CustomerGate.tsx", import.meta.url), "utf8");
+    const header = readFileSync(new URL("../components/AppHeader.tsx", import.meta.url), "utf8");
+    const auth = readFileSync(new URL("../_core/hooks/useAuth.ts", import.meta.url), "utf8");
+    expect(gate).toContain("hasExplicitLogout");
+    expect(gate).toContain('location !== "/login"');
+    expect(header).toContain('navigate(`/login?next=${encodeURIComponent(location || "/")}`)');
+    expect(auth).toContain("markExplicitLogout();");
+  });
 });

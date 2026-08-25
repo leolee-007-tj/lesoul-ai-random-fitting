@@ -1,7 +1,7 @@
 import MobileScreen from "@/components/MobileScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getVisitorId, restoreVisitorId } from "@/lib/visitor";
+import { clearExplicitLogout, getVisitorId, restoreVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, KeyRound, LockKeyhole, ShieldCheck, Store } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -36,6 +36,7 @@ export default function Login() {
     setMessage("");
     try {
       const result = await guestLogin.mutateAsync({ visitorId });
+      clearExplicitLogout();
       restoreVisitorId(result.visitorId);
       finishNormal();
     } catch {
@@ -57,6 +58,7 @@ export default function Login() {
         const invalidCopy = mode === "vip" ? t("auth.vipInvalid") : mode === "trial" ? t("auth.trialInvalid") : t("auth.adminInvalid");
         return setMessage(result.reason === "inactive" ? inactiveCopy : invalidCopy);
       }
+      clearExplicitLogout();
       void utils.auth.me.invalidate().catch(() => undefined);
       if (mode === "admin") navigate("/operations");
       else if (mode === "trial") navigate("/trial-store");

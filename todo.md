@@ -1095,3 +1095,9 @@
 - [x] Add localized setup/reset labels and success/error states in EN/KO/ZH. Added adminPassword resources and connected them to i18n.
 - [x] Add regression tests for owner-only access, password hashing path, role separation, and admin login compatibility after reset.
 - [x] Run full tests, type-check, production build, and save a checkpoint. 70 test files and 210 tests passed; TypeScript and production build passed; the mobile account screen shows the Admin password tab.
+
+## Fix mobile NORMAL logout
+- [x] Reproduce the mobile NORMAL session auto-restore and identify which cookie/local-storage path prevents logout. The recovery cookie and CustomerGate guestLogin retry were recreating access after logout.
+- [x] Make explicit NORMAL logout clear access and recovery cookies while preserving visitorId data ownership for future re-entry. The stable localStorage visitorId remains intact while both server cookies expire.
+- [x] Prevent CustomerGate and auth-query races from immediately restoring NORMAL access after logout; preserve ADMIN, VIP, and store-trial sessions separately. Explicit logout state routes to /login and is cleared only after a successful login.
+- [x] Add regression tests for logout, refresh, browser data preservation, and role separation; run full checks and save a checkpoint. 70 test files and 213 tests passed; TypeScript, production build, mobile screenshots, and runtime log checks passed.

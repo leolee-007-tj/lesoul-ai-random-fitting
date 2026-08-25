@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
-import { TEST_ACCESS_COOKIE } from "./testAccess";
+import { TEST_ACCESS_COOKIE, VISITOR_ID_COOKIE } from "./testAccess";
 import { ADMIN_ACCESS_COOKIE, VIP_ACCESS_COOKIE } from "./vipAccess";
 
 type CookieCall = {
@@ -52,8 +52,8 @@ describe("auth.logout", () => {
     const result = await caller.auth.logout();
 
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(4);
-    expect(clearedCookies.map((item) => item.name)).toEqual([COOKIE_NAME, TEST_ACCESS_COOKIE, VIP_ACCESS_COOKIE, ADMIN_ACCESS_COOKIE]);
+    expect(clearedCookies).toHaveLength(5);
+    expect(clearedCookies.map((item) => item.name)).toEqual([COOKIE_NAME, TEST_ACCESS_COOKIE, VISITOR_ID_COOKIE, VIP_ACCESS_COOKIE, ADMIN_ACCESS_COOKIE]);
     expect(clearedCookies[0]?.options).toMatchObject({
       maxAge: -1,
       secure: true,

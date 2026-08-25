@@ -1,5 +1,6 @@
 import { startLogin } from "@/const";
 import { setHistoryScope } from "@/lib/mvpStore";
+import { clearExplicitLogout, markExplicitLogout } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -34,9 +35,11 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
+    markExplicitLogout();
     try {
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
+      clearExplicitLogout();
       if (
         error instanceof TRPCClientError &&
         error.data?.code === "UNAUTHORIZED"
