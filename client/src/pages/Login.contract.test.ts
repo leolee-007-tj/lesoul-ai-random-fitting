@@ -9,14 +9,16 @@ describe("login navigation", () => {
     expect(source).toContain("trpc.auth.guestLogin.useMutation()");
     expect(source).toContain("restoreVisitorId(result.visitorId);");
     expect(source).toContain("t(\"auth.guestSubmit\")");
-    expect(source).not.toContain("auth.adminTab");
+    expect(source).toContain("auth.normalTab");
   });
 
-  it("routes owner administration through Google/Manus OAuth", () => {
-    expect(source).toContain("startLogin(next)");
-    expect(source).toContain("t(\"auth.ownerSubmit\")");
-    expect(router).toContain("guestLogin:");
-    expect(router).toContain('reason: \"owner_oauth_only\"');
+  it("keeps only the administrator credential form", () => {
+    expect(source).toContain("trpc.auth.adminLogin.useMutation()");
+    expect(source).toContain("submitAdmin");
+    expect(source).toContain("auth.adminTab");
+    expect(source).not.toContain("auth.vipTab");
+    expect(source).not.toContain("trialLogin");
+    expect(router).toContain("adminLogin:");
   });
 
   it("navigates immediately after the server confirms login", () => {

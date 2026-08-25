@@ -1071,3 +1071,9 @@
 - [x] Route the connected Google/Manus owner account as the sole administrator and remove the confusing password-admin login path without deleting existing data. Password-admin records remain intact but are inactive; adminLogin returns owner_oauth_only.
 - [x] Localize the new entry and owner-login states in EN/KO/ZH and add regression coverage for role isolation and redirects. OAuth next-path handling is internal-path-only.
 - [x] Run full checks and save a new checkpoint. 205 tests, TypeScript, and production build pass.
+
+## Login UI simplification: NORMAL Continue + Administrator credentials
+- [x] Remove NORMAL ID/password fields and show one localized Continue button.
+- [x] Keep only the administrator ID/password form in the login UI; remove VIP and trial-store tabs and forms when unused. No VIP or store_trial accounts were used by the login UI, so no account data was deleted.
+- [x] Preserve existing visitor ownership, administrator role isolation, and unrelated account/data records. The primary admin account remains active and the existing guestLogin/visitor scope is unchanged.
+- [x] Update EN/KO/ZH copy and contract tests, then run full checks and save a checkpoint. 205 tests passed, TypeScript passed, production build passed, and the 390px mobile login view was verified.
