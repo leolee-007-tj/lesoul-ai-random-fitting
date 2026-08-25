@@ -1120,3 +1120,9 @@
 - [x] Add an All / Single / Set filter in Fit Management and calculate set measurement fields from the set representative category with localized labels.
 - [x] Add regression coverage for representative-category sorting, set persistence, Fit Management set selection, and existing category-management contracts. 71 test files and 218 tests passed; TypeScript and production build passed.
 - [x] Save a checkpoint for the set category and Fit Management release.
+
+## Fix missing set products in Fit Management
+- [x] Reproduce why saved SET products are absent from Fit Management's catalog and set filter. The stored row was a valid active SET with two JSON components; the strict client predicate was the fragile boundary.
+- [x] Align the Fit Management list with the actual admin product response and shared set-product detection without changing existing product data. SET productType is now sufficient for visibility, while explicit SINGLE rows remain single products.
+- [x] Verify set selection uses representative category and measurement fields, then add regression coverage and run full checks before checkpoint. 71 test files and 218 tests passed; TypeScript and production build passed.
+- [x] Save a checkpoint for the missing SET visibility fix after the completed test and build verification.

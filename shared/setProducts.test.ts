@@ -11,7 +11,9 @@ describe("grouped set products", () => {
   it("uses the sum of individual garment prices as the set total", () => {
     expect(sumSetComponentPrices(components)).toBe(2000);
     expect(isSetProduct({ productType: "SET", setComponents: components })).toBe(true);
+    expect(isSetProduct({ productType: "SET", setComponents: null })).toBe(true);
     expect(isSetProduct({ productType: "SINGLE", setComponents: components })).toBe(false);
+    expect(isSetProduct({ productType: "SINGLE", setComponents: [] })).toBe(false);
   });
 
   it("uses the first ordered component as the representative garment category", () => {

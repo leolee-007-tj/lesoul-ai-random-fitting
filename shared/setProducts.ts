@@ -19,7 +19,12 @@ export type SetAwareProduct = {
 };
 
 export function isSetProduct(product: SetAwareProduct) {
-  return product.productType === "SET" && Array.isArray(product.setComponents) && product.setComponents.length >= 2;
+  // productType is the persisted identity of a set. Older rows may have a
+  // missing or temporarily unparsed JSON component payload, but must still be
+  // visible in Fit Management so the owner can repair its measurements.
+  if (product.productType === "SET") return true;
+  if (product.productType === "SINGLE") return false;
+  return Array.isArray(product.setComponents) && product.setComponents.length >= 2;
 }
 
 export function representativeSetCategory(components: readonly Pick<SetProductComponent, "category" | "sortOrder">[] | null | undefined, fallback: SetComponentCategory = "top") {
