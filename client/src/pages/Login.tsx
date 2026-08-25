@@ -1,4 +1,5 @@
 import MobileScreen from "@/components/MobileScreen";
+import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { clearExplicitLogout, getVisitorId, restoreVisitorId } from "@/lib/visitor";
@@ -42,6 +43,11 @@ export default function Login() {
     } catch {
       setMessage(t("auth.unavailable"));
     }
+  }
+
+  function continueAsOwner() {
+    clearExplicitLogout();
+    startLogin("/operations");
   }
 
   async function submitCredentials(event: FormEvent) {
@@ -93,13 +99,16 @@ export default function Login() {
             <span><span className="block text-sm font-semibold">{guestLogin.isPending ? t("common.loading") : t("auth.guestSubmit")}</span><span className="mt-1 block text-[10px] text-white/65">{t("auth.normalBody")}</span></span>
             <ArrowRight size={17} aria-hidden="true" />
           </button>
-        </div> : <form onSubmit={submitCredentials} className="mt-5 grid gap-3">
+        </div> : <>
+          {mode === "admin" && <div className="mt-5 rounded-2xl border border-[#ded8cf] bg-[#f8f5f0] p-4"><p className="text-[11px] leading-5 text-[#71685f]">{t("auth.ownerOnly")}</p><button type="button" onClick={continueAsOwner} className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl bg-[#1d1a17] px-4 py-3 text-left text-white transition hover:bg-black active:scale-[.99]"><span><span className="block text-sm font-semibold">{t("auth.ownerSubmit")}</span><span className="mt-1 block text-[10px] text-white/65">{t("auth.ownerBody")}</span></span><ArrowRight size={17} aria-hidden="true" /></button></div>}
+          <form onSubmit={submitCredentials} className="mt-5 grid gap-3">
           <div className="rounded-2xl border border-[#e2ddd5] bg-[#f8f5f0] p-4"><div className="flex items-center gap-2">{credentialIcon}<p className="text-[10px] font-bold tracking-[.15em] text-[#766b60]">{credentialSubmit}</p></div><p className="mt-2 text-[11px] leading-5 text-[#71685f]">{credentialBody}</p>{mode === "admin" && <p className="mt-2 text-[11px] leading-5 text-[#71685f]">{t("auth.ownerOnly")}</p>}</div>
           <label className="grid gap-1.5 text-[11px] font-bold tracking-[.08em] text-[#5f574f]">{t("auth.username")}<Input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" required className="h-11 border-[#d8d1c8] bg-white" /></label>
           <label className="grid gap-1.5 text-[11px] font-bold tracking-[.08em] text-[#5f574f]">{t("auth.password")}<Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required className="h-11 border-[#d8d1c8] bg-white" /></label>
           {message && <p role="alert" className="rounded-xl bg-[#f9eee8] px-3 py-2 text-xs text-[#8b3d25]">{message}</p>}
           <Button type="submit" disabled={pending} className="mt-2 h-11 rounded-xl bg-[#1d1a17] text-xs font-bold tracking-[.08em] hover:bg-black">{pending ? t("common.loading") : credentialSubmit} <ArrowRight size={15} /></Button>
-        </form>}
+          </form>
+        </>}
         {mode === "normal" && message && <p role="alert" className="mt-4 rounded-xl bg-[#f9eee8] px-3 py-2 text-xs text-[#8b3d25]">{message}</p>}
       </section>
     </main>

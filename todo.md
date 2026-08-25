@@ -1101,3 +1101,9 @@
 - [x] Make explicit NORMAL logout clear access and recovery cookies while preserving visitorId data ownership for future re-entry. The stable localStorage visitorId remains intact while both server cookies expire.
 - [x] Prevent CustomerGate and auth-query races from immediately restoring NORMAL access after logout; preserve ADMIN, VIP, and store-trial sessions separately. Explicit logout state routes to /login and is cleared only after a successful login.
 - [x] Add regression tests for logout, refresh, browser data preservation, and role separation; run full checks and save a checkpoint. 70 test files and 213 tests passed; TypeScript, production build, mobile screenshots, and runtime log checks passed.
+
+## Diagnose connection failure
+- [x] Reproduce the reported connection failure on the published domain and local preview, including login and post-logout entry. Chromium loaded both the published domain and local preview; the reported failure was narrowed to the invalid legacy admin password path.
+- [x] Inspect server, browser-console, and network logs for failed API, cookie, redirect, or deployment requests. Auth API responses were healthy, and explicit logout returned active:false with no matching runtime 500.
+- [x] Apply the smallest safe fix without deleting visitor, VIP, trial-store, or owner data. Added the connected Google/Manus owner login button to the ADMIN tab; existing ID/password, VIP, store-trial, visitor, and owner data remain unchanged.
+- [x] Add regression coverage and run full tests, type-check, production build, mobile verification, and checkpoint. 70 test files and 214 tests passed; TypeScript and production build passed; mobile ADMIN UI was verified in the preview.

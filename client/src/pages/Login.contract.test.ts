@@ -29,6 +29,12 @@ describe("login navigation", () => {
     expect(router).toContain("adminLogin:");
   });
 
+  it("exposes connected owner authentication from the ADMIN tab", () => {
+    expect(source).toContain('import { startLogin } from "@/const";');
+    expect(source).toContain('startLogin("/operations")');
+    expect(source).toContain('t("auth.ownerSubmit")');
+  });
+
   it("preserves the existing role-specific routes and navigation guards", () => {
     const gate = readFileSync(new URL("../components/CustomerGate.tsx", import.meta.url), "utf8");
     const nav = readFileSync(new URL("../components/MobileBottomNav.tsx", import.meta.url), "utf8");
