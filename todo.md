@@ -1053,3 +1053,14 @@
 - [x] Implement re-login recovery with stable visitor identity and preserve language-independent ownership. NORMAL re-login reuses a long-lived server visitor cookie and restores localStorage; purchase requests and lists are owner-scoped.
 - [x] Add regression tests for reset, re-login, logout, visitor ownership isolation, and mobile persistence. Added server visitor-cookie, client scoped-storage, and login contract coverage; 203 tests pass.
 - [x] Run full checks and save a new checkpoint. TypeScript check and production build pass.
+
+## Administrator login schema mismatch
+- [x] Confirm the stored primary-admin account and the exact authorization failure without exposing password hashes. The active primary password account is username `lesoul`; no password hash or plaintext was exposed.
+- [x] Add the missing primary-admin schema field with a safe default and mark only the existing primary admin row, preserving the owner OAuth account and all VIP/NORMAL isolation. Also added the missing administrator trial fields required by the users select.
+- [x] Add administrator-login regression coverage and verify the admin session on the current preview. The adminLogin API returned HTTP 200 and `{ success: true }` for the new credential.
+- [x] Run the full test suite and production build, then save a new checkpoint. 203 tests, TypeScript, and production build passed.
+
+## Primary administrator password reset
+- [x] Generate a strong replacement password and update only the existing primary password-based administrator account.
+- [x] Verify the new administrator login and confirm NORMAL/VIP/OWNER authentication remains isolated.
+- [x] Run the full test suite and production build, then save a checkpoint.

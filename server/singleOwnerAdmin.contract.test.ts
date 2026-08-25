@@ -7,8 +7,11 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 describe("single-owner administrator model", () => {
   it("allows password admin login only for the designated primary administrator", () => {
     const router = source("server/routers.ts");
+    const schema = source("drizzle/schema.ts");
     expect(router).toContain('account.role !== "admin" || !account.isPrimaryAdmin');
     expect(router).toContain('isPrimaryAdmin: 1');
+    expect(router).toContain('ctx.res.cookie(ADMIN_ACCESS_COOKIE');
+    expect(schema).toContain('isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull()');
   });
 
   it("removes secondary admin creation and management from operations and account UI", () => {
