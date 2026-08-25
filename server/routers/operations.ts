@@ -102,7 +102,7 @@ export const operationsRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
     const [registered, events, blocks] = await Promise.all([
-      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, adminTrialStartedAt: users.adminTrialStartedAt, adminTrialDurationHours: users.adminTrialDurationHours, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
+      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, isPrimaryAdmin: users.isPrimaryAdmin, adminTrialStartedAt: users.adminTrialStartedAt, adminTrialDurationHours: users.adminTrialDurationHours, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
       db.select().from(aiUsageEvents).orderBy(desc(aiUsageEvents.startedAt)),
       db.select().from(aiAccessBlocks),
     ]);
@@ -147,6 +147,14 @@ export const operationsRouter = router({
     if (input.displayName !== undefined) set.name = input.displayName;
     if (input.newPassword) set.passwordHash = hashVipPassword(input.newPassword);
     if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
+    return { success: true };
+  }),
+  setAdminPassword: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), newPassword: z.string().min(8).max(128) })).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("ADMIN_ACCOUNT_SERVICE_UNAVAILABLE");
+    const account = (await db.select({ id: users.id, role: users.role, isPrimaryAdmin: users.isPrimaryAdmin }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
+    if (!account || account.role !== "admin" || !account.isPrimaryAdmin) throw new Error("PRIMARY_ADMIN_ACCOUNT_NOT_FOUND");
+    await db.update(users).set({ passwordHash: hashVipPassword(input.newPassword) }).where(eq(users.id, input.userId));
     return { success: true };
   }),
   trialStores: ownerOnlyProcedure.query(async () => {

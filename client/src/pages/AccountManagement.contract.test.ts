@@ -22,6 +22,20 @@ describe("unified owner account management", () => {
     expect(nav).toContain('href: "/account-management"');
   });
 
+  it("keeps primary administrator password setup owner-only and server-hashed", () => {
+    const page = source("client/src/pages/AccountManagement.tsx");
+    const manager = source("client/src/components/AdminPasswordManager.tsx");
+    const operations = source("server/routers/operations.ts");
+    expect(page).toContain('id: "admin"');
+    expect(page).toContain("<AdminPasswordManager");
+    expect(manager).toContain("trpc.operations.setAdminPassword.useMutation({");
+    expect(manager).toContain("new-password");
+    expect(operations).toContain("setAdminPassword:");
+    expect(operations).toContain("ownerOnlyProcedure");
+    expect(operations).toContain("hashVipPassword(input.newPassword)");
+    expect(operations).toContain("isPrimaryAdmin");
+  });
+
   it("does not duplicate related managers inside the VIP-only section", () => {
     const manager = source("client/src/components/VipAccountManager.tsx");
     expect(manager).toContain("includeRelatedManagers = true");

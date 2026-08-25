@@ -14,12 +14,15 @@ describe("single-owner administrator model", () => {
     expect(schema).toContain('isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull()');
   });
 
-  it("removes secondary admin creation and management from operations and account UI", () => {
+  it("keeps one primary admin account while allowing owner-only password reset", () => {
     const operations = source("server/routers/operations.ts");
     const page = source("client/src/pages/AccountManagement.tsx");
     expect(operations).not.toContain("createAdminAccount:");
     expect(operations).not.toContain("updateAdminAccount:");
-    expect(page).not.toContain('id: "admin"');
+    expect(operations).toContain("setAdminPassword:");
+    expect(operations).toContain("ownerOnlyProcedure");
+    expect(page).toContain('id: "admin"');
+    expect(page).toContain("<AdminPasswordManager");
     expect(page).toContain("ADMIN is the owner's only operations account.");
   });
 

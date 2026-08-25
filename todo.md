@@ -1089,3 +1089,9 @@
 - [x] Restore owner/admin controls for VIP, trial stores, entitlements, and related management screens. Preserved the existing Account Management tabs, VIP account manager, LiYing reference model controls, and Trial Store Manager; also restored the Account Management header menu entry.
 - [x] Verify NORMAL, VIP, trial-store, and OWNER role-specific navigation and localized login states in EN/KO/ZH. Trial accounts route to /trial-store, VIP retains customer navigation plus VIP home access, and owner/admin navigation remains separated.
 - [x] Run regression tests, type-check, production build, and save a checkpoint. 70 test files and 209 tests passed; TypeScript and production build passed.
+
+## Restore administrator password setup
+- [x] Add a clear owner-only administrator password setup/reset flow without exposing plaintext passwords or changing VIP/store-trial credentials. Added the ownerOnly setAdminPassword procedure and a primary-admin-only settings card.
+- [x] Add localized setup/reset labels and success/error states in EN/KO/ZH. Added adminPassword resources and connected them to i18n.
+- [x] Add regression tests for owner-only access, password hashing path, role separation, and admin login compatibility after reset.
+- [x] Run full tests, type-check, production build, and save a checkpoint. 70 test files and 210 tests passed; TypeScript and production build passed; the mobile account screen shows the Admin password tab.
