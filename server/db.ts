@@ -94,6 +94,21 @@ export async function getCatalog() {
   return { products: resolveCatalogDisplay(enrichedProducts), poses: catalogPoses, backgrounds: catalogBackgrounds, stylePresets: catalogStylePresets, productCategories: managedCategories };
 }
 
+/** Detail panels only need one enriched product, not a complete catalog hydration. */
+export async function getProductDetailById(productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("The catalog is temporarily unavailable.");
+  await ensureCatalog();
+  const [rows, managedCategories] = await Promise.all([
+    db.select().from(products).where(eq(products.id, productId)).limit(1),
+    listProductCategories(true),
+  ]);
+  const product = rows[0];
+  if (!product) return null;
+  const categoryById = new Map(managedCategories.map((category) => [category.id, category]));
+  return resolveCatalogDisplay([{ ...product, displayCategory: product.displayCategoryId ? categoryById.get(product.displayCategoryId) ?? null : null }])[0] ?? null;
+}
+
 /** Store at most one opaque visitor event per product and day for a copied WeChat share link. */
 export async function recordWeChatProductShareVisit(input: { productId: number; visitorId: string }) {
   const db = await getDb();

@@ -22,6 +22,10 @@ describe("complete product image presentation", () => {
     expect(browse).toContain("CUSTOMER_CATALOG_PAGE_SIZE = 6");
     expect(browse).toContain("chunkProducts");
     expect(browse).toContain("data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}");
+    expect(browse).toContain("utils.catalog.productDetail.prefetch");
+    expect(browse).toContain("onPointerDown={() => prefetchDetail(product.id)}");
+    expect(browse).toContain("initialProduct={initialDetailProduct}");
+    expect(detail).toContain("const product = (liveProduct ?? initialProduct) as NonNullable<typeof liveProduct> | null");
     expect(browse).toContain("pricingMode={purchaseConfig.data?.pricingMode}");
     expect(browse).toContain("excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale}");
     expect(detail).toContain("pricingMode={purchaseConfig.data?.pricingMode}");

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createGeneration, getCatalog, getGenerationForUser, listGenerationsForUser, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult } from "../db";
+import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, listGenerationsForUser, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
@@ -34,11 +34,15 @@ export const catalogRouter = router({
   }),
   browseProducts: publicProcedure.query(async () => (await getCatalog()).products.filter((product) => product.isActive !== 0).map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
   productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional(), browseAll: z.boolean().optional() })).query(async ({ input }) => {
-    const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
-    const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    const visibleProducts = input.browseAll ? catalog.products.filter((item) => item.isActive !== 0) : selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit);
-    const product = visibleProducts.find((item) => item.id === input.productId);
+    const [product, settings, entitlement] = await Promise.all([getProductDetailById(input.productId), getReleaseSettings(), input.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     if (!product) return { status: "not_found" as const, product: null };
+    const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
+    const visible = input.browseAll
+      ? product.isActive !== 0
+      : tier === "beta"
+        ? selectVisibleProducts((await getCatalog()).products, tier, settings.betaCatalogLimit).some((item) => item.id === product.id)
+        : selectVisibleProducts([product], tier, settings.betaCatalogLimit).some((item) => item.id === product.id);
+    if (!visible) return { status: "not_found" as const, product: null };
     const purchaseStatus = getPurchaseAvailability({ exists: true, enabled: Boolean(settings.purchaseQrEnabled), status: product.status, purchaseQrUrl: product.purchaseQrUrl });
     return {
       status: "available" as const,

@@ -179,7 +179,7 @@ describe("customer-facing UX cleanup contract", () => {
     expect(catalog).toContain("browseProducts: publicProcedure");
     expect(catalog).toContain("product.isActive !== 0");
     expect(browse).toContain("trpc.catalog.browseProducts.useQuery()");
-    expect(browse).toContain("<ProductDetailScreen productId={detailId} browseAll");
+    expect(browse).toContain("<ProductDetailScreen productId={detailId} initialProduct={initialDetailProduct} browseAll");
     expect(home).toContain('navigate("/catalog")');
   });
 

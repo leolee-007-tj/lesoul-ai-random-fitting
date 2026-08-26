@@ -1186,3 +1186,12 @@
 ## Customer product image full visibility
 - [x] Keep product images fully visible within customer catalog and detail image boxes using contained scaling, without distorting the original aspect ratio.
 - [x] Preserve product badges and colour notices, then add regression checks, responsive verification, type checks, build, and checkpoint.
+
+## Product-detail opening latency investigation
+- [x] Measure and inspect product-detail click flow, including on-demand data queries and image/QR/share-card resource loading, to identify the source of visible delay.
+- [x] Provide a verified cause and prioritized, low-risk improvement options without changing customer product data.
+
+## Product-detail opening performance
+- [x] Replace whole-catalog hydration in the product-detail click path with a single-product database query that preserves customer visibility, access tier, purchase status, translations, image views, set components, and measurements.
+- [x] Prefetch product detail on customer-card intent so the detail panel can use cached data when the card is opened.
+- [x] Add performance-contract coverage and run regression tests, type checks, production build, responsive verification, and checkpoint.
