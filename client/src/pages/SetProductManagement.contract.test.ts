@@ -36,7 +36,9 @@ describe("set-product manager contract", () => {
     expect(fitManager).toContain("onClick={addComponent}");
     expect(fitManager).toContain("setComponents: componentDrafts.map");
     expect(fitManager).toContain("localizedCategoryName(product.displayCategory, language)");
-    expect(fitManager).toContain("detailedCategoryLabel");
+    expect(fitManager).toContain("productListCategoryLabel");
+    expect(fitManager).toContain('loading="lazy"');
+    expect(fitManager).toContain("productListCategoryLabel(product, i18n.language)");
   });
 
   it("opens a Korean category form with a measurement checklist and keeps saving usable if translation is unavailable", () => {
@@ -48,6 +50,18 @@ describe("set-product manager contract", () => {
     expect(categories).toContain("A translation outage must not prevent a Korean owner from creating a usable type.");
     expect(fitManager).toContain("const fieldsFor = (category: CoreCategory)");
     expect(fitManager).toContain("renderFields(measurements, category");
+  });
+
+  it("keeps the product and Fit Manager catalog paths uncapped for a 500-product inventory", () => {
+    const manager = source("client/src/pages/ProductManagerV2.tsx");
+    const fitManager = source("client/src/pages/ProductFitManager.tsx");
+    const db = source("server/db.ts");
+    expect(manager).toContain("visibleProducts.map");
+    expect(manager).not.toContain("visibleProducts.slice");
+    expect(fitManager).toContain("filteredCatalog.map");
+    expect(fitManager).not.toContain("filteredCatalog.slice");
+    expect(db).toContain("db.select().from(products)");
+    expect(db).not.toContain("db.select().from(products).limit");
   });
 
   it("keeps category creation out of the list and exposes one bottom add button", () => {

@@ -1138,3 +1138,8 @@
 - [x] Keep the saved detailed garment type (for example, sleeveless top/나시) visible in Fit Management instead of replacing it with the generic parent category. Fit Management now uses the localized managed category label for display.
 - [x] Use the parent category only to choose measurement fields, while preserving localized detailed type labels for products and set components. The parent core category remains the measurement-field source while the detailed label is rendered separately.
 - [x] Add regression coverage for single products and set components in EN/KO/ZH, then run full checks and save a checkpoint. 71 test files and 218 tests passed; TypeScript and production build passed; mobile route verification completed.
+
+## Align Fit Management with product list and support 500 products
+- [x] Display the exact saved product-list garment type in Fit Management without introducing a separate detailed-label presentation.
+- [x] Confirm the existing product table, catalog query, admin list, search/filter, and image metadata can safely handle at least 500 active products without truncation or accidental client-side limits.
+- [x] Add regression coverage for 500-product pagination/list behavior and exact product-type display, then run full checks and save a checkpoint.

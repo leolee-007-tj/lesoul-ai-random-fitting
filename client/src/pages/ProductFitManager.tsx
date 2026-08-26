@@ -64,7 +64,7 @@ const representativeCategory = (product: ProductFitRow) =>
     ? representativeSetCategory(product.setComponents, toCoreCategory(product.category))
     : toCoreCategory(product.category);
 
-const detailedCategoryLabel = (product: ProductFitRow, language: string) =>
+const productListCategoryLabel = (product: ProductFitRow, language: string) =>
   isSetProduct(product)
     ? localizedSetComponentCategory(representativeCategory(product), language)
     : localizedCategoryName(product.displayCategory, language);
@@ -247,10 +247,10 @@ export default function ProductFitManager() {
               const category = representativeCategory(product);
               return (
                 <button key={product.id} type="button" onClick={() => selectProduct(product)} className={`flex w-full items-center gap-3 rounded-xl p-2 text-left ${selected?.id === product.id ? "bg-black text-white" : "hover:bg-[#f5f1eb]"}`}>
-                  <img src={product.imageUrl} alt="" className="size-12 rounded-lg object-cover" />
+                  <img src={product.imageUrl} alt="" loading="lazy" decoding="async" className="size-12 rounded-lg object-cover" />
                   <span className="min-w-0">
                     <b className="block truncate text-xs">{localizedProductName(product, i18n.language)}</b>
-                    <small className="mt-1 block text-[10px] opacity-70">{set ? `${copy.set} · ${detailedCategoryLabel(product, i18n.language)} · ${product.setComponents?.length ?? 0} ${copy.setPieces}` : `${copy.single} · ${detailedCategoryLabel(product, i18n.language)}`} · {copy.stretchLabels[(product.stretchLevel ?? "low") as StretchLevel]}</small>
+                    <small className="mt-1 block text-[10px] opacity-70">{set ? `${productListCategoryLabel(product, i18n.language)} · ${product.setComponents?.length ?? 0} ${copy.setPieces}` : productListCategoryLabel(product, i18n.language)} · {copy.stretchLabels[(product.stretchLevel ?? "low") as StretchLevel]}</small>
                   </span>
                 </button>
               );
@@ -260,7 +260,7 @@ export default function ProductFitManager() {
           {selected && isSetProduct(selected) ? (
             <section className="rounded-2xl border border-[#dedbd4] bg-white p-5">
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-full bg-[#eee9e1]"><Ruler size={18} /></span><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{setCopy.heading}</p><h2 className="mt-1 font-serif text-2xl">{localizedProductName(selected, i18n.language)}</h2><p className="mt-1 text-xs font-semibold text-[#665d54]">{detailedCategoryLabel(selected, i18n.language)}</p></div></div>
+                <div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-full bg-[#eee9e1]"><Ruler size={18} /></span><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{setCopy.heading}</p><h2 className="mt-1 font-serif text-2xl">{localizedProductName(selected, i18n.language)}</h2><p className="mt-1 text-xs font-semibold text-[#665d54]">{productListCategoryLabel(selected, i18n.language)}</p></div></div>
                 <span className="rounded-full bg-[#f5f1eb] px-3 py-1 text-[10px] font-semibold text-[#665d54]">{setCopy.count} {componentDrafts.length}/{MAX_SET_COMPONENTS}</span>
               </div>
               <div className="mt-5 space-y-4">
@@ -289,7 +289,7 @@ export default function ProductFitManager() {
             </section>
           ) : selected ? (
             <section className="rounded-2xl border border-[#dedbd4] bg-white p-5">
-              <div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-full bg-[#eee9e1]"><Ruler size={18} /></span><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{copy.title}</p><h2 className="mt-1 font-serif text-2xl">{localizedProductName(selected, i18n.language)}</h2><p className="mt-1 text-xs font-semibold text-[#665d54]">{detailedCategoryLabel(selected, i18n.language)}</p><p className="mt-1 text-xs text-[#777]">{copy.unknown}</p></div></div>
+              <div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-full bg-[#eee9e1]"><Ruler size={18} /></span><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{copy.title}</p><h2 className="mt-1 font-serif text-2xl">{localizedProductName(selected, i18n.language)}</h2><p className="mt-1 text-xs font-semibold text-[#665d54]">{productListCategoryLabel(selected, i18n.language)}</p><p className="mt-1 text-xs text-[#777]">{copy.unknown}</p></div></div>
               <div className="mt-5">{renderFields(draft, representativeCategory(selected), (key, value) => setDraft((current) => ({ ...current, [key]: value })))}</div>
               <p className="mt-5 text-xs font-semibold text-[#666]">{copy.stretch}</p>
               <div className="mt-2 grid grid-cols-4 gap-2">{(["none", "low", "medium", "high"] as StretchLevel[]).map((level) => <button key={level} type="button" onClick={() => setStretch(level)} className={`rounded-xl py-2 text-[11px] font-semibold ${stretch === level ? "bg-black text-white" : "border border-[#dedbd4]"}`}>{copy.stretchLabels[level]}</button>)}</div>
