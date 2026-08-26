@@ -35,6 +35,8 @@ describe("set-product manager contract", () => {
     expect(fitManager).toContain("componentDrafts.length >= MAX_SET_COMPONENTS");
     expect(fitManager).toContain("onClick={addComponent}");
     expect(fitManager).toContain("setComponents: componentDrafts.map");
+    expect(fitManager).toContain("localizedCategoryName(product.displayCategory, language)");
+    expect(fitManager).toContain("detailedCategoryLabel");
   });
 
   it("opens a Korean category form with a measurement checklist and keeps saving usable if translation is unavailable", () => {

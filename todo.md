@@ -1133,3 +1133,8 @@
 - [x] Keep the set representative category derived from ordered components and preserve compatibility with existing fit analysis. Existing single-item fit storage and representative category fallback remain unchanged.
 - [x] Add regression tests for adding, removing, editing, and saving set component measurements; run full checks and save a checkpoint. 71 test files and 218 tests passed; TypeScript and production build passed.
 - [x] Save a checkpoint for the expanded set component measurement release after test, type-check, build, and mobile verification.
+
+## Preserve detailed garment types in Fit Management
+- [x] Keep the saved detailed garment type (for example, sleeveless top/나시) visible in Fit Management instead of replacing it with the generic parent category. Fit Management now uses the localized managed category label for display.
+- [x] Use the parent category only to choose measurement fields, while preserving localized detailed type labels for products and set components. The parent core category remains the measurement-field source while the detailed label is rendered separately.
+- [x] Add regression coverage for single products and set components in EN/KO/ZH, then run full checks and save a checkpoint. 71 test files and 218 tests passed; TypeScript and production build passed; mobile route verification completed.
