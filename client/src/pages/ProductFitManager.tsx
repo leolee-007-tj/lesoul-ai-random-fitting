@@ -24,6 +24,8 @@ type CoreCategory = (typeof CORE_CATEGORIES)[number];
 type ProductFitRow = {
   id: number;
   category: string;
+  createdAt?: Date | string | null;
+  newArrivalAt?: Date | string | null;
   productType?: "SINGLE" | "SET" | null;
   setComponents?: SetProductComponent[] | null;
   displayCategory?: { nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; baseCategory: "TOP" | "PANTS" | "JACKET" | "DRESS" | "SHOES" | "BAG"; measurementFields?: string[] | null } | null;
@@ -150,10 +152,15 @@ export default function ProductFitManager() {
   const utils = trpc.useUtils();
   const update = trpc.admin.updateProduct.useMutation({ onSuccess: () => utils.admin.products.invalidate() });
   const [productFilter, setProductFilter] = useState<"all" | "single" | "set">("all");
-  const filteredCatalog = useMemo(
-    () => (catalog.data ?? []).filter((product: ProductFitRow) => productFilter === "all" || (productFilter === "set" ? isSetProduct(product) : !isSetProduct(product))),
-    [catalog.data, productFilter],
-  );
+  const filteredCatalog = useMemo(() => {
+    return [...(catalog.data ?? [])]
+      .filter((product: ProductFitRow) => productFilter === "all" || (productFilter === "set" ? isSetProduct(product) : !isSetProduct(product)))
+      .sort((left: ProductFitRow, right: ProductFitRow) => {
+        const leftTime = new Date(left.newArrivalAt ?? left.createdAt ?? 0).getTime();
+        const rightTime = new Date(right.newArrivalAt ?? right.createdAt ?? 0).getTime();
+        return rightTime - leftTime || right.id - left.id;
+      });
+  }, [catalog.data, productFilter]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = useMemo(() => filteredCatalog.find((product) => product.id === selectedId) ?? filteredCatalog[0], [filteredCatalog, selectedId]);
   const [draft, setDraft] = useState<GarmentMeasurements>({});

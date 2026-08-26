@@ -1149,3 +1149,7 @@
 - [x] Improve the admin product browsing screen with newest-first ordering, keyword search, category/status filters, and compact/cozy display density options.
 - [x] Add owner-only trial-store duration controls so the administrator can choose the number of usable days for each store trial, with localized remaining/expired status.
 - [x] Add regression tests, mobile verification, type checks, production build, and checkpoint for the changes.
+
+## Fit measurement newest-first ordering
+- [x] Sort the actual garment measurement / Fit Management catalog newest-first, including filtered and search results, while preserving existing measurement data and set-component editing.
+- [x] Add regression coverage and run mobile verification, type checks, production build, and checkpoint.

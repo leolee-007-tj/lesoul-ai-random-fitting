@@ -64,6 +64,14 @@ describe("set-product manager contract", () => {
     expect(db).not.toContain("db.select().from(products).limit");
   });
 
+  it("orders actual garment measurements newest-first like the product manager", () => {
+    const fitManager = source("client/src/pages/ProductFitManager.tsx");
+    expect(fitManager).toContain("newArrivalAt");
+    expect(fitManager).toContain("createdAt");
+    expect(fitManager).toContain("rightTime - leftTime");
+    expect(fitManager).toContain("right.id - left.id");
+  });
+
   it("adds practical browsing controls without imposing a fixed catalog size", () => {
     const manager = source("client/src/pages/ProductManagerV2.tsx");
     expect(manager).toContain("useMemo");
