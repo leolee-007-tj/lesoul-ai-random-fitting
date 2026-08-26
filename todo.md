@@ -1153,3 +1153,7 @@
 ## Fit measurement newest-first ordering
 - [x] Sort the actual garment measurement / Fit Management catalog newest-first, including filtered and search results, while preserving existing measurement data and set-component editing.
 - [x] Add regression coverage and run mobile verification, type checks, production build, and checkpoint.
+
+## Fit measurement compact scroll list
+- [x] Show approximately three actual garment measurement items at once and let the remaining newest-first items be explored by touch/mouse scrolling inside the list.
+- [x] Preserve single/set filters, selected-item editing, mobile usability, and add regression verification before checkpoint.

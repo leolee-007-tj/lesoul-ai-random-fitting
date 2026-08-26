@@ -64,6 +64,13 @@ describe("set-product manager contract", () => {
     expect(db).not.toContain("db.select().from(products).limit");
   });
 
+  it("keeps the fit list compact with internal scrolling for the remaining products", () => {
+    const fitManager = source("client/src/pages/ProductFitManager.tsx");
+    expect(fitManager).toContain("max-h-[13.75rem]");
+    expect(fitManager).toContain("overflow-y-auto");
+    expect(fitManager).toContain("overscroll-contain");
+  });
+
   it("orders actual garment measurements newest-first like the product manager", () => {
     const fitManager = source("client/src/pages/ProductFitManager.tsx");
     expect(fitManager).toContain("newArrivalAt");

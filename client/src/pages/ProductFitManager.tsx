@@ -241,7 +241,7 @@ export default function ProductFitManager() {
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[#666]">{copy.body}</p>
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
-          <section className="max-h-[62svh] overflow-auto rounded-2xl border border-[#dedbd4] bg-white p-3">
+          <section aria-label={copy.title} className="max-h-[13.75rem] overflow-y-auto overscroll-contain rounded-2xl border border-[#dedbd4] bg-white p-3">
             <div className="mb-3 grid grid-cols-3 gap-1 rounded-xl bg-[#f5f1eb] p-1">
               {(["all", "single", "set"] as const).map((filter) => (
                 <button key={filter} type="button" onClick={() => setProductFilter(filter)} className={`rounded-lg px-2 py-2 text-[10px] font-semibold ${productFilter === filter ? "bg-black text-white" : "text-[#655c53]"}`}>
