@@ -10,7 +10,8 @@ describe("complete product image presentation", () => {
   it("uses the shared contain renderer for browse cards", () => {
     expect(browse).toContain("<NormalizedProductImage");
     expect(normalized).toContain("object-contain");
-    expect(normalized).toContain("Math.min(catalogDisplay?.effectiveScale ?? catalogDisplay?.manualScale ?? 1, 1)");
+    expect(normalized).toContain("Math.min(requestedScale, 0.94)");
+    expect(normalized).toContain("object-contain p-1.5");
   });
 
   it("places new arrivals in a separate top row for non-admin customers", () => {
@@ -28,7 +29,7 @@ describe("complete product image presentation", () => {
   });
 
   it("keeps the complete image visible in product details and trial catalog cards", () => {
-    expect(detail).toContain('className="aspect-[4/5] w-full rounded-2xl bg-[#e7e0d6] object-contain"');
+    expect(detail).toContain('className="aspect-[4/5] w-full rounded-2xl bg-[#e7e0d6] object-contain p-2"');
     expect(detail).toContain('className="h-full w-full object-contain"');
     expect(trial).toContain('className="aspect-[4/5] w-full bg-[#f4f1eb] object-contain"');
   });

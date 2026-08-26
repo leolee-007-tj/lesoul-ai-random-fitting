@@ -1182,3 +1182,7 @@
 ## Dark-colour lighting verification notice
 - [x] Extend the colour-difference verification notice from black/charcoal to dark navy, dark brown, and equivalent localized dark-colour metadata.
 - [x] Add regression coverage for dark-colour detection, then run type checks, production build, and checkpoint.
+
+## Customer product image full visibility
+- [x] Keep product images fully visible within customer catalog and detail image boxes using contained scaling, without distorting the original aspect ratio.
+- [x] Preserve product badges and colour notices, then add regression checks, responsive verification, type checks, build, and checkpoint.
