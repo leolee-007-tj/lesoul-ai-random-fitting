@@ -64,6 +64,28 @@ describe("set-product manager contract", () => {
     expect(db).not.toContain("db.select().from(products).limit");
   });
 
+  it("adds practical browsing controls without imposing a fixed catalog size", () => {
+    const manager = source("client/src/pages/ProductManagerV2.tsx");
+    expect(manager).toContain("useMemo");
+    expect(manager).toContain("searchTerm");
+    expect(manager).toContain("categoryFilter");
+    expect(manager).toContain("statusFilter");
+    expect(manager).toContain('sortOrder === "newest"');
+    expect(manager).toContain("density === \"compact\"");
+    expect(manager).not.toContain("slice(0, 500)");
+  });
+
+  it("lets the owner choose trial duration in days for creation and reset", () => {
+    const manager = source("client/src/components/TrialStoreManager.tsx");
+    const operations = source("server/routers/operations.ts");
+    expect(manager).toContain("durationDays");
+    expect(manager).toContain("restartDays");
+    expect(manager).toContain("durationDays: restartDays");
+    expect(operations).toContain("trialDurationDays");
+    expect(operations).toContain("trialDurationMs(input.durationDays)");
+    expect(operations).toContain("max(3650)");
+  });
+
   it("keeps category creation out of the list and exposes one bottom add button", () => {
     const categories = source("client/src/components/CategoryManagementPanel.tsx");
     expect(categories).toContain('!creating && !editingId && <button type="button" onClick={startCreate}');

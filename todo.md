@@ -1143,3 +1143,9 @@
 - [x] Display the exact saved product-list garment type in Fit Management without introducing a separate detailed-label presentation.
 - [x] Confirm the existing product table, catalog query, admin list, search/filter, and image metadata can safely handle at least 500 active products without truncation or accidental client-side limits.
 - [x] Add regression coverage for 500-product pagination/list behavior and exact product-type display, then run full checks and save a checkpoint.
+
+## Flexible catalog browsing and configurable trial duration
+- [x] Keep catalog capacity flexible rather than treating 500 as a fixed maximum; verify no hard-coded product-count cap is introduced.
+- [x] Improve the admin product browsing screen with newest-first ordering, keyword search, category/status filters, and compact/cozy display density options.
+- [x] Add owner-only trial-store duration controls so the administrator can choose the number of usable days for each store trial, with localized remaining/expired status.
+- [x] Add regression tests, mobile verification, type checks, production build, and checkpoint for the changes.
