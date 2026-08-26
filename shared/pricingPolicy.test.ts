@@ -17,11 +17,14 @@ describe("central pricing policy", () => {
     expect(resolvePricingDiscountPercent("BASE", "VIP", 4, { vipDiscountPercent: 30 })).toBe(30);
   });
 
-  it("keeps new arrivals at the original price when a seasonal sale excludes them", () => {
-    const excluded = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "NORMAL", isNew: 1, excludeNewArrivalsFromSale: 1 });
-    expect(excluded.discountPercent).toBe(0);
-    expect(excluded.unitPrice).toBe(1000);
+  it("keeps new arrivals on their selected base discount when a seasonal sale excludes them", () => {
+    const excluded = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "NORMAL", normalDiscountPercent: 20, isNew: 1, excludeNewArrivalsFromSale: 1 });
+    expect(excluded.discountPercent).toBe(20);
+    expect(excluded.unitPrice).toBe(800);
     expect(excluded.excludedNewArrival).toBe(true);
+    const vipExcluded = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "VIP", vipDiscountPercent: 30, isNew: 1, excludeNewArrivalsFromSale: 1 });
+    expect(vipExcluded.discountPercent).toBe(30);
+    expect(vipExcluded.unitPrice).toBe(700);
     const included = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "NORMAL", isNew: 1, excludeNewArrivalsFromSale: 0 });
     expect(included.discountPercent).toBe(45);
   });

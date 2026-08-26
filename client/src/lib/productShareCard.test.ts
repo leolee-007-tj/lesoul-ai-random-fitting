@@ -9,10 +9,10 @@ describe("productShareCardPrice", () => {
     expect(result.discount).toBe("17% OFF");
   });
 
-  it("keeps a new arrival at the original price when the seasonal sale excludes new arrivals", () => {
+  it("keeps a new arrival on its base discount when the seasonal sale excludes new arrivals", () => {
     const result = productShareCardPrice({ name: "New", imageUrl: "https://example.com/item.jpg", price: 100000, isNew: 1, pricingMode: "SEASON_FORMAT_3", excludeNewArrivalsFromSale: 1 }, "en");
-    expect(result.price).toContain("100,000");
-    expect(result.discount).toBe("0% OFF");
+    expect(result.price).toContain("83,000");
+    expect(result.discount).toBe("17% OFF");
   });
 
   it("shows the centralized base policy even when no legacy sale is active", () => {

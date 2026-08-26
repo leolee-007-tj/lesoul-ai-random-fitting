@@ -68,6 +68,11 @@ export function localizedProductMeta(value: string | null | undefined, language:
   return productMetaTranslations[source]?.[toProductLocale(language)] ?? source;
 }
 
+/** Black and charcoal merchandise needs an explicit photography-lighting colour notice. */
+export function isBlackLikeColor(value: string | null | undefined) {
+  return /black|charcoal|블랙|검정|검은|차콜|黑色|黑|炭灰/i.test(value?.trim() ?? "");
+}
+
 export function getOriginalPrice(product: LocalizedProduct) {
   const explicit = Number(product.priceOriginal ?? 0);
   return Number.isFinite(explicit) && explicit > 0 ? Math.round(explicit) : Math.max(0, Math.round(product.price ?? 0));

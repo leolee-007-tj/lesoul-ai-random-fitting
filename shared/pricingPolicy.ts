@@ -47,7 +47,9 @@ export function resolveCentralPrice(originalPrice: number, options: { mode?: Pri
   const original = roundCny(originalPrice);
   const quantity = safeQuantity(options.quantity ?? 1);
   const excludedNewArrival = isNewArrivalExcludedFromSale(options);
-  const discountPercent = excludedNewArrival ? 0 : resolvePricingDiscountPercent(options.mode, options.tier, quantity, options);
+  const discountPercent = excludedNewArrival
+    ? resolvePricingDiscountPercent("BASE", options.tier, quantity, options)
+    : resolvePricingDiscountPercent(options.mode, options.tier, quantity, options);
   const unitPrice = roundCny(original * (1 - discountPercent / 100));
   return { original, quantity, discountPercent, unitPrice, total: unitPrice * quantity, mode: options.mode ?? "BASE" as PricingMode, excludedNewArrival };
 }

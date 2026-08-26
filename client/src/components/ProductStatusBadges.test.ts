@@ -16,9 +16,9 @@ describe("hasVisibleProductStatusBadge", () => {
   });
 
   it("keeps the regular-price badge label localized in all supported languages", () => {
-    expect(commerceResources.en.product.regularPrice).toBe("REGULAR PRICE");
-    expect(commerceResources.ko.product.regularPrice).toBe("정상가");
-    expect(commerceResources.zh.product.regularPrice).toBe("正常价");
+    expect(commerceResources.en.product.regularPrice).toBe("BASE DISCOUNT");
+    expect(commerceResources.ko.product.regularPrice).toBe("기본 할인");
+    expect(commerceResources.zh.product.regularPrice).toBe("常规优惠");
   });
 
   it("shows the regular-price badge only for excluded new arrivals in a seasonal sale", () => {

@@ -1170,3 +1170,11 @@
 ## Customer catalog six-item browsing
 - [x] Show six products per visible customer catalog page/viewport for NORMAL, VIP, and store-trial users while keeping the admin product management layout unchanged.
 - [x] Keep new-arrival ordering, price badges, purchase-list actions, and natural vertical scrolling for additional products; verify responsive behavior and regression tests.
+
+## Black-product color verification notice
+- [x] Detect black and charcoal product colors consistently and show a localized lighting/color-difference notice adjacent to customer-facing product images.
+- [x] Preserve existing image badges and customer flows, then add regression tests, mobile verification, type checks, build, and checkpoint.
+
+## New-arrival display and seasonal fallback pricing
+- [x] Remove the count beside the customer-facing new-arrivals heading.
+- [x] When seasonal-sale exclusion is enabled for a new arrival, apply that product's original NORMAL/VIP base discount instead of 0% discount, with accurate label copy and regression coverage.
