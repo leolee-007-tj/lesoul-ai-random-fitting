@@ -18,6 +18,10 @@ describe("complete product image presentation", () => {
     expect(browse).toContain("newArrivals");
     expect(browse).toContain("NEW ARRIVALS");
     expect(browse).toContain("regularProducts");
+    expect(browse).toContain("pricingMode={purchaseConfig.data?.pricingMode}");
+    expect(browse).toContain("excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale}");
+    expect(detail).toContain("pricingMode={purchaseConfig.data?.pricingMode}");
+    expect(detail).toContain("excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale}");
   });
 
   it("keeps the complete image visible in product details and trial catalog cards", () => {

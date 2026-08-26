@@ -1162,3 +1162,7 @@
 - [x] Show active new-arrival products in a dedicated top row for non-admin Browse Products screens, while keeping the full catalog below in its existing order and filters.
 - [x] Add an owner-only global sale option to exclude new-arrival products from sale-season discount calculations and displays without altering their saved product metadata.
 - [x] Preserve EN/KO/ZH labels, normal/VIP pricing behavior, and add regression tests for storefront ordering and discount exclusion.
+
+## New-arrival full-price badges
+- [x] Show prominent localized NEW ARRIVAL and REGULAR PRICE badges when a new-arrival product is excluded from the active storewide seasonal sale.
+- [x] Keep existing sale badges for included products, preserve admin/non-admin presentation, and verify responsive rendering with regression tests.
