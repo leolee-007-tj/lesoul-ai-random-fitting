@@ -1157,3 +1157,8 @@
 ## Fit measurement compact scroll list
 - [x] Show approximately three actual garment measurement items at once and let the remaining newest-first items be explored by touch/mouse scrolling inside the list.
 - [x] Preserve single/set filters, selected-item editing, mobile usability, and add regression verification before checkpoint.
+
+## New-arrival storefront priority and sale exclusion
+- [x] Show active new-arrival products in a dedicated top row for non-admin Browse Products screens, while keeping the full catalog below in its existing order and filters.
+- [x] Add an owner-only global sale option to exclude new-arrival products from sale-season discount calculations and displays without altering their saved product metadata.
+- [x] Preserve EN/KO/ZH labels, normal/VIP pricing behavior, and add regression tests for storefront ordering and discount exclusion.

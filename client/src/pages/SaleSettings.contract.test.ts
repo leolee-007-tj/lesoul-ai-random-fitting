@@ -12,6 +12,14 @@ describe("dedicated sale settings entry", () => {
     expect(page).toContain('mode: "SEASON_FORMAT_2"');
     expect(page).toContain('mode: "SEASON_FORMAT_3"');
     expect(page).toContain("updateReleaseConfig.useMutation");
+    expect(page).toContain("excludeNewArrivalsFromSale");
+    expect(page).toContain("신상품은 시즌 세일에서 제외");
+  });
+
+  it("keeps the release-control editor wired to the same exclusion setting", () => {
+    const release = read(new URL("./ReleaseControl.tsx", import.meta.url));
+    expect(release).toContain('toggle(c.excludeNew, "excludeNewArrivalsFromSale")');
+    expect(release).toContain("excludeNewArrivalsFromSale: Number");
   });
 
   it("registers a dedicated administrator route and an operations entry button", () => {

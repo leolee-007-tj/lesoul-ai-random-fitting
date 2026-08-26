@@ -17,6 +17,15 @@ describe("central pricing policy", () => {
     expect(resolvePricingDiscountPercent("BASE", "VIP", 4, { vipDiscountPercent: 30 })).toBe(30);
   });
 
+  it("keeps new arrivals at the original price when a seasonal sale excludes them", () => {
+    const excluded = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "NORMAL", isNew: 1, excludeNewArrivalsFromSale: 1 });
+    expect(excluded.discountPercent).toBe(0);
+    expect(excluded.unitPrice).toBe(1000);
+    expect(excluded.excludedNewArrival).toBe(true);
+    const included = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "NORMAL", isNew: 1, excludeNewArrivalsFromSale: 0 });
+    expect(included.discountPercent).toBe(45);
+  });
+
   it("rounds CNY unit prices and formats the Chinese 折 label", () => {
     expect(resolveCentralPrice(999, { mode: "BASE", tier: "NORMAL", normalDiscountPercent: 17 }).unitPrice).toBe(829);
     expect(resolveCentralPrice(1000, { mode: "SEASON_FORMAT_1", tier: "NORMAL", quantity: 3 }).total).toBe(1800);

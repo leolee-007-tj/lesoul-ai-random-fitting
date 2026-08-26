@@ -17,6 +17,15 @@ export type ProductBaseDiscounts = {
   vipDiscountPercent?: number | null;
 };
 
+export type NewArrivalSalePolicy = {
+  isNew?: number | boolean | null;
+  excludeNewArrivalsFromSale?: number | boolean | null;
+};
+
+function isEnabled(value: number | boolean | null | undefined) {
+  return value === true || value === 1;
+}
+
 function productBaseDiscount(tier: PricingTier, discounts?: ProductBaseDiscounts) {
   if (tier === "VIP") return discounts?.vipDiscountPercent === 30 ? 30 : 20;
   return discounts?.normalDiscountPercent === 20 ? 20 : 17;
@@ -30,12 +39,14 @@ export function resolvePricingDiscountPercent(mode: PricingMode | null | undefin
   return productBaseDiscount(tier, discounts);
 }
 
-export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number } & ProductBaseDiscounts) {
+export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number } & ProductBaseDiscounts & NewArrivalSalePolicy) {
   const original = roundCny(originalPrice);
   const quantity = safeQuantity(options.quantity ?? 1);
-  const discountPercent = resolvePricingDiscountPercent(options.mode, options.tier, quantity, options);
+  const seasonalSale = isSeasonalPricingMode(options.mode);
+  const excludedNewArrival = seasonalSale && isEnabled(options.isNew) && isEnabled(options.excludeNewArrivalsFromSale);
+  const discountPercent = excludedNewArrival ? 0 : resolvePricingDiscountPercent(options.mode, options.tier, quantity, options);
   const unitPrice = roundCny(original * (1 - discountPercent / 100));
-  return { original, quantity, discountPercent, unitPrice, total: unitPrice * quantity, mode: options.mode ?? "BASE" as PricingMode };
+  return { original, quantity, discountPercent, unitPrice, total: unitPrice * quantity, mode: options.mode ?? "BASE" as PricingMode, excludedNewArrival };
 }
 
 export function isSeasonalPricingMode(mode: PricingMode | null | undefined) {

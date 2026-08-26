@@ -4,7 +4,7 @@ import { getOriginalPrice, toProductLocale, type LocalizedProduct } from "@share
 import { formatCentralDiscount, resolveCentralPrice } from "@shared/pricingPolicy";
 import { useTranslation } from "react-i18next";
 
-type PriceProduct = LocalizedProduct & { price: number; normalDiscountPercent?: number | null; vipDiscountPercent?: number | null; availabilityStatus?: string | null; status?: string | null };
+type PriceProduct = LocalizedProduct & { price: number; normalDiscountPercent?: number | null; vipDiscountPercent?: number | null; isNew?: number | boolean | null; availabilityStatus?: string | null; status?: string | null };
 
 function cny(value: number) {
   return `¥${Math.max(0, Math.round(value)).toLocaleString("en-US")}`;
@@ -14,7 +14,7 @@ export default function ProductPrice({ product, className = "" }: { product: Pri
   const { i18n } = useTranslation();
   const { user } = useAuth();
   const config = trpc.purchase.config.useQuery();
-  const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent });
+  const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale });
   const unavailable = product.availabilityStatus === "SOLD_OUT" || product.status === "sold_out";
   if (unavailable || pricing.discountPercent <= 0) return <span className={`font-semibold text-[#25211d] ${className}`}>{cny(pricing.original)}</span>;
   const saleLabel = formatCentralDiscount(pricing.discountPercent, toProductLocale(i18n.language));
