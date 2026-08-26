@@ -68,9 +68,9 @@ export function localizedProductMeta(value: string | null | undefined, language:
   return productMetaTranslations[source]?.[toProductLocale(language)] ?? source;
 }
 
-/** Black and charcoal merchandise needs an explicit photography-lighting colour notice. */
+/** Dark merchandise needs an explicit photography-lighting colour notice. */
 export function isBlackLikeColor(value: string | null | undefined) {
-  return /black|charcoal|블랙|검정|검은|차콜|黑色|黑|炭灰/i.test(value?.trim() ?? "");
+  return /black|charcoal|navy|dark\s*(brown|blue)|블랙|검정|검은|차콜|네이비|다크\s*(브라운|블루)|黑色|炭灰|藏青|深蓝|深棕|深褐/i.test(value?.trim() ?? "");
 }
 
 export function getOriginalPrice(product: LocalizedProduct) {

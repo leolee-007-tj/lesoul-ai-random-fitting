@@ -1178,3 +1178,7 @@
 ## New-arrival display and seasonal fallback pricing
 - [x] Remove the count beside the customer-facing new-arrivals heading.
 - [x] When seasonal-sale exclusion is enabled for a new arrival, apply that product's original NORMAL/VIP base discount instead of 0% discount, with accurate label copy and regression coverage.
+
+## Dark-colour lighting verification notice
+- [x] Extend the colour-difference verification notice from black/charcoal to dark navy, dark brown, and equivalent localized dark-colour metadata.
+- [x] Add regression coverage for dark-colour detection, then run type checks, production build, and checkpoint.
