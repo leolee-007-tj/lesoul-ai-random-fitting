@@ -18,6 +18,9 @@ describe("complete product image presentation", () => {
     expect(browse).toContain("newArrivals");
     expect(browse).toContain("NEW ARRIVALS");
     expect(browse).toContain("regularProducts");
+    expect(browse).toContain("CUSTOMER_CATALOG_PAGE_SIZE = 6");
+    expect(browse).toContain("chunkProducts");
+    expect(browse).toContain("data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}");
     expect(browse).toContain("pricingMode={purchaseConfig.data?.pricingMode}");
     expect(browse).toContain("excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale}");
     expect(detail).toContain("pricingMode={purchaseConfig.data?.pricingMode}");

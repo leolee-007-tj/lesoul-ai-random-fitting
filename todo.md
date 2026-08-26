@@ -1166,3 +1166,7 @@
 ## New-arrival full-price badges
 - [x] Show prominent localized NEW ARRIVAL and REGULAR PRICE badges when a new-arrival product is excluded from the active storewide seasonal sale.
 - [x] Keep existing sale badges for included products, preserve admin/non-admin presentation, and verify responsive rendering with regression tests.
+
+## Customer catalog six-item browsing
+- [x] Show six products per visible customer catalog page/viewport for NORMAL, VIP, and store-trial users while keeping the admin product management layout unchanged.
+- [x] Keep new-arrival ordering, price badges, purchase-list actions, and natural vertical scrolling for additional products; verify responsive behavior and regression tests.
