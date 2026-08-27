@@ -34,8 +34,15 @@ export async function canGenerate(visitorId: string, actor?: AiActor): Promise<A
   return { allowed: decision.allowed, ...(decision.reason ? { reason: reasonMap[decision.reason] } : {}), releaseMode: decision.releaseMode, catalogTier: decision.catalogTier, remaining: decision.remaining, isVip: decision.isVip };
 }
 
-export function selectVisibleProducts<T extends { status: string; isActive?: number; availabilityStatus?: AvailabilityStatus; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number) {
-  const eligible = items.filter((item) => item.isActive !== 0 && normaliseAvailabilityStatus(item.availabilityStatus, item.status) === "IN_STOCK" && (tier === "full" || item.catalogTier === tier || item.catalogTier === "beta"));
+export type CustomerRole = "user" | "vip" | "admin" | "store_trial" | null | undefined;
+
+/** Customer-facing VIP previews are enforced server-side and never rely on a hidden client card. */
+export function canViewVipEarlyAccess(item: { vipEarlyAccess?: number | null }, role: CustomerRole) {
+  return item.vipEarlyAccess !== 1 || role === "vip" || role === "admin";
+}
+
+export function selectVisibleProducts<T extends { status: string; isActive?: number; availabilityStatus?: AvailabilityStatus; vipEarlyAccess?: number | null; isFeatured: number; featuredPriority: number; catalogTier: string; category: string }>(items: T[], tier: CatalogTier, betaLimit: number, role: CustomerRole = null) {
+  const eligible = items.filter((item) => item.isActive !== 0 && normaliseAvailabilityStatus(item.availabilityStatus, item.status) === "IN_STOCK" && canViewVipEarlyAccess(item, role) && (tier === "full" || item.catalogTier === tier || item.catalogTier === "beta"));
   if (tier !== "beta") return eligible;
   const sorted = [...eligible].sort((a, b) => b.isFeatured - a.isFeatured || b.featuredPriority - a.featuredPriority || a.category.localeCompare(b.category));
   const categoryFirst = ["top", "bottom", "dress", "outer"].flatMap((category) => sorted.find((item) => item.category === category) ?? []);

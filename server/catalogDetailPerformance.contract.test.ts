@@ -12,7 +12,7 @@ describe("product detail performance contract", () => {
   });
 
   it("does not hydrate the whole catalog for normal customer detail requests", () => {
-    expect(catalog).toContain("const visible = input.browseAll");
+    expect(catalog).toContain("const visible = canViewVipEarlyAccess(product, ctx.user?.role) && (input.browseAll");
     expect(catalog).toContain("? product.isActive !== 0");
     expect(catalog).toContain('tier === "beta"');
     expect(catalog).toContain("selectVisibleProducts((await getCatalog()).products");

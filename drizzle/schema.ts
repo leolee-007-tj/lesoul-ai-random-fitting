@@ -55,6 +55,8 @@ export const products = mysqlTable("products", {
   /** Public catalog visibility remains separate from current sales availability. */
   isActive: int("isActive").default(1).notNull(),
   availabilityStatus: mysqlEnum("availabilityStatus", ["IN_STOCK", "PRE_ORDER", "SOLD_OUT"]).default("IN_STOCK").notNull(),
+  /** When enabled, customer display is limited to VIP accounts and the owner preview. */
+  vipEarlyAccess: int("vipEarlyAccess").default(0).notNull(),
   isNew: int("isNew").default(0).notNull(),
   newArrivalAt: timestamp("newArrivalAt"),
   price: int("price").notNull(),

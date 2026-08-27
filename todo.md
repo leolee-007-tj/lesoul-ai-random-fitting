@@ -1255,3 +1255,8 @@
 - [x] Keep product-card and product-detail image frames stable with a soft neutral placeholder while image bytes load.
 - [x] Fade each correctly loaded image in only after load completion, hide broken-image flashes, and respect reduced-motion preferences.
 - [x] Add regression coverage and verify catalog and product-detail loading behavior on mobile before publishing.
+
+## VIP early-access products
+- [x] Extend the existing product record with a VIP-only early-access visibility state while preserving current product and image records.
+- [x] Add owner product-manager controls for photo, price, VIP early-access status, and optional public-release timing using the existing upload flow.
+- [x] Add a mobile VIP early-access window and enforce server-side hiding from NORMAL users; verify EN/KO/ZH labels and access rules.

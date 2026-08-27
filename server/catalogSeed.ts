@@ -6,7 +6,7 @@ const imageSet = [
   "/manus-storage/minimalist-lookbook_87fea9ec.jpg",
 ];
 
-type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "brand" | "displayCategoryId" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "priceOriginal" | "productType" | "setComponents" | "normalDiscountPercent" | "vipDiscountPercent" | "discountRate" | "priceSale" | "saleEnabled" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "purchaseQrUpdatedAt" | "isFeatured" | "featuredPriority" | "catalogTier" | "garmentMeasurements" | "sizeOptions" | "catalogDisplay" | "stretchLevel" | "isActive" | "availabilityStatus" | "isNew" | "newArrivalAt">;
+type SeedProductBase = Omit<Product, "id" | "createdAt" | "updatedAt" | "brand" | "displayCategoryId" | "images" | "imageViews" | "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve" | "purchasePlatform" | "stylistMetadata" | "nameEn" | "nameKo" | "nameZh" | "descriptionEn" | "descriptionKo" | "descriptionZh" | "priceOriginal" | "productType" | "setComponents" | "normalDiscountPercent" | "vipDiscountPercent" | "discountRate" | "priceSale" | "saleEnabled" | "discountSeasonEnabled" | "discountOnePercent" | "discountTwoPercent" | "discountThreePercent" | "discountFourPlusPercent" | "momentCouponEnabled" | "momentCouponCode" | "momentCouponPercent" | "purchaseQrUrl" | "purchaseQrUpdatedAt" | "isFeatured" | "featuredPriority" | "catalogTier" | "garmentMeasurements" | "sizeOptions" | "catalogDisplay" | "stretchLevel" | "isActive" | "availabilityStatus" | "vipEarlyAccess" | "isNew" | "newArrivalAt">;
 type GarmentSpecifications = Pick<Product, "fabric" | "texture" | "fit" | "length" | "width" | "details" | "neckline" | "sleeve">;
 const categoryMeasurements: Record<Product["category"], { garmentMeasurements: NonNullable<Product["garmentMeasurements"]>; stretchLevel: Product["stretchLevel"] }> = {
   top: { garmentMeasurements: { shoulderCm: 40, bustCm: 98, sleeveCm: 58, totalLengthCm: 60 }, stretchLevel: "low" },
@@ -75,6 +75,7 @@ export const demoProducts: Omit<Product, "id" | "createdAt" | "updatedAt" | "pur
     displayCategoryId: null,
     isActive: 1,
     availabilityStatus: product.status === "sold_out" ? "SOLD_OUT" as const : "IN_STOCK" as const,
+    vipEarlyAccess: 0,
     isNew: 0,
     newArrivalAt: null,
     catalogDisplay: null,

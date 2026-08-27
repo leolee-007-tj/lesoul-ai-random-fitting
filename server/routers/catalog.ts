@@ -4,7 +4,7 @@ import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
-import { getCurrentEntitlement, getReleaseSettings, selectVisibleProducts } from "../access";
+import { canViewVipEarlyAccess, getCurrentEntitlement, getReleaseSettings, selectVisibleProducts } from "../access";
 import { getPurchaseAvailability } from "../../shared/purchasePolicy";
 
 const lookCode = () => `LOOK-${Math.floor(100 + Math.random() * 900)}`;
@@ -21,27 +21,27 @@ export const catalogRouter = router({
     const settings = await getReleaseSettings();
     return { storeName: settings.storeName || "LESOUL LOOK", storeTaglineEn: settings.storeTaglineEn || "A quieter way to discover your next LOOK.", storeTaglineKo: settings.storeTaglineKo || "다음 LOOK을 더 조용하고 선명하게 발견하는 방법.", storeTaglineZh: settings.storeTaglineZh || "以更安静、更清晰的方式发现你的下一套 LOOK。" };
   }),
-  bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input }) => {
+  bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input, ctx }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    const customerProducts = selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
+    const customerProducts = selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit, ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
     return { ...catalog, products: customerProducts, access: { releaseMode: settings.releaseMode, catalogTier: tier, betaCatalogLimit: settings.betaCatalogLimit, generationEnabled: Boolean(settings.generationEnabled) } };
   }),
-  products: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input }) => {
+  products: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input, ctx }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
+    return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit, ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
   }),
-  browseProducts: publicProcedure.query(async () => (await getCatalog()).products.filter((product) => product.isActive !== 0).map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
-  productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional(), browseAll: z.boolean().optional() })).query(async ({ input }) => {
+  browseProducts: publicProcedure.query(async ({ ctx }) => (await getCatalog()).products.filter((product) => product.isActive !== 0 && canViewVipEarlyAccess(product, ctx.user?.role)).map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
+  productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional(), browseAll: z.boolean().optional() })).query(async ({ input, ctx }) => {
     const [product, settings, entitlement] = await Promise.all([getProductDetailById(input.productId), getReleaseSettings(), input.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     if (!product) return { status: "not_found" as const, product: null };
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    const visible = input.browseAll
+    const visible = canViewVipEarlyAccess(product, ctx.user?.role) && (input.browseAll
       ? product.isActive !== 0
       : tier === "beta"
-        ? selectVisibleProducts((await getCatalog()).products, tier, settings.betaCatalogLimit).some((item) => item.id === product.id)
-        : selectVisibleProducts([product], tier, settings.betaCatalogLimit).some((item) => item.id === product.id);
+        ? selectVisibleProducts((await getCatalog()).products, tier, settings.betaCatalogLimit, ctx.user?.role).some((item) => item.id === product.id)
+        : selectVisibleProducts([product], tier, settings.betaCatalogLimit, ctx.user?.role).some((item) => item.id === product.id));
     if (!visible) return { status: "not_found" as const, product: null };
     const purchaseStatus = getPurchaseAvailability({ exists: true, enabled: Boolean(settings.purchaseQrEnabled), status: product.status, purchaseQrUrl: product.purchaseQrUrl });
     return {
@@ -50,7 +50,7 @@ export const catalogRouter = router({
       product: {
         id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh,
         brand: product.brand, category: product.category, displayCategory: product.displayCategory ?? null, season: product.season, color: product.color, style: product.style,
-        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, priceOriginal: product.priceOriginal, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, productType: product.productType, setComponents: product.setComponents, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
+        status: product.status, isActive: product.isActive, availabilityStatus: product.availabilityStatus, vipEarlyAccess: product.vipEarlyAccess, isNew: product.isNew, newArrivalAt: product.newArrivalAt, price: product.price, priceOriginal: product.priceOriginal, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, productType: product.productType, setComponents: product.setComponents, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, imageUrl: product.imageUrl, images: product.images, imageViews: product.imageViews,
         description: product.description, descriptionEn: product.descriptionEn, descriptionKo: product.descriptionKo, descriptionZh: product.descriptionZh,
         garmentMeasurements: product.garmentMeasurements, catalogDisplay: product.catalogDisplay, sizeOptions: product.sizeOptions, stretchLevel: product.stretchLevel,
       },
@@ -59,14 +59,15 @@ export const catalogRouter = router({
   trackWeChatShareVisit: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96) })).mutation(async ({ input, ctx }) => ({ tracked: ctx.user?.role === "admin" ? false : await recordWeChatProductShareVisit(input) })),
   poses: publicProcedure.query(async () => (await getCatalog()).poses),
   backgrounds: publicProcedure.query(async () => (await getCatalog()).backgrounds),
-  purchaseInfo: publicProcedure.input(z.object({ productId: z.number().int().positive() })).query(async ({ input }) => {
+  purchaseInfo: publicProcedure.input(z.object({ productId: z.number().int().positive() })).query(async ({ input, ctx }) => {
     const [catalog, settings] = await Promise.all([getCatalog(), getReleaseSettings()]);
     const product = catalog.products.find((item) => item.id === input.productId);
-    const status = getPurchaseAvailability({ exists: Boolean(product), enabled: Boolean(settings.purchaseQrEnabled), status: product?.status, purchaseQrUrl: product?.purchaseQrUrl });
+    const permittedProduct = product && canViewVipEarlyAccess(product, ctx.user?.role) ? product : undefined;
+    const status = getPurchaseAvailability({ exists: Boolean(permittedProduct), enabled: Boolean(settings.purchaseQrEnabled), status: permittedProduct?.status, purchaseQrUrl: permittedProduct?.purchaseQrUrl });
     const notices = { purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
-    if (!product || status === "not_found" || status === "feature_off" || status === "sold_out") return { status, product: null, ...notices };
-    if (status === "consult") return { status, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, priceOriginal: product.priceOriginal, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled }, ...notices };
-    return { status: "available" as const, product: { id: product.id, name: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, imageUrl: product.imageUrl, price: product.price, priceOriginal: product.priceOriginal, discountRate: product.discountRate, priceSale: product.priceSale, saleEnabled: product.saleEnabled, purchaseQrUrl: product.purchaseQrUrl, purchaseQrUpdatedAt: product.purchaseQrUpdatedAt }, ...notices };
+    if (!permittedProduct || status === "not_found" || status === "feature_off" || status === "sold_out") return { status, product: null, ...notices };
+    if (status === "consult") return { status, product: { id: permittedProduct.id, name: permittedProduct.name, nameEn: permittedProduct.nameEn, nameKo: permittedProduct.nameKo, nameZh: permittedProduct.nameZh, imageUrl: permittedProduct.imageUrl, price: permittedProduct.price, priceOriginal: permittedProduct.priceOriginal, discountRate: permittedProduct.discountRate, priceSale: permittedProduct.priceSale, saleEnabled: permittedProduct.saleEnabled }, ...notices };
+    return { status: "available" as const, product: { id: permittedProduct.id, name: permittedProduct.name, nameEn: permittedProduct.nameEn, nameKo: permittedProduct.nameKo, nameZh: permittedProduct.nameZh, imageUrl: permittedProduct.imageUrl, price: permittedProduct.price, priceOriginal: permittedProduct.priceOriginal, discountRate: permittedProduct.discountRate, priceSale: permittedProduct.priceSale, saleEnabled: permittedProduct.saleEnabled, purchaseQrUrl: permittedProduct.purchaseQrUrl, purchaseQrUpdatedAt: permittedProduct.purchaseQrUpdatedAt }, ...notices };
   }),
 });
 
