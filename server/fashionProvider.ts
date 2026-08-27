@@ -1,4 +1,3 @@
-import { generateImage } from "./_core/imageGeneration";
 import { storageGetSignedUrl } from "./storage";
 import type { BodyMeasurements, ProductImageViews } from "../shared/bodyMeasurements";
 import { assessFit, type FitAssessment, type GarmentMeasurements, type StretchLevel } from "../shared/fitEngine";
@@ -256,40 +255,13 @@ export class MockFashionProvider implements FashionProvider {
 }
 
 export class InternalImageFashionProvider implements FashionProvider {
-  async generateFashionLook(request: FashionLookRequest): Promise<FashionLookResponse> {
-    const preservationPrompt = buildClothingPreservationPrompt(request);
-    try {
-      const modelReferenceUrl = request.modelReference?.imageUrl ?? request.userImage;
-      if (!modelReferenceUrl) throw new Error("IMAGE_REFERENCE_MISSING_MODEL");
-      const productReferenceUrls = selectPrimaryProductReferenceUrls(request.clothing);
-      if (!productReferenceUrls.length) throw new Error("IMAGE_REFERENCE_MISSING_PRODUCT");
-      const productReferences = await Promise.all(productReferenceUrls.map(embeddedImageReference));
-      const originalImages = [await embeddedImageReference(modelReferenceUrl), ...productReferences];
-      const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "medium" }), AI_FITTING_IMAGE_PROVIDER_TIMEOUT_MS);
-      if (!generated.url) throw new Error("Image service returned no generated image URL.");
-      return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
-    } catch (error) {
-      console.warn("[FashionProvider] Image generation failed; do not present a reference image as a generated look.", error);
-      const reason = error instanceof Error ? error.message : "IMAGE_PROVIDER_UNAVAILABLE";
-      throw new Error(`GENERATED_RESULT_UNVERIFIED:${reason}`);
-    }
+  async generateFashionLook(_request: FashionLookRequest): Promise<FashionLookResponse> {
+    throw new Error("IMAGE_FITTING_RETIRED_USE_CURATED_LOOKS");
   }
 }
 
-export async function generateQuickFitEditorial(request: FashionLookRequest): Promise<FashionLookResponse> {
-  const preservationPrompt = buildQuickFitPreservationPrompt(request);
-  try {
-    const productReferenceUrls = selectQuickFitReferenceUrls(request.clothing);
-    if (!productReferenceUrls.length) throw new Error("QUICK_FIT_REFERENCE_MISSING");
-    const originalImages = await Promise.all(productReferenceUrls.map(embeddedImageReference));
-    const generated = await withImageProviderTimeout(generateImage({ prompt: preservationPrompt, originalImages, model: "MODEL_GPT_IMAGE_2", quality: "medium" }), QUICK_FIT_IMAGE_PROVIDER_TIMEOUT_MS);
-    if (!generated.url) throw new Error("Image service returned no generated image URL.");
-    return { generatedImage: generated.url, generationStatus: "completed", provider: "external", metadata: responseMetadata(request, preservationPrompt) };
-  } catch (error) {
-    console.warn("[QuickFit] Product editorial generation failed; do not present a product reference as a generated editorial.", error);
-    const reason = error instanceof Error ? error.message : "IMAGE_PROVIDER_UNAVAILABLE";
-    throw new Error(`GENERATED_RESULT_UNVERIFIED:${reason}`);
-  }
+export async function generateQuickFitEditorial(_request: FashionLookRequest): Promise<FashionLookResponse> {
+  throw new Error("IMAGE_FITTING_RETIRED_USE_CURATED_LOOKS");
 }
 
 let provider: FashionProvider = new InternalImageFashionProvider();

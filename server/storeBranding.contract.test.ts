@@ -5,7 +5,7 @@ const source = (path: string) => readFileSync(new URL(path, import.meta.url), "u
 
 describe("store branding contract", () => {
   it("keeps a validated store name in the owner-managed release settings", () => {
-    expect(source("../drizzle/schema.ts")).toContain('storeName: varchar("storeName", { length: 80 }).default("LESOUL AI LOOK").notNull()');
+    expect(source("../drizzle/schema.ts")).toContain('storeName: varchar("storeName", { length: 80 }).default("LESOUL LOOK").notNull()');
     expect(source("../drizzle/schema.ts")).toContain('storeTaglineKo: varchar("storeTaglineKo", { length: 180 })');
     const admin = source("./routers/admin.ts");
     expect(admin).toContain('storeName: z.string().trim().min(1).max(80).optional()');
@@ -16,11 +16,11 @@ describe("store branding contract", () => {
   it("exposes only the public store name to customer pages and uses it in the shared header", () => {
     const catalog = source("./routers/catalog.ts");
     expect(catalog).toContain("branding: publicProcedure.query");
-    expect(catalog).toContain('storeName: settings.storeName || "LESOUL AI LOOK"');
+    expect(catalog).toContain('storeName: settings.storeName || "LESOUL LOOK"');
     expect(catalog).toContain("storeTaglineKo: settings.storeTaglineKo");
     const header = source("../client/src/components/AppHeader.tsx");
     expect(header).toContain("trpc.catalog.branding.useQuery()");
-    expect(header).toContain('branding.data?.storeName || "LESOUL AI LOOK"');
+    expect(header).toContain('branding.data?.storeName || "LESOUL LOOK"');
   });
 
   it("keeps the public introduction page outside customer gating and sends conversion actions into the existing sign-in flow", () => {

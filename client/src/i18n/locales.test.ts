@@ -46,7 +46,7 @@ describe("LESOUL v2 locale resources", () => {
     await i18n.changeLanguage("zh");
     expect(i18n.t("product.status.preOrder")).toBe("预售");
     expect(i18n.t("product.newArrival")).toBe("新品");
-    expect(i18n.t("stylist.recommendation")).toBe("AI 搭配推荐");
+    expect(i18n.t("stylist.recommendation")).toBe("店主精选搭配");
     expect(i18n.t("auth.submit")).toBe("继续");
     expect(i18n.t("adminSetup.title")).toBe("创建首个管理员");
     await i18n.changeLanguage("en");

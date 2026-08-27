@@ -58,5 +58,6 @@ export function resolveStyleKey(rawStyle?: string | null, storedKey?: string | n
 
 export function getLocalizedStyle(t: TFunction, rawStyle?: string | null, storedKey?: string | null) {
   const key = resolveStyleKey(rawStyle, storedKey);
-  return { key, label: key ? t(`look.styles.${key}`) : rawStyle || t("look.styles.MINIMAL") };
+  const curatedChoice = t("common.curatedChoice", { defaultValue: "Store curated choice" });
+  return { key, label: key === "AI_CHOICE" ? curatedChoice : key ? t(`look.styles.${key}`) : rawStyle || t("look.styles.MINIMAL") };
 }

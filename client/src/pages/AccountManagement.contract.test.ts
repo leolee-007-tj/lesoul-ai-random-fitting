@@ -42,7 +42,7 @@ describe("unified owner account management", () => {
   it("does not duplicate related managers inside the VIP-only section", () => {
     const manager = source("client/src/components/VipAccountManager.tsx");
     expect(manager).toContain("includeRelatedManagers = true");
-    expect(manager).toContain("includeRelatedManagers && <><AiProviderPanel /><ProductShareAnalyticsPanel /></>");
+    expect(manager).toContain("includeRelatedManagers && <ProductShareAnalyticsPanel />");
   });
 
   it("uses friendly display names instead of visitor, VIP, and trial technical identifiers", () => {
@@ -53,7 +53,7 @@ describe("unified owner account management", () => {
     const trial = source("client/src/components/TrialStoreManager.tsx");
     expect(page).toContain("visitor.displayName || visitor.user?.name");
     expect(page).not.toContain("visitor.nickname || visitor.visitorId");
-    expect(dashboard).toContain("person.displayName || person.user?.name || person.user?.email || copy.normalUser");
+    expect(dashboard).toContain("person.displayName || person.user?.name || person.user?.email || copy.normal");
     expect(dashboard).not.toContain("person.user?.name || person.user?.email || person.visitorId");
     expect(operations).toContain("displayName: anonymousNickname(visitorId, input.locale)");
     expect(vip).toContain('account.displayName || account.user.name || t("vipAdmin.title")');

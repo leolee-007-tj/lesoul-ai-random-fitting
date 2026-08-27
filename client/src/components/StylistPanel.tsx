@@ -6,7 +6,6 @@ import ProductPrice from "@/components/ProductPrice";
 import type { StylePresetKey } from "@shared/stylist";
 import { localizedProductName } from "@shared/productCommerce";
 import { useTranslation } from "react-i18next";
-import { readBodyMeasurements } from "@/lib/bodyMeasurements";
 import { getVisitorId } from "@/lib/visitor";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Check, LoaderCircle, Sparkles } from "lucide-react";
@@ -15,13 +14,10 @@ export type StylistProduct = { id: number; name: string; nameEn?: string | null;
 export type StylistRecommendation = { lookId: string; productIds: number[]; score: number; reason: string; scoreBreakdown: { style: number; color: number; silhouette: number; season: number; material: number; formality: number; fit: number } };
 
 export function stylistErrorMessage(message: string | undefined, locale: "en" | "ko" | "zh") {
-  const quotaReached = message?.includes("GENERATION_ACCESS_DENIED:style_match_quota");
-  if (quotaReached) return locale === "ko" ? "AI 스타일 매치 사용 횟수를 모두 사용했습니다. 상품 둘러보기는 계속 이용할 수 있습니다." : locale === "zh" ? "AI 搭配推荐次数已用完，仍可继续浏览商品。" : "Your AI Style Match limit has been reached. You can still browse products.";
-  return locale === "ko" ? "추천을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." : locale === "zh" ? "暂时无法加载推荐，请稍后重试。" : "We could not load recommendations. Please try again shortly.";
+  return locale === "ko" ? "추천 코디를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." : locale === "zh" ? "暂时无法加载精选搭配，请稍后重试。" : "We could not load curated looks. Please try again shortly.";
 }
 
-export function shouldRetryStylistRecommendation(failureCount: number, error: { message: string }) {
-  if (error.message.includes("GENERATION_ACCESS_DENIED:style_match_quota")) return false;
+export function shouldRetryStylistRecommendation(failureCount: number) {
   return failureCount < 1;
 }
 
@@ -36,19 +32,18 @@ export default function StylistPanel({ products, onUseLook, onError, requireAnch
   const visitorId = user?.openId ? `account:${user.openId}` : anonymousVisitorId;
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
-    en: { title: "AI STYLIST", pin: "STYLE THIS ITEM", pinBody: "Keep one item in every recommendation.", selectFirst: "Choose one product to start your match.", clear: "Clear", use: "CHOOSE THIS LOOK", selected: "SELECTED", unavailable: "The recommended products are no longer available. Please refresh your recommendations.", loading: "Finding your LOOKs…", retry: "TRY AGAIN" },
-    ko: { title: "AI 스타일리스트", pin: "이 상품으로 코디", pinBody: "고정한 상품은 모든 추천에 유지됩니다.", selectFirst: "상품 하나를 선택해 코디를 시작하세요.", clear: "해제", use: "이 코디 선택", selected: "선택됨", unavailable: "추천 상품이 더 이상 판매 중이 아닙니다. 추천을 새로고침해 주세요.", loading: "LOOK을 찾는 중…", retry: "다시 시도" },
-    zh: { title: "AI 造型师", pin: "以此商品搭配", pinBody: "固定商品会保留在全部推荐中。", selectFirst: "请选择一件商品开始搭配。", clear: "清除", use: "选择这套搭配", selected: "已选择", unavailable: "推荐商品已不再在售，请刷新推荐。", loading: "正在寻找你的 LOOK…", retry: "重试" },
+    en: { title: "CURATED LOOKS", pin: "STYLE THIS ITEM", pinBody: "Keep one item in every store-curated recommendation.", selectFirst: "Choose one product to view matching curated looks.", clear: "Clear", use: "CHOOSE THIS LOOK", selected: "SELECTED", unavailable: "The curated products are no longer available. Please refresh your recommendations.", loading: "Loading curated LOOKs…", retry: "TRY AGAIN" },
+    ko: { title: "관리자 추천 코디", pin: "이 상품으로 코디", pinBody: "고정한 상품은 매장이 구성한 모든 추천 코디에 유지됩니다.", selectFirst: "상품 하나를 선택해 매장 추천 코디를 확인하세요.", clear: "해제", use: "이 코디 선택", selected: "선택됨", unavailable: "추천 코디의 상품이 더 이상 판매 중이 아닙니다. 추천을 새로고침해 주세요.", loading: "관리자 추천 코디를 불러오는 중…", retry: "다시 시도" },
+    zh: { title: "店主精选搭配", pin: "以此商品搭配", pinBody: "固定商品会保留在店主搭配的全部推荐中。", selectFirst: "请选择一件商品查看店主精选搭配。", clear: "清除", use: "选择这套搭配", selected: "已选择", unavailable: "精选搭配中的商品已不再在售，请刷新推荐。", loading: "正在加载店主精选搭配…", retry: "重试" },
   }[locale];
   const [styleKey, setStyleKey] = useState<StylePresetKey>("quiet_luxury");
   const [anchorProductId, setAnchorProductId] = useState<number | null>(null);
   const [selectedLookId, setSelectedLookId] = useState<string | null>(null);
-  const [fitBody] = useState(() => { const measurements = readBodyMeasurements(); return { bustCm: measurements.chest, waistCm: measurements.waist, hipCm: measurements.hip, shoulderCm: measurements.shoulderWidth }; });
   const presets = trpc.stylist.presets.useQuery();
-  const recommendations = trpc.stylist.recommend.useQuery({ visitorId, styleKey, anchorProductId, locale, body: fitBody }, { enabled: !requireAnchor || Boolean(anchorProductId), retry: shouldRetryStylistRecommendation });
+  const recommendations = trpc.stylist.recommend.useQuery({ visitorId, styleKey, anchorProductId, locale }, { enabled: !requireAnchor || Boolean(anchorProductId), retry: shouldRetryStylistRecommendation });
   const activeProducts = products.filter((product) => product.status === "in_stock");
   const activePreset = presets.data?.find((preset) => preset.key === styleKey);
-  const presetLabel = (key: string) => ({ en: { quiet_luxury: "QUIET LUXURY", elegant: "ELEGANT", minimal: "MINIMAL", chic: "CHIC", casual: "CASUAL", office: "OFFICE", date: "DATE", street: "STREET", ai_choice: "AI CHOICE" }, ko: { quiet_luxury: "콰이어트 럭셔리", elegant: "엘레강트", minimal: "미니멀", chic: "시크", casual: "캐주얼", office: "오피스", date: "데이트", street: "스트리트", ai_choice: "AI 추천" }, zh: { quiet_luxury: "静奢风", elegant: "优雅", minimal: "极简", chic: "摩登", casual: "休闲", office: "通勤", date: "约会", street: "街头", ai_choice: "AI 推荐" } }[locale] as Record<string, string>)[key] ?? key.toUpperCase();
+  const presetLabel = (key: string) => ({ en: { quiet_luxury: "QUIET LUXURY", elegant: "ELEGANT", minimal: "MINIMAL", chic: "CHIC", casual: "CASUAL", office: "OFFICE", date: "DATE", street: "STREET", ai_choice: "CURATOR'S PICK" }, ko: { quiet_luxury: "콰이어트 럭셔리", elegant: "엘레강트", minimal: "미니멀", chic: "시크", casual: "캐주얼", office: "오피스", date: "데이트", street: "스트리트", ai_choice: "관리자 추천" }, zh: { quiet_luxury: "静奢风", elegant: "优雅", minimal: "极简", chic: "摩登", casual: "休闲", office: "通勤", date: "约会", street: "街头", ai_choice: "店主推荐" } }[locale] as Record<string, string>)[key] ?? key.toUpperCase();
   const useRecommendation = (recommendation: StylistRecommendation) => {
     const selected = recommendation.productIds.map((id) => activeProducts.find((product) => product.id === id)).filter(Boolean) as StylistProduct[];
     if (!selected.length) return onError(copy.unavailable);

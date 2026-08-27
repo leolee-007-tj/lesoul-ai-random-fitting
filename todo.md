@@ -1240,3 +1240,13 @@
 ## Owner administrator password credential issuance
 - [x] Confirm the unique primary owner record and that ADMIN ID lesoul is available without changing product or customer data.
 - [x] Set ADMIN login ID lesoul and a new server-hashed password for the primary owner, then validate password login and preserve existing data.
+
+## Face-region detail separation
+- [x] Cancelled at the user's request before implementation: separate eyebrow bone, glabella, and nasal bridge into independent face-region entries.
+- [x] Cancelled at the user's request before implementation: separate apple cheek, tear trough, nasolabial fold, jawline, chin contour, and other currently grouped facial regions where the current interface supports finer detail.
+- [x] Cancelled at the user's request before implementation: preserve existing saved data, add EN/KO/ZH labels, and validate the independent region selection and display flow.
+
+## Remove generated AI fitting and retain administrator curation
+- [x] Remove the VIP generated image fitting entry points, server generation calls, and AI usage controls without deleting saved products or looks.
+- [x] Replace AI recommendation wording with administrator-curated recommendation wording in EN/KO/ZH across customer and administrator surfaces.
+- [x] Confirm no customer-facing path invokes an image-generation provider, preserve administrator automatic EN/KO/ZH translation, and regression-test the retained curated-outfit flow.

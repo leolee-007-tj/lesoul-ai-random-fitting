@@ -3,7 +3,7 @@ import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import ko from "./locales/ko.json";
 import zh from "./locales/zh.json";
-import { commerceResources } from "./commerceResources";
+import { commerceResources, curationResources } from "./commerceResources";
 
 export const supportedLanguages = ["en", "ko", "zh"] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
@@ -19,11 +19,27 @@ function resolveInitialLanguage(): SupportedLanguage {
   return "en";
 }
 
+function mergeResources(base: Record<string, any>, commerce: any, curation: any) {
+  return {
+    ...base,
+    product: { ...(base.product as object), ...commerce.product },
+    home: { ...(base.home as object), ...commerce.home },
+    stylist: { ...(base.stylist as object), ...commerce.stylist, ...curation.stylist },
+    common: { ...(base.common as object), ...commerce.common, ...curation.common },
+    auth: { ...(base.auth as object), ...commerce.auth },
+    history: { ...(base.history as object), ...commerce.history },
+    look: { ...commerce.look, styles: { ...commerce.look.styles, ...curation.look.styles } },
+    vipAdmin: commerce.vipAdmin,
+    adminSetup: commerce.adminSetup,
+    adminPassword: commerce.adminPassword,
+  };
+}
+
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: { ...en, product: { ...(en as any).product, ...commerceResources.en.product }, home: { ...(en as any).home, ...commerceResources.en.home }, stylist: { ...(en as any).stylist, ...commerceResources.en.stylist }, common: { ...(en as any).common, ...commerceResources.en.common }, auth: { ...(en as any).auth, ...commerceResources.en.auth }, history: { ...(en as any).history, ...commerceResources.en.history }, look: commerceResources.en.look, vipAdmin: commerceResources.en.vipAdmin, adminSetup: commerceResources.en.adminSetup, adminPassword: commerceResources.en.adminPassword } },
-    ko: { translation: { ...ko, product: { ...(ko as any).product, ...commerceResources.ko.product }, home: { ...(ko as any).home, ...commerceResources.ko.home }, stylist: { ...(ko as any).stylist, ...commerceResources.ko.stylist }, common: { ...(ko as any).common, ...commerceResources.ko.common }, auth: { ...(ko as any).auth, ...commerceResources.ko.auth }, history: { ...(ko as any).history, ...commerceResources.ko.history }, look: commerceResources.ko.look, vipAdmin: commerceResources.ko.vipAdmin, adminSetup: commerceResources.ko.adminSetup, adminPassword: commerceResources.ko.adminPassword } },
-    zh: { translation: { ...zh, product: { ...(zh as any).product, ...commerceResources.zh.product }, home: { ...(zh as any).home, ...commerceResources.zh.home }, stylist: { ...(zh as any).stylist, ...commerceResources.zh.stylist }, common: { ...(zh as any).common, ...commerceResources.zh.common }, auth: { ...(zh as any).auth, ...commerceResources.zh.auth }, history: { ...(zh as any).history, ...commerceResources.zh.history }, look: commerceResources.zh.look, vipAdmin: commerceResources.zh.vipAdmin, adminSetup: commerceResources.zh.adminSetup, adminPassword: commerceResources.zh.adminPassword } },
+    en: { translation: mergeResources(en, commerceResources.en, curationResources.en) },
+    ko: { translation: mergeResources(ko, commerceResources.ko, curationResources.ko) },
+    zh: { translation: mergeResources(zh, commerceResources.zh, curationResources.zh) },
   },
   lng: resolveInitialLanguage(),
   fallbackLng: "en",

@@ -1,6 +1,4 @@
-import { AiProviderPanel } from "@/components/AiProviderPanel";
 import { ProductShareAnalyticsPanel } from "@/components/ProductShareAnalyticsPanel";
-import { LiyingReferenceModelManager } from "@/components/LiyingReferenceModelManager";
 import { trpc } from "@/lib/trpc";
 import { KeyRound, UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -51,8 +49,7 @@ export function VipAccountManager({ accounts, onChanged, includeRelatedManagers 
   const pending = create.isPending || update.isPending;
 
   return <>
-    {includeRelatedManagers && <><AiProviderPanel /><ProductShareAnalyticsPanel /></>}
-    <LiyingReferenceModelManager />
+    {includeRelatedManagers && <ProductShareAnalyticsPanel />}
     <section className="mt-5 rounded-2xl border border-[#e2ddd5] bg-white p-4">
       <div className="flex items-center gap-2"><UserPlus size={16} /><p className="text-[10px] font-bold tracking-[.14em] text-[#766b60]">{t("vipAdmin.title")}</p></div>
       <form onSubmit={(event) => { event.preventDefault(); setNotice(""); create.mutate({ username, password, displayName: displayName || undefined }); }} className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -65,7 +62,7 @@ export function VipAccountManager({ accounts, onChanged, includeRelatedManagers 
       <div className="mt-4 space-y-2">
         {accounts.length ? accounts.map((account) => <article key={account.user.id} className="rounded-xl bg-[#f7f4ef] p-3">
           <div className="flex items-start justify-between gap-3">
-            <div><p className="text-xs font-semibold">{account.displayName || account.user.name || t("vipAdmin.title")}</p><p className="mt-1 text-[10px] text-[#776e65]">{account.user.isActive ? t("vipAdmin.active") : t("vipAdmin.inactive")}</p><p className="mt-1 text-[10px] text-[#776e65]">{t("vipAdmin.usage")}: {account.aiRequestCount} · {Object.entries(account.usageByFeature ?? {}).map(([feature, count]) => `${feature}: ${count}`).join(" · ") || "—"}</p></div>
+            <div><p className="text-xs font-semibold">{account.displayName || account.user.name || t("vipAdmin.title")}</p><p className="mt-1 text-[10px] text-[#776e65]">{account.user.isActive ? t("vipAdmin.active") : t("vipAdmin.inactive")}</p><p className="mt-1 text-[10px] text-[#776e65]">{t("vipAdmin.usage")}: {account.aiRequestCount}</p></div>
             <button onClick={() => update.mutate({ userId: account.user.id, isActive: !Boolean(account.user.isActive) })} disabled={pending} className="rounded-lg border border-[#cdbfb1] px-2.5 py-1.5 text-[10px] font-bold">{account.user.isActive ? t("vipAdmin.inactive") : t("vipAdmin.active")}</button>
           </div>
           {resettingId === account.user.id ? <div className="mt-3 flex gap-2"><input type="password" value={resetPassword} onChange={(event) => setResetPassword(event.target.value)} minLength={8} className="h-9 min-w-0 flex-1 rounded-lg border border-[#ddd6cc] px-2 text-xs" /><button onClick={() => update.mutate({ userId: account.user.id, newPassword: resetPassword })} disabled={resetPassword.length < 8 || pending} className="rounded-lg bg-black px-3 text-[10px] font-bold text-white">{t("vipAdmin.save")}</button></div> : <button onClick={() => setResettingId(account.user.id)} className="mt-3 inline-flex items-center gap-1 text-[10px] font-bold text-[#655c53]"><KeyRound size={12} />{t("vipAdmin.resetPassword")}</button>}

@@ -19,7 +19,7 @@ async function createEditorialFallback(id: number, look: string, place: string) 
 export const catalogRouter = router({
   branding: publicProcedure.query(async () => {
     const settings = await getReleaseSettings();
-    return { storeName: settings.storeName || "LESOUL AI LOOK", storeTaglineEn: settings.storeTaglineEn || "A quieter way to discover your next LOOK.", storeTaglineKo: settings.storeTaglineKo || "다음 LOOK을 더 조용하고 선명하게 발견하는 방법.", storeTaglineZh: settings.storeTaglineZh || "以更安静、更清晰的方式发现你的下一套 LOOK。" };
+    return { storeName: settings.storeName || "LESOUL LOOK", storeTaglineEn: settings.storeTaglineEn || "A quieter way to discover your next LOOK.", storeTaglineKo: settings.storeTaglineKo || "다음 LOOK을 더 조용하고 선명하게 발견하는 방법.", storeTaglineZh: settings.storeTaglineZh || "以更安静、更清晰的方式发现你的下一套 LOOK。" };
   }),
   bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
@@ -91,23 +91,8 @@ export const generationRouter = router({
   }),
   list: protectedProcedure.query(async ({ ctx }) => listGenerationsForUser(ctx.user.id)),
   byId: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => getGenerationForUser(input.id, ctx.user.id)),
-  generate: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
-    const detail = await getGenerationForUser(input.id, ctx.user.id);
-    if (!detail || !detail.pose || !detail.background) throw new Error("룩 정보를 찾을 수 없습니다.");
-    if (detail.generation.resultImageUrl) return { imageUrl: detail.generation.resultImageUrl, fallback: detail.generation.status === "failed" };
-    const clothing = detail.products.map((product) => `${product.name}: ${product.description}`).join("; ");
-    const prompt = `Create a premium Korean fashion editorial photograph. Preserve the identity and recognisable facial features of the woman in the reference photograph, but style her in this curated outfit: ${clothing}. Pose: ${detail.pose.promptKeyword}. Scene: ${detail.background.promptKeyword}. Full-body frame, poised natural styling, warm ivory and muted brown quiet-luxury palette, elegant fashion magazine photography, softly diffused natural light, photorealistic, refined and minimal, no text, no logo, no collage.`;
-    try {
-      const { url } = await generateImage({ prompt, originalImages: [{ url: detail.generation.userPhotoUrl, mimeType: "image/jpeg" }] });
-      if (!url) throw new Error("생성 이미지 URL이 반환되지 않았습니다.");
-      await updateGenerationResult(input.id, ctx.user.id, url, "complete");
-      return { imageUrl: url, fallback: false };
-    } catch (error) {
-      console.warn("[LESOUL] Image generation fallback:", error);
-      const fallback = await createEditorialFallback(input.id, detail.generation.lookCode, detail.background.name);
-      await updateGenerationResult(input.id, ctx.user.id, fallback.url, "failed");
-      return { imageUrl: fallback.url, fallback: true };
-    }
+  generate: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async () => {
+    throw new Error("IMAGE_FITTING_RETIRED_USE_CURATED_LOOKS");
   }),
   save: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     await saveGeneration(input.id, ctx.user.id);

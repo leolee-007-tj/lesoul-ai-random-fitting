@@ -1,0 +1,1 @@
+ALTER TABLE `releaseSettings` MODIFY COLUMN `storeName` varchar(80) NOT NULL DEFAULT 'LESOUL LOOK';

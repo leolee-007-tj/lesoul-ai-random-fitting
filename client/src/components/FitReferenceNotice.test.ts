@@ -4,7 +4,7 @@ import { getFitReferenceNotice } from "./FitReferenceNotice";
 describe("getFitReferenceNotice", () => {
   it("uses the requested Korean product-detail guidance", () => {
     const copy = getFitReferenceNotice("ko", "detail");
-    expect(copy).toContain("상품사진 및 AI 착용 이미지는 참고용입니다");
+    expect(copy).toContain("상품사진은 참고용입니다");
     expect(copy).toContain("아래 실측 사이즈");
     expect(copy).toContain("조명 환경");
   });

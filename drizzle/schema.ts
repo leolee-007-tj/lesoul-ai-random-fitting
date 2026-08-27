@@ -148,7 +148,7 @@ export const generations = mysqlTable("generations", {
 export const releaseSettings = mysqlTable("releaseSettings", {
   id: int("id").primaryKey(),
   /** Owner-managed public store name; customer pages fall back safely for legacy rows. */
-  storeName: varchar("storeName", { length: 80 }).default("LESOUL AI LOOK").notNull(),
+  storeName: varchar("storeName", { length: 80 }).default("LESOUL LOOK").notNull(),
   storeTaglineEn: varchar("storeTaglineEn", { length: 180 }).default("A quieter way to discover your next LOOK.").notNull(),
   storeTaglineKo: varchar("storeTaglineKo", { length: 180 }).default("다음 LOOK을 더 조용하고 선명하게 발견하는 방법.").notNull(),
   storeTaglineZh: varchar("storeTaglineZh", { length: 180 }).default("以更安静、更清晰的方式发现你的下一套 LOOK。").notNull(),

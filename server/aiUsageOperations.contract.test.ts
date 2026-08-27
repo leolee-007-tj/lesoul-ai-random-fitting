@@ -3,51 +3,32 @@ import { describe, expect, it } from "vitest";
 
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
-describe("Central AI Access/Usage Controller contract", () => {
-  it("keeps image-generation policy, quota, budget, and access blocks in one server-side controller", () => {
+describe("non-generative operations contract", () => {
+  it("retains historical access data without exposing new image-generation entry points", () => {
     const controller = source("./aiUsageController.ts");
-    expect(controller).toContain("export async function evaluateAiAccess");
-    expect(controller).toContain("monthlyAiBudgetFen");
-    expect(controller).toContain("aiAccessBlocks");
-    expect(controller).toContain("normalAiGenerationLimit");
-    expect(controller).toContain("beginAiUsage");
-    expect(controller).toContain("finishAiUsage");
-  });
-
-  it("keeps ADMIN, VIP, and NORMAL feature permissions and style-match allowance inside the central controller", () => {
-    const controller = source("./aiUsageController.ts");
-    const schema = source("../drizzle/schema.ts");
-    expect(controller).toContain("ROLE_AI_PERMISSIONS");
-    expect(controller).toContain('ADMIN: { quickAI: false, liyingAI: true, styleMatch: true');
-    expect(controller).toContain('VIP: { quickAI: false, liyingAI: true, styleMatch: true');
-    expect(controller).toContain('NORMAL: { quickAI: false, liyingAI: false, styleMatch: true');
-    expect(controller).toContain("normalStyleMatchLimit");
-    expect(schema).toContain('"LIYING_AI"');
-    expect(schema).toContain("quickAiAdminOnly");
-    expect(schema).toContain("liyingAiVipEnabled");
-    expect(schema).toContain('"user", "vip", "admin"');
-    expect(controller).toContain('actor?.role === "vip"');
-    expect(controller).toContain("Historical redeem rows remain readable but do not grant new VIP access");
-  });
-
-  it("records real image provider lifecycle in Look and Body Model routes without UI-side allowance consumption", () => {
     const look = source("./routers/look.ts");
     const bodyModel = source("./routers/bodyModel.ts");
-    expect(look).toContain("beginAiUsage");
-    expect(look).toContain("finishAiUsage");
-    expect(look).not.toContain("consumeRedeemAllowance(");
-    expect(bodyModel).toContain('feature: "AI_BODY_MODEL"');
-    expect(bodyModel).toContain("finishAiUsage");
+    expect(controller).toContain("export async function evaluateAiAccess");
+    expect(look).toContain("IMAGE_FITTING_RETIRED_USE_CURATED_LOOKS");
+    expect(bodyModel).toContain("IMAGE_MODEL_RETIRED_USE_CURATED_LOOKS");
+    expect(look).not.toContain("beginAiUsage");
+    expect(bodyModel).not.toContain("beginAiUsage");
   });
 
-  it("records rule-only Stylist lifecycle events in the central controller and protects operations by owner procedure", () => {
+  it("returns only administrator-curated outfits without provider calls or quota consumption", () => {
     const stylist = source("./routers/stylist.ts");
-    const operations = source("./routers/operations.ts");
-    expect(stylist).toContain('feature: "AI_STYLIST"');
-    expect(stylist).toContain("beginAiUsage");
-    expect(stylist).toContain("finishAiUsage");
-    expect(operations).toContain("ownerProcedure");
-    expect(operations).toContain("estimatedCostsAreConfigOnly");
-    expect(operations).toContain("setUserAccess");
+    expect(stylist).toContain("getEligibleCuratedOutfits");
+    expect(stylist).toContain("recommendCuratedTopLooks");
+    expect(stylist).not.toContain("beginAiUsage");
+    expect(stylist).not.toContain("finishAiUsage");
+    expect(stylist).not.toContain("invokeLLM");
+  });
+
+  it("keeps account and catalog operations available without image-provider controls", () => {
+    const dashboard = source("../client/src/pages/OperationsDashboard.tsx");
+    expect(dashboard).toContain("OPERATIONS DASHBOARD");
+    expect(dashboard).toContain("VipAccountManager");
+    expect(dashboard).not.toContain("AI COST SETTINGS");
+    expect(dashboard).not.toContain("updateSettings");
   });
 });

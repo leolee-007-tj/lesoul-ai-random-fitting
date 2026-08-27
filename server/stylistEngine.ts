@@ -98,7 +98,7 @@ const PRESET_REASON_LABELS: Record<string, Record<OutputLocale, string>> = {
   office: { en: "Office", ko: "오피스", zh: "通勤" },
   date: { en: "Date", ko: "데이트", zh: "约会" },
   street: { en: "Street", ko: "스트리트", zh: "街头" },
-  ai_choice: { en: "AI Choice", ko: "AI 선택", zh: "AI 推荐" },
+  ai_choice: { en: "Curator's Pick", ko: "관리자 추천", zh: "店主推荐" },
 };
 
 function createReason(preset: ActiveStylePreset, locale: OutputLocale) {
@@ -128,7 +128,7 @@ function outfitCandidates(activeProducts: Product[], anchorProductId?: number | 
 
 export function recommendTopLooks(input: { activeProducts: Product[]; preset: ActiveStylePreset; anchorProductId?: number | null; limit?: number; body?: FitBody | null; locale?: OutputLocale }) {
   const active = input.activeProducts.filter((product) => product.status === "in_stock");
-  if (!active.length) throw new Error("No active inventory is available for AI Stylist recommendations.");
+  if (!active.length) throw new Error("No active inventory is available for curated recommendations.");
   if (input.anchorProductId && !active.some((product) => product.id === input.anchorProductId)) throw new Error("The selected item is not active inventory.");
   const seen = new Set<string>();
   const candidates = outfitCandidates(active, input.anchorProductId).flatMap((products) => {

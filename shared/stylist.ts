@@ -50,5 +50,5 @@ export const DEFAULT_STYLE_PRESETS: StylePresetSeed[] = [
   { key: "office", name: "OFFICE", description: "세련된 출근·비즈니스 스타일", matchingTags: ["출근", "고급", "OFFICE"], weights: DEFAULT_COMPATIBILITY_WEIGHTS },
   { key: "date", name: "DATE", description: "부드럽고 여성스러운 데이트 스타일", matchingTags: ["데이트", "고급", "DATE"], weights: DEFAULT_COMPATIBILITY_WEIGHTS },
   { key: "street", name: "STREET", description: "트렌디하고 캐주얼한 스타일", matchingTags: ["캐주얼", "STREET", "CHIC"], weights: DEFAULT_COMPATIBILITY_WEIGHTS },
-  { key: "ai_choice", name: "AI CHOICE", description: "등록 상품을 분석해 가장 완성도 높은 룩 추천", matchingTags: [], weights: DEFAULT_COMPATIBILITY_WEIGHTS },
+  { key: "ai_choice", name: "CURATOR'S PICK", description: "매장이 직접 선택한 완성 코디", matchingTags: [], weights: DEFAULT_COMPATIBILITY_WEIGHTS },
 ];

@@ -63,3 +63,10 @@ export const commerceResources = {
     adminPassword: { title: "管理员登录设置", body: "只有已连接的所有者可以为主要管理员账户设置 ADMIN 登录 ID 和新密码。密码会在服务器端进行哈希处理，之后不会再次显示。", account: "主要账户", primary: "主要管理员", active: "启用", inactive: "停用", username: "管理员登录 ID", usernameHelp: "请输入 3–64 位字母、数字、点、下划线或连字符。", usernameInvalid: "请输入 3–64 位字母、数字、点、下划线或连字符。", newPassword: "新密码（至少 8 个字符）", confirmPassword: "确认新密码", mismatch: "两次输入的密码不一致。", save: "保存登录 ID 和密码", updated: "管理员登录 ID 和密码已更新，请在 ADMIN 登录标签中使用。", noAccount: "没有可设置密码的主要管理员账户。" },
   },
 } as const;
+
+/** Post-image-generation copy overrides. Legacy resource keys stay readable for saved records. */
+export const curationResources = {
+  en: { stylist: { recommendation: "CURATED RECOMMENDATIONS" }, common: { curatedChoice: "Store curated choice" }, look: { styles: { AI_CHOICE: "Store curated choice" } } },
+  ko: { stylist: { recommendation: "관리자 추천 코디" }, common: { curatedChoice: "관리자 큐레이션" }, look: { styles: { AI_CHOICE: "관리자 큐레이션" } } },
+  zh: { stylist: { recommendation: "店主精选搭配" }, common: { curatedChoice: "店主精选" }, look: { styles: { AI_CHOICE: "店主精选" } } },
+} as const;
