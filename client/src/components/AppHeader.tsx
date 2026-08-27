@@ -16,6 +16,7 @@ export default function AppHeader() {
   const [anonymousVisitorId] = useState(() => getVisitorId());
   const visitorId = user?.openId ? `account:${user.openId}` : anonymousVisitorId;
   const access = trpc.access.status.useQuery({ visitorId });
+  const ownerStatus = trpc.operations.ownerStatus.useQuery();
   const branding = trpc.catalog.branding.useQuery();
   const [open, setOpen] = useState(false);
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
@@ -26,7 +27,7 @@ export default function AppHeader() {
   }[locale];
   const explore: MenuItem[] = [{ label: copy.profile, hint: copy.profileHint, path: "/profile", icon: UserRound }, { label: copy.newLook, hint: copy.newHint, path: access.data?.capabilities.aiFitting || access.data?.capabilities.liyingAI ? "/body-model" : "/style-match", icon: Sparkles }, { label: copy.homeItem, hint: copy.homeHint, path: "/", icon: Home }, { label: copy.fitting, hint: copy.fittingHint, path: access.data?.capabilities.aiFitting || access.data?.capabilities.liyingAI ? "/body-model" : "/style-match", icon: Sparkles }, { label: copy.looks, hint: copy.looksHint, path: "/history", icon: Archive }];
   const manage: MenuItem[] = [{ label: copy.products, hint: copy.productsHint, path: "/products", icon: PackagePlus }, { label: copy.outfits, hint: copy.outfitsHint, path: "/outfit-management", icon: Sparkles }, { label: copy.fit, hint: copy.fitHint, path: "/product-fit", icon: Ruler }, { label: copy.notices, hint: copy.noticesHint, path: "/purchase-notices", icon: Store }, { label: copy.release, hint: copy.releaseHint, path: "/release-control", icon: Settings2 }, { label: copy.operations, hint: copy.operationsHint, path: "/operations", icon: BarChart3 }, { label: copy.accounts, hint: copy.accountsHint, path: "/account-management", icon: UsersRound }];
-  const showAdminManage = user?.role === "admin";
+  const showAdminManage = user?.role === "admin" || ownerStatus.data?.isOwner === true;
   const showTrialManage = user?.role === "store_trial";
   const showCatalogManage = showAdminManage;
   const choose = (path: string) => { setOpen(false); navigate(path); };

@@ -151,13 +151,16 @@ export const operationsRouter = router({
     if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
     return { success: true };
   }),
-  setAdminPassword: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), newPassword: z.string().min(8).max(128) })).mutation(async ({ input }) => {
+  setAdminPassword: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), newPassword: z.string().min(8).max(128) })).mutation(async ({ input }) => {
     const db = await getDb();
     if (!db) throw new Error("ADMIN_ACCOUNT_SERVICE_UNAVAILABLE");
     const account = (await db.select({ id: users.id, role: users.role, isPrimaryAdmin: users.isPrimaryAdmin }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
     if (!account || account.role !== "admin" || !account.isPrimaryAdmin) throw new Error("PRIMARY_ADMIN_ACCOUNT_NOT_FOUND");
-    await db.update(users).set({ passwordHash: hashVipPassword(input.newPassword) }).where(eq(users.id, input.userId));
-    return { success: true };
+    const username = normalizeVipUsername(input.username);
+    const sameUsername = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
+    if (sameUsername && sameUsername.id !== account.id) throw new Error("ADMIN_ID_ALREADY_EXISTS");
+    await db.update(users).set({ username, passwordHash: hashVipPassword(input.newPassword), loginMethod: "admin_password", isActive: 1 }).where(eq(users.id, input.userId));
+    return { success: true, username };
   }),
   trialStores: ownerOnlyProcedure.query(async () => {
     const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");

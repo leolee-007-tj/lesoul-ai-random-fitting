@@ -1200,3 +1200,15 @@
 - [x] Diagnose why the owner administrator cannot authenticate or sees empty product and operations data while customer catalog data remains visible.
 - [x] Restore owner-only authentication and admin product/operations queries without deleting, reseeding, or mixing normal, VIP, or store-trial data.
 - [x] Add regression coverage, verify protected admin routes, run type checks and production build, then checkpoint the recovery.
+
+## Owner administrator password guidance
+- [x] Verify whether the configured owner OAuth account can use the existing password-setting flow and provide the safe, exact configuration path without exposing any password.
+
+## Owner administrator credential setup
+- [x] Let the permanent owner administrator define or change the administrator login ID and password together from the owner-only account screen.
+- [x] Enforce unique normalized administrator IDs, server-side password hashing, and successful ADMIN password login without exposing saved credentials.
+- [x] Add EN/KO/ZH instructions and regression coverage, then verify with type checks, build, and checkpoint.
+
+## Owner OAuth role synchronization
+- [x] Ensure the configured owner OAuth session returns the permanent administrator role immediately and cannot render as a NORMAL user after login or refresh.
+- [x] Keep owner-only edit and operations queries available while preserving NORMAL, VIP, and store-trial role separation; add regression coverage and checkpoint.

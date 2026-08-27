@@ -29,10 +29,13 @@ describe("unified owner account management", () => {
     expect(page).toContain('id: "admin"');
     expect(page).toContain("<AdminPasswordManager");
     expect(manager).toContain("trpc.operations.setAdminPassword.useMutation({");
+    expect(manager).toContain('t("adminPassword.username")');
     expect(manager).toContain("new-password");
     expect(operations).toContain("setAdminPassword:");
     expect(operations).toContain("ownerOnlyProcedure");
     expect(operations).toContain("hashVipPassword(input.newPassword)");
+    expect(operations).toContain("ADMIN_ID_ALREADY_EXISTS");
+    expect(operations).toContain("const username = normalizeVipUsername(input.username)");
     expect(operations).toContain("isPrimaryAdmin");
   });
 

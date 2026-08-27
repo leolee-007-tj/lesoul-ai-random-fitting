@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { isPrimaryOperator, publicProcedure, router } from "./_core/trpc";
 import { createTestAccessToken, TEST_ACCESS_COOKIE, TEST_ACCESS_MAX_AGE_MS, verifyTestLogin, VISITOR_ID_COOKIE, VISITOR_ID_MAX_AGE_MS, readPersistedVisitorId } from "./testAccess";
 import { ADMIN_ACCESS_COOKIE, ADMIN_ACCESS_MAX_AGE_MS, createAdminAccessToken, createVipAccessToken, hashVipPassword, normalizeVipUsername, verifyBootstrapSecret, verifyVipPassword, VIP_ACCESS_COOKIE, VIP_ACCESS_MAX_AGE_MS } from "./vipAccess";
 import { getDb } from "./db";
@@ -26,7 +26,14 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user ? ({ id: opts.ctx.user.id, openId: opts.ctx.user.openId, name: opts.ctx.user.name, email: opts.ctx.user.email, loginMethod: opts.ctx.user.loginMethod, role: opts.ctx.user.role, isActive: opts.ctx.user.isActive, createdAt: opts.ctx.user.createdAt, updatedAt: opts.ctx.user.updatedAt, lastSignedIn: opts.ctx.user.lastSignedIn }) : null),
+    me: publicProcedure.query((opts) => {
+      const user = opts.ctx.user;
+      if (!user) return null;
+      // The configured project owner is the sole permanent administrator. This
+      // response-level normalization guarantees an OAuth callback cannot briefly
+      // render owner navigation as NORMAL while a stale database role is healing.
+      return { id: user.id, openId: user.openId, name: user.name, email: user.email, loginMethod: user.loginMethod, role: isPrimaryOperator(user) ? "admin" : user.role, isActive: user.isActive, createdAt: user.createdAt, updatedAt: user.updatedAt, lastSignedIn: user.lastSignedIn };
+    }),
     testSession: publicProcedure.query(({ ctx }) => ctx.testAccess ? { active: true, visitorId: ctx.testAccess.visitorId } : { active: false, visitorId: null }),
     guestLogin: publicProcedure.input(z.object({ visitorId: z.string().min(8).max(96) })).mutation(({ ctx, input }) => {
       const visitorId = readPersistedVisitorId(ctx.req) ?? input.visitorId;
@@ -81,8 +88,8 @@ export const appRouter = router({
     bootstrapAdmin: publicProcedure.input(z.object({ setupCode: z.string().min(12).max(256), username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), password: z.string().min(8).max(128), displayName: z.string().trim().max(120).optional() })).mutation(async ({ ctx, input }) => {
       if (!verifyBootstrapSecret(input.setupCode)) return { success: false as const, reason: "invalid" as const };
       const db = await getDb(); if (!db) throw new Error("ADMIN_BOOTSTRAP_UNAVAILABLE");
-      const existingAdmin = (await db.select({ id: users.id }).from(users).where(and(eq(users.role, "admin"), eq(users.loginMethod, "admin_password"))).limit(1))[0];
-      if (existingAdmin) return { success: false as const, reason: "used" as const };
+      const existingPrimaryAdmin = (await db.select({ id: users.id }).from(users).where(eq(users.isPrimaryAdmin, 1)).limit(1))[0];
+      if (existingPrimaryAdmin) return { success: false as const, reason: "used" as const };
       const username = normalizeVipUsername(input.username);
       const duplicate = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
       if (duplicate) return { success: false as const, reason: "duplicate" as const };

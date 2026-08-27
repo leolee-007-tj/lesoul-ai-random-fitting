@@ -1,13 +1,14 @@
 import { BarChart3, Home, PackagePlus, Ruler, ShoppingBag, Sparkles, Store, UsersRound } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { usePurchaseList } from "@/contexts/PurchaseListContext";
+import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
 export default function MobileBottomNav() {
-  const [location, navigate] = useLocation(); const { t, i18n } = useTranslation(); const { user } = useAuth(); const { itemCount } = usePurchaseList();
+  const [location, navigate] = useLocation(); const { t, i18n } = useTranslation(); const { user } = useAuth(); const { itemCount } = usePurchaseList(); const ownerStatus = trpc.operations.ownerStatus.useQuery();
   const copy = i18n.language.startsWith("ko") ? { nav: "주요 탐색", home: "홈", purchase: "구매목록", model: "李瀛 AI", style: "스타일 매치", operations: "운영", products: "상품 둘러보기", fit: "핏 관리", outfits: "코디 관리", accounts: "계정", trial: "체험 매장" } : i18n.language.startsWith("zh") ? { nav: "主导航", home: "首页", purchase: "购买清单", model: "李瀛 AI", style: "搭配推荐", operations: "运营", products: "浏览商品", fit: "版型管理", outfits: "搭配管理", accounts: "账户", trial: "体验店铺" } : { nav: "Primary navigation", home: "Home", purchase: "Purchase List", model: "LIYING AI", style: "Style Match", operations: "Operations", products: "Browse Products", fit: "Fit Data", outfits: "Outfits", accounts: "Accounts", trial: "Trial workspace" };
-  const isAdmin = user?.role === "admin"; const isTrial = user?.role === "store_trial";
+  const isAdmin = user?.role === "admin" || ownerStatus.data?.isOwner === true; const isTrial = user?.role === "store_trial";
   const customerDestinations = [{ href: "/", label: copy.home, icon: Home }, { href: "/catalog", label: copy.products, icon: PackagePlus }, { href: "/style-match", label: copy.style, icon: Sparkles }, { href: "/purchase-list", label: copy.purchase, icon: ShoppingBag, badge: itemCount }];
   const destinations = isAdmin ? [{ href: "/operations", label: copy.operations, icon: BarChart3 }, { href: "/products", label: copy.products, icon: PackagePlus }, { href: "/product-fit", label: copy.fit, icon: Ruler }, { href: "/outfit-management", label: copy.outfits, icon: Sparkles }, { href: "/account-management", label: copy.accounts, icon: UsersRound }] : isTrial ? [{ href: "/trial-store", label: copy.trial, icon: Store }] : customerDestinations;
   return <nav className="lesoul-bottom-nav md:hidden" aria-label={copy.nav}><div className="lesoul-bottom-nav-inner">{destinations.map(({ href, label, icon: Icon, badge }) => { const active = href === "/" ? location === "/" : location.startsWith(href); return <button key={href} onClick={() => navigate(href)} aria-label={label} className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-semibold transition ${active ? "text-[#171717]" : "text-[#89837a]"}`}><span className={`relative grid size-7 place-items-center rounded-full transition ${active ? "bg-[#171717] text-white" : ""}`}><Icon size={15} aria-hidden="true" />{typeof badge === "number" && <span className="absolute -right-2 -top-2 grid min-w-4 place-items-center rounded-full bg-black px-1 text-[8px] leading-4 text-white">{badge}</span>}</span><span className="max-w-full truncate">{label}</span></button>; })}</div></nav>;
