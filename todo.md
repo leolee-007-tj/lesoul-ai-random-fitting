@@ -1260,3 +1260,7 @@
 - [x] Extend the existing product record with a VIP-only early-access visibility state while preserving current product and image records.
 - [x] Add owner product-manager controls for photo, price, VIP early-access status, and optional public-release timing using the existing upload flow.
 - [x] Add a mobile VIP early-access window and enforce server-side hiding from NORMAL users; verify EN/KO/ZH labels and access rules.
+
+## Sale settings mobile navigation recovery
+- [x] Restore the role-aware mobile bottom navigation on the sale settings screen without duplicating shared layout chrome.
+- [x] Verify the sale settings and adjacent administrator pages retain the bottom navigation on mobile before publishing.

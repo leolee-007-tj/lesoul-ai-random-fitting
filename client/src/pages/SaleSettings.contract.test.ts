@@ -14,6 +14,8 @@ describe("dedicated sale settings entry", () => {
     expect(page).toContain("updateReleaseConfig.useMutation");
     expect(page).toContain("excludeNewArrivalsFromSale");
     expect(page).toContain("신상품은 시즌 세일에서 제외");
+    expect(page).toContain('import MobileBottomNav from "@/components/MobileBottomNav"');
+    expect(page.match(/<MobileBottomNav \/>/g)).toHaveLength(3);
   });
 
   it("keeps the release-control editor wired to the same exclusion setting", () => {
