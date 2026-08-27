@@ -21,6 +21,9 @@ describe("single-owner administrator model", () => {
     expect(operations).not.toContain("updateAdminAccount:");
     expect(operations).toContain("setAdminPassword:");
     expect(operations).toContain("ownerOnlyProcedure");
+    expect(operations).toContain("legacy, non-primary");
+    expect(operations).toContain('sameUsername.role !== "admin" || sameUsername.isPrimaryAdmin');
+    expect(operations).toContain('username: null, passwordHash: null, loginMethod: null, isActive: 0');
     expect(page).toContain('id: "admin"');
     expect(page).toContain("<AdminPasswordManager");
     expect(page).toContain("ADMIN is the owner's only operations account.");

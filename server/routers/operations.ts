@@ -157,8 +157,14 @@ export const operationsRouter = router({
     const account = (await db.select({ id: users.id, role: users.role, isPrimaryAdmin: users.isPrimaryAdmin }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
     if (!account || account.role !== "admin" || !account.isPrimaryAdmin) throw new Error("PRIMARY_ADMIN_ACCOUNT_NOT_FOUND");
     const username = normalizeVipUsername(input.username);
-    const sameUsername = (await db.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1))[0];
-    if (sameUsername && sameUsername.id !== account.id) throw new Error("ADMIN_ID_ALREADY_EXISTS");
+    const sameUsername = (await db.select({ id: users.id, role: users.role, isPrimaryAdmin: users.isPrimaryAdmin }).from(users).where(eq(users.username, username)).limit(1))[0];
+    if (sameUsername && sameUsername.id !== account.id) {
+      // The owner is the only permanent administrator. A legacy, non-primary
+      // admin credential may be safely retired so its login ID can return to
+      // the primary owner; all unrelated account and catalog data stays intact.
+      if (sameUsername.role !== "admin" || sameUsername.isPrimaryAdmin) throw new Error("ADMIN_ID_ALREADY_EXISTS");
+      await db.update(users).set({ username: null, passwordHash: null, loginMethod: null, isActive: 0, role: "user", isPrimaryAdmin: 0 }).where(eq(users.id, sameUsername.id));
+    }
     await db.update(users).set({ username, passwordHash: hashVipPassword(input.newPassword), loginMethod: "admin_password", isActive: 1 }).where(eq(users.id, input.userId));
     return { success: true, username };
   }),
