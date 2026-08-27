@@ -1,6 +1,6 @@
 import { count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
+import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -13,6 +13,22 @@ let _db: ReturnType<typeof drizzle> | null = null;
 let _catalogEnsurePromise: Promise<boolean> | null = null;
 let _catalogEnsured = false;
 
+/** Resolves OAuth sync role without allowing an established primary owner to be demoted. */
+export function resolveOAuthUserRole(
+  openId: string,
+  existing: Pick<User, "role" | "isPrimaryAdmin"> | undefined,
+  requestedRole: User["role"] | undefined,
+  configuredOwnerOpenId = ENV.ownerOpenId,
+) {
+  const isConfiguredOwner = Boolean(configuredOwnerOpenId && openId === configuredOwnerOpenId);
+  const isPrimaryOwner = isConfiguredOwner || existing?.isPrimaryAdmin === 1;
+  return {
+    isConfiguredOwner,
+    isPrimaryOwner,
+    role: isPrimaryOwner ? "admin" as const : (existing?.role ?? requestedRole ?? "user"),
+  };
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try { _db = drizzle(process.env.DATABASE_URL); } catch (error) { console.warn("[Database] Failed to connect:", error); }
@@ -24,10 +40,14 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await getDb();
   if (!db) return;
-  const isConfiguredOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
-  if (isConfiguredOwner) await db.update(users).set({ isPrimaryAdmin: 0 }).where(ne(users.openId, user.openId));
-  const values: InsertUser = { openId: user.openId, name: user.name ?? null, email: user.email ?? null, loginMethod: user.loginMethod ?? null, lastSignedIn: user.lastSignedIn ?? new Date(), role: isConfiguredOwner ? "admin" : (user.role ?? "user"), ...(isConfiguredOwner ? { isPrimaryAdmin: 1, isActive: 1 } : {}) };
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: { name: values.name, email: values.email, loginMethod: values.loginMethod, lastSignedIn: values.lastSignedIn, role: values.role, ...(isConfiguredOwner ? { isPrimaryAdmin: 1, isActive: 1 } : {}) } });
+  const existing = (await db.select().from(users).where(eq(users.openId, user.openId)).limit(1))[0];
+  const identity = resolveOAuthUserRole(user.openId, existing, user.role);
+  // A primary administrator is an existing owner record. Preserve and heal it
+  // even if a deploy briefly lacks OWNER_OPEN_ID, so generic OAuth profile
+  // synchronization can never overwrite it back to the NORMAL role.
+  if (identity.isConfiguredOwner) await db.update(users).set({ isPrimaryAdmin: 0 }).where(ne(users.openId, user.openId));
+  const values: InsertUser = { openId: user.openId, name: user.name ?? existing?.name ?? null, email: user.email ?? existing?.email ?? null, loginMethod: user.loginMethod ?? existing?.loginMethod ?? null, lastSignedIn: user.lastSignedIn ?? new Date(), role: identity.role, ...(identity.isPrimaryOwner ? { isPrimaryAdmin: 1, isActive: 1 } : {}) };
+  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: { name: values.name, email: values.email, loginMethod: values.loginMethod, lastSignedIn: values.lastSignedIn, role: values.role, ...(identity.isPrimaryOwner ? { isPrimaryAdmin: 1, isActive: 1 } : {}) } });
 }
 
 export async function getUserByOpenId(openId: string) {

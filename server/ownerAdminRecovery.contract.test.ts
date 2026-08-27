@@ -11,7 +11,9 @@ const mobileBottomNav = readFileSync(new URL("../client/src/components/MobileBot
 
 describe("configured owner administration recovery", () => {
   it("promotes only the configured owner and removes stale primary-admin flags", () => {
-    expect(db).toContain("const isConfiguredOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId)");
+    expect(db).toContain("export function resolveOAuthUserRole(");
+    expect(db).toContain("const identity = resolveOAuthUserRole(user.openId, existing, user.role);");
+    expect(db).toContain('role: isPrimaryOwner ? "admin" as const : (existing?.role ?? requestedRole ?? "user")');
     expect(db).toContain("set({ isPrimaryAdmin: 0 }).where(ne(users.openId, user.openId))");
     expect(db).toContain("isPrimaryAdmin: 1, isActive: 1");
   });

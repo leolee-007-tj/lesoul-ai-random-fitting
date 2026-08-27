@@ -126,7 +126,7 @@ describe("customer-facing UX cleanup contract", () => {
     expect(header).toContain("상품 관리 · 옷 추가");
     expect(header).toContain("const showCatalogManage = showAdminManage");
     expect(header).not.toContain("capabilities.quickAI");
-    expect(dbSource).toContain('role: isConfiguredOwner ? "admin"');
+    expect(dbSource).toContain('role: isPrimaryOwner ? "admin"');
   });
 
   it("keeps the home title higher and supports optional brand plus F free-size product data", () => {

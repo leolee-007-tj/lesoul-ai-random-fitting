@@ -1212,3 +1212,11 @@
 ## Owner OAuth role synchronization
 - [x] Ensure the configured owner OAuth session returns the permanent administrator role immediately and cannot render as a NORMAL user after login or refresh.
 - [x] Keep owner-only edit and operations queries available while preserving NORMAL, VIP, and store-trial role separation; add regression coverage and checkpoint.
+
+## Owner OAuth callback parameter recovery
+- [x] Diagnose and recover the missing authentication-parameter error during owner OAuth login without weakening state/nonce validation.
+- [x] Verify a fresh owner login returns to the administrator operations screen, then run regression checks and publish the repair.
+
+## Owner session role and browser recognition recovery
+- [x] Reproduce why a completed owner OAuth login is rendered as NORMAL and why a different browser reports no matching account.
+- [x] Ensure only the configured owner identity receives the administrator session while NORMAL visitor access cannot override it; verify fresh browser behavior before publishing.
