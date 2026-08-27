@@ -211,11 +211,10 @@ class SDKServer {
       });
       const { openId, appId, name } = payload as Record<string, unknown>;
 
-      if (
-        !isNonEmptyString(openId) ||
-        !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
-      ) {
+      // OAuth providers may legitimately omit a profile display name. The
+      // signed identity is openId + appId; requiring name here turns a valid
+      // owner login into an unauthenticated NORMAL guest session.
+      if (!isNonEmptyString(openId) || !isNonEmptyString(appId)) {
         console.warn("[Auth] Session payload missing required fields");
         return null;
       }
@@ -223,7 +222,7 @@ class SDKServer {
       return {
         openId,
         appId,
-        name,
+        name: typeof name === "string" ? name : "",
       };
     } catch (error) {
       console.warn("[Auth] Session verification failed", String(error));

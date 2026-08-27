@@ -20,6 +20,8 @@ describe("configured owner administration recovery", () => {
 
   it("returns the refreshed database role in the same OAuth-authenticated request", () => {
     expect(sdk).toContain("return (await db.getUserByOpenId(user.openId)) ?? user");
+    expect(sdk).toContain("if (!isNonEmptyString(openId) || !isNonEmptyString(appId))");
+    expect(sdk).toContain('name: typeof name === "string" ? name : ""');
     expect(routers).toContain('role: isPrimaryOperator(user) ? "admin" : user.role');
   });
 

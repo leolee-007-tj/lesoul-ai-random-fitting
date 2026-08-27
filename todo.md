@@ -1220,3 +1220,7 @@
 ## Owner session role and browser recognition recovery
 - [x] Reproduce why a completed owner OAuth login is rendered as NORMAL and why a different browser reports no matching account.
 - [x] Ensure only the configured owner identity receives the administrator session while NORMAL visitor access cannot override it; verify fresh browser behavior before publishing.
+
+## Owner OAuth identity trace and data preservation
+- [x] Trace the exact post-login identity, cookie/header session, and auth.me role returned for the owner without deleting or reseeding any data.
+- [x] Repair the sole-owner administrator mapping only after the actual identity mismatch or session override is identified; verify all product, NORMAL, VIP, and trial data remain intact.
