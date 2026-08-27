@@ -1232,3 +1232,7 @@
 ## AI operations dashboard owner access recovery
 - [x] Diagnose why the configured owner can access product management but is denied by the AI operations dashboard.
 - [x] Apply the same sole-owner authorization rule to every AI operations query and gate, then verify the protected administrator routes before publishing.
+
+## Owner production catalog source trace
+- [ ] Capture the actual owner-facing catalog response and confirm whether the production browser is reaching the same populated data source without deleting or reseeding records.
+- [ ] Correct the owner catalog path only after identifying the mismatch, then validate all existing products remain visible and editable.

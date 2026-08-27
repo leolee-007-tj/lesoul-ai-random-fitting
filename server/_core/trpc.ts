@@ -70,9 +70,10 @@ export const trialStoreProcedure = t.procedure.use(
 );
 
 async function ensureActiveAdministratorTrial(user: NonNullable<TrpcContext["user"]>) {
-  // The configured project owner is the permanent administrator. The optional
-  // password-based administrator trial remains isolated from owner access.
-  if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) return;
+  // The configured owner or established primary owner is permanent. The
+  // fallback is essential in production environments where OWNER_OPEN_ID is
+  // unavailable at request time but the owner row is already marked primary.
+  if (isPrimaryOperator(user)) return;
   const trial = await getAdminTrialStatus(user.id, true);
   if (trial.status === "expired") throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_TRIAL_EXPIRED" });
 }

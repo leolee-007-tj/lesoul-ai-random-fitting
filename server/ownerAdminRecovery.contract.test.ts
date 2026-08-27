@@ -25,8 +25,8 @@ describe("configured owner administration recovery", () => {
     expect(routers).toContain('role: isPrimaryOperator(user) ? "admin" : user.role');
   });
 
-  it("never applies a password-admin trial expiry to the configured owner", () => {
-    expect(trpc).toContain("if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) return");
+  it("never applies a password-admin trial expiry to the configured or already-primary owner", () => {
+    expect(trpc).toContain("if (isPrimaryOperator(user)) return;");
     expect(trpc).toContain("!isPrimaryOperator(ctx.user)");
     expect(routers).toContain('where(eq(users.isPrimaryAdmin, 1))');
   });
