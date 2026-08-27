@@ -1224,3 +1224,7 @@
 ## Owner OAuth identity trace and data preservation
 - [x] Trace the exact post-login identity, cookie/header session, and auth.me role returned for the owner without deleting or reseeding any data.
 - [x] Repair the sole-owner administrator mapping only after the actual identity mismatch or session override is identified; verify all product, NORMAL, VIP, and trial data remain intact.
+
+## Administrator catalog visibility recovery
+- [x] Diagnose why the administrator product manager reports an empty catalog despite existing active production products, without creating, deleting, or reseeding records.
+- [x] Restore the correct administrator catalog query and validate product visibility, product editing access, and existing data preservation before publishing.

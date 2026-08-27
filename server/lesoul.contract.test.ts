@@ -129,6 +129,13 @@ describe("customer-facing UX cleanup contract", () => {
     expect(dbSource).toContain('role: isPrimaryOwner ? "admin"');
   });
 
+  it("refreshes the administrator catalog and never presents an API failure as an empty catalog", () => {
+    const managerSource = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx", import.meta.url), "utf8");
+    expect(managerSource).toContain('refetchOnMount: "always"');
+    expect(managerSource).toContain("if (catalog.isError)");
+    expect(managerSource).toContain("catalog.refetch()");
+  });
+
   it("keeps the home title higher and supports optional brand plus F free-size product data", () => {
     const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
     const schema = readFileSync(new URL("../drizzle/schema.ts", import.meta.url), "utf8");
