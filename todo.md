@@ -1238,5 +1238,5 @@
 - [x] Correct the owner catalog path only after identifying the mismatch, then validate all existing products remain visible and editable.
 
 ## Owner administrator password credential issuance
-- [ ] Confirm the unique primary owner record and that ADMIN ID lesoul is available without changing product or customer data.
-- [ ] Set ADMIN login ID lesoul and a new server-hashed password for the primary owner, then validate password login and preserve existing data.
+- [x] Confirm the unique primary owner record and that ADMIN ID lesoul is available without changing product or customer data.
+- [x] Set ADMIN login ID lesoul and a new server-hashed password for the primary owner, then validate password login and preserve existing data.
