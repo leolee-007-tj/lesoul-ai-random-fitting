@@ -136,6 +136,14 @@ describe("customer-facing UX cleanup contract", () => {
     expect(managerSource).toContain("catalog.refetch()");
   });
 
+  it("does not present an AI operations data error as an owner-permission denial", () => {
+    const dashboard = readFileSync(new URL("../client/src/pages/OperationsDashboard.tsx", import.meta.url), "utf8");
+    expect(dashboard).toContain('refetchOnMount: "always"');
+    expect(dashboard).toContain("copy.unavailable");
+    expect(dashboard).toContain("settingsQuery.refetch()");
+    expect(dashboard).not.toContain("{copy.unauthorized}</p>");
+  });
+
   it("keeps the home title higher and supports optional brand plus F free-size product data", () => {
     const home = readFileSync(new URL("../client/src/pages/Home.tsx", import.meta.url), "utf8");
     const schema = readFileSync(new URL("../drizzle/schema.ts", import.meta.url), "utf8");

@@ -1228,3 +1228,7 @@
 ## Administrator catalog visibility recovery
 - [x] Diagnose why the administrator product manager reports an empty catalog despite existing active production products, without creating, deleting, or reseeding records.
 - [x] Restore the correct administrator catalog query and validate product visibility, product editing access, and existing data preservation before publishing.
+
+## AI operations dashboard owner access recovery
+- [x] Diagnose why the configured owner can access product management but is denied by the AI operations dashboard.
+- [x] Apply the same sole-owner authorization rule to every AI operations query and gate, then verify the protected administrator routes before publishing.
