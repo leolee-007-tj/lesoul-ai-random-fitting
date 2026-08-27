@@ -1250,3 +1250,8 @@
 - [x] Remove the VIP generated image fitting entry points, server generation calls, and AI usage controls without deleting saved products or looks.
 - [x] Replace AI recommendation wording with administrator-curated recommendation wording in EN/KO/ZH across customer and administrator surfaces.
 - [x] Confirm no customer-facing path invokes an image-generation provider, preserve administrator automatic EN/KO/ZH translation, and regression-test the retained curated-outfit flow.
+
+## Product image loading transition
+- [x] Keep product-card and product-detail image frames stable with a soft neutral placeholder while image bytes load.
+- [x] Fade each correctly loaded image in only after load completion, hide broken-image flashes, and respect reduced-motion preferences.
+- [x] Add regression coverage and verify catalog and product-detail loading behavior on mobile before publishing.

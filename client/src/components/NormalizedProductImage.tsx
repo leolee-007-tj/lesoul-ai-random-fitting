@@ -1,4 +1,5 @@
 import type { CatalogDisplaySettings } from "@shared/catalogDisplay";
+import { useEffect, useState } from "react";
 
 type NormalizedProductImageProps = {
   src: string;
@@ -13,11 +14,22 @@ export function getContainedImageScale(catalogDisplay?: NormalizedProductImagePr
   return Math.min(requestedScale, 0.94);
 }
 
+export function getProductImageVisibilityClass(isLoaded: boolean, hasError: boolean) {
+  return isLoaded && !hasError ? "opacity-100" : "opacity-0";
+}
+
 /** UI-only normalization: source pixels and aspect ratio always remain untouched. */
 export default function NormalizedProductImage({ src, alt, catalogDisplay, className = "", imageClassName = "" }: NormalizedProductImageProps) {
   // Product browsing must always show the complete garment with a small visual cushion.
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [src]);
   const scale = getContainedImageScale(catalogDisplay);
   const x = catalogDisplay?.objectPositionX ?? 50;
   const y = catalogDisplay?.objectPositionY ?? 50;
-  return <div className={`relative overflow-hidden bg-[#f4f1eb] ${className}`}><img src={src} alt={alt} className={`h-full w-full object-contain p-1.5 transition-transform duration-200 ${imageClassName}`} style={{ objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${x}% ${y}%` }} /></div>;
+  const visibilityClass = getProductImageVisibilityClass(isLoaded, hasError);
+  return <div aria-busy={!isLoaded && !hasError} className={`relative overflow-hidden bg-[#f4f1eb]/70 ${className}`}><div aria-hidden="true" className={`absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-[#ddd4c8]/25 transition-opacity duration-300 motion-reduce:transition-none ${isLoaded || hasError ? "opacity-0" : "opacity-100"}`} /><img src={src} alt={alt} onLoad={() => setIsLoaded(true)} onError={() => setHasError(true)} className={`relative h-full w-full object-contain p-1.5 transition-[opacity,transform] duration-300 motion-reduce:transition-none ${visibilityClass} ${imageClassName}`} style={{ objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${x}% ${y}%` }} /></div>;
 }
