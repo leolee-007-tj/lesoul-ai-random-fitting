@@ -114,7 +114,7 @@ describe("customer-facing UX cleanup contract", () => {
     expect(bottomNav).not.toContain('href: "/body-model"');
     expect(app).toContain('<CustomerGate><QuickFit /></CustomerGate>');
     expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
-    expect(adminGate).toContain('user?.role !== "admin"');
+    expect(adminGate).toContain('const hasAdminAccess = user?.role === "admin" || isOwner');
   });
 
   it("keeps shared NORMAL login separate from logout and administrator product-management entry", () => {
@@ -126,7 +126,7 @@ describe("customer-facing UX cleanup contract", () => {
     expect(header).toContain("상품 관리 · 옷 추가");
     expect(header).toContain("const showCatalogManage = showAdminManage");
     expect(header).not.toContain("capabilities.quickAI");
-    expect(dbSource).toContain('user.openId === ENV.ownerOpenId ? "admin"');
+    expect(dbSource).toContain('role: isConfiguredOwner ? "admin"');
   });
 
   it("keeps the home title higher and supports optional brand plus F free-size product data", () => {

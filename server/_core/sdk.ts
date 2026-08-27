@@ -316,7 +316,9 @@ class SDKServer {
       lastSignedIn: signedInAt,
     });
 
-    return user;
+    // The configured owner is promoted during upsert. Re-read the row so this
+    // very request receives the latest role rather than a stale pre-upsert user.
+    return (await db.getUserByOpenId(user.openId)) ?? user;
   }
 }
 

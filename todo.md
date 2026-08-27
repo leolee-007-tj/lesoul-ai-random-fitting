@@ -1195,3 +1195,8 @@
 - [x] Replace whole-catalog hydration in the product-detail click path with a single-product database query that preserves customer visibility, access tier, purchase status, translations, image views, set components, and measurements.
 - [x] Prefetch product detail on customer-card intent so the detail panel can use cached data when the card is opened.
 - [x] Add performance-contract coverage and run regression tests, type checks, production build, responsive verification, and checkpoint.
+
+## Owner administration access and data recovery
+- [x] Diagnose why the owner administrator cannot authenticate or sees empty product and operations data while customer catalog data remains visible.
+- [x] Restore owner-only authentication and admin product/operations queries without deleting, reseeding, or mixing normal, VIP, or store-trial data.
+- [x] Add regression coverage, verify protected admin routes, run type checks and production build, then checkpoint the recovery.

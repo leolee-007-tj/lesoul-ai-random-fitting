@@ -1,4 +1,4 @@
-import { count, desc, eq, inArray, sql } from "drizzle-orm";
+import { count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, stylePresets, stylistFeedback, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
@@ -24,8 +24,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await getDb();
   if (!db) return;
-  const values: InsertUser = { openId: user.openId, name: user.name ?? null, email: user.email ?? null, loginMethod: user.loginMethod ?? null, lastSignedIn: user.lastSignedIn ?? new Date(), role: user.openId === ENV.ownerOpenId ? "admin" : (user.role ?? "user") };
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: { name: values.name, email: values.email, loginMethod: values.loginMethod, lastSignedIn: values.lastSignedIn, role: values.role } });
+  const isConfiguredOwner = Boolean(ENV.ownerOpenId && user.openId === ENV.ownerOpenId);
+  if (isConfiguredOwner) await db.update(users).set({ isPrimaryAdmin: 0 }).where(ne(users.openId, user.openId));
+  const values: InsertUser = { openId: user.openId, name: user.name ?? null, email: user.email ?? null, loginMethod: user.loginMethod ?? null, lastSignedIn: user.lastSignedIn ?? new Date(), role: isConfiguredOwner ? "admin" : (user.role ?? "user"), ...(isConfiguredOwner ? { isPrimaryAdmin: 1, isActive: 1 } : {}) };
+  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: { name: values.name, email: values.email, loginMethod: values.loginMethod, lastSignedIn: values.lastSignedIn, role: values.role, ...(isConfiguredOwner ? { isPrimaryAdmin: 1, isActive: 1 } : {}) } });
 }
 
 export async function getUserByOpenId(openId: string) {

@@ -9,7 +9,8 @@ describe("administrator trial access contract", () => {
     expect(trpc).toContain('message: "ADMIN_TRIAL_EXPIRED"');
     expect(trpc).toContain("export const customerProcedure");
     expect(trpc).toContain("export const adminProcedure");
-    expect(trpc).toContain("await ensureActiveAdministratorTrial(ctx.user.id)");
+    expect(trpc).toContain("await ensureActiveAdministratorTrial(ctx.user)");
+    expect(trpc).toContain("if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) return");
   });
 
   it("keeps an expiry-status route and payment dialog available to an expired administrator", () => {

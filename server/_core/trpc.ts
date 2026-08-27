@@ -69,8 +69,11 @@ export const trialStoreProcedure = t.procedure.use(
   }),
 );
 
-async function ensureActiveAdministratorTrial(userId: number) {
-  const trial = await getAdminTrialStatus(userId, true);
+async function ensureActiveAdministratorTrial(user: NonNullable<TrpcContext["user"]>) {
+  // The configured project owner is the permanent administrator. The optional
+  // password-based administrator trial remains isolated from owner access.
+  if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) return;
+  const trial = await getAdminTrialStatus(user.id, true);
   if (trial.status === "expired") throw new TRPCError({ code: "FORBIDDEN", message: "ADMIN_TRIAL_EXPIRED" });
 }
 
@@ -92,7 +95,7 @@ export const adminProcedure = t.procedure.use(
     if (!ctx.user || ctx.user.role !== 'admin') {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
-    await ensureActiveAdministratorTrial(ctx.user.id);
+    await ensureActiveAdministratorTrial(ctx.user);
 
     return next({
       ctx: {
@@ -109,10 +112,10 @@ export const ownerProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
     const isOwner = Boolean(ctx.user && isPrimaryOperator(ctx.user));
-    if (!ctx.user || (ctx.user.role !== "admin" && !isOwner)) {
+    if (!ctx.user || !isPrimaryOperator(ctx.user)) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
-    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial(ctx.user.id);
+    await ensureActiveAdministratorTrial(ctx.user);
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );
@@ -123,7 +126,7 @@ export const ownerOnlyProcedure = t.procedure.use(
     const { ctx, next } = opts;
     const isOwner = Boolean(ctx.user && isPrimaryOperator(ctx.user));
     if (!isOwner || !ctx.user) throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
-    if (ctx.user.role === "admin") await ensureActiveAdministratorTrial(ctx.user.id);
+    await ensureActiveAdministratorTrial(ctx.user);
     return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );

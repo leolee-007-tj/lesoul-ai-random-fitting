@@ -11,17 +11,18 @@ export default function AdminGate({ children }: { children: ReactNode }) {
   const owner = trpc.operations.ownerStatus.useQuery(undefined, { enabled: !loading && isAuthenticated, retry: false });
   const isOwner = Boolean(owner.data?.isOwner);
   const trial = trpc.adminTrial.status.useQuery(undefined, { enabled: !loading && isAuthenticated && user?.role === "admin" && !isOwner, retry: false });
+  const hasAdminAccess = user?.role === "admin" || isOwner;
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || owner.isLoading) return;
     if (!isAuthenticated) {
       navigate(`/login?next=${encodeURIComponent(location)}`);
       return;
     }
-    if (user?.role !== "admin") navigate("/");
-  }, [isAuthenticated, loading, location, navigate, user?.role]);
+    if (!hasAdminAccess) navigate("/");
+  }, [hasAdminAccess, isAuthenticated, loading, location, navigate, owner.isLoading]);
 
-  if (loading || !isAuthenticated || user?.role !== "admin" || owner.isLoading || (!isOwner && trial.isLoading)) {
+  if (loading || !isAuthenticated || !hasAdminAccess || owner.isLoading || (!isOwner && trial.isLoading)) {
     return <main className="grid min-h-svh place-items-center bg-[#fbfaf8] text-[#5f574f]"><LoaderCircle className="animate-spin" size={22} /><span className="sr-only">Checking administrator access</span></main>;
   }
   if (!isOwner && trial.data?.status === "expired") return <AdminTrialExpiredDialog trial={trial.data} />;
