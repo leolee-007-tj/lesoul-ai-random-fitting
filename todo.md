@@ -1273,3 +1273,8 @@
 - [x] Add owner-only configuration for an MP3 alert file and a global camera-presence ON/OFF switch, storing only the audio reference and settings.
 - [x] Create a customer-facing camera consent flow that detects a person locally in the browser without sending or storing video frames.
 - [x] Play the configured sound once per entry event only after an explicit user gesture enables audio, respect the OFF setting, and add EN/KO/ZH guidance and regression tests.
+
+## Presence alert recording and playback control
+- [x] Add owner-only browser microphone recording alongside MP3 upload, validate and store the resulting alert audio safely.
+- [x] Add a globally stored alert playback-repeat count and an administrator preview that uses the configured count.
+- [x] Stop camera person detection immediately when alert playback begins, play the sound the configured number of times, then require a new manual camera start; add EN/KO/ZH guidance and regression coverage.

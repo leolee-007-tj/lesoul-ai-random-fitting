@@ -161,6 +161,7 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   /** Customer devices process their own camera feed locally; the server stores only this owner-controlled alert configuration. */
   presenceAlertEnabled: int("presenceAlertEnabled").default(0).notNull(),
   presenceAlertSoundUrl: text("presenceAlertSoundUrl"),
+  presenceAlertRepeatCount: int("presenceAlertRepeatCount").default(1).notNull(),
   /** Starts only when an administrator first opens the protected console. Customer access never reads these fields. */
   adminTrialStartedAt: timestamp("adminTrialStartedAt"),
   adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),

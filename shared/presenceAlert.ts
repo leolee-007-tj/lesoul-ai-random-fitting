@@ -1,9 +1,16 @@
-export const PRESENCE_REARM_AFTER_MS = 3_000;
+export const MIN_PRESENCE_ALERT_REPEATS = 1;
+export const MAX_PRESENCE_ALERT_REPEATS = 5;
 
-export function shouldPlayPresenceSound(input: { personDetected: boolean; isLatched: boolean; hasSound: boolean }) {
-  return input.personDetected && !input.isLatched && input.hasSound;
+export function normalizePresenceAlertRepeats(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return MIN_PRESENCE_ALERT_REPEATS;
+  return Math.min(MAX_PRESENCE_ALERT_REPEATS, Math.max(MIN_PRESENCE_ALERT_REPEATS, Math.trunc(parsed)));
 }
 
-export function shouldRearmPresenceSound(input: { personDetected: boolean; absentSince: number | null; now: number }) {
-  return !input.personDetected && input.absentSince !== null && input.now - input.absentSince >= PRESENCE_REARM_AFTER_MS;
+export function shouldStartPresencePlayback(input: { personDetected: boolean; isPlaying: boolean; hasSound: boolean }) {
+  return input.personDetected && !input.isPlaying && input.hasSound;
+}
+
+export function shouldContinuePresencePlayback(input: { completedPlays: number; repeatCount: number }) {
+  return input.completedPlays < normalizePresenceAlertRepeats(input.repeatCount);
 }

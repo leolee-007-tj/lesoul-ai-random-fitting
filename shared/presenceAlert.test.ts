@@ -1,16 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { PRESENCE_REARM_AFTER_MS, shouldPlayPresenceSound, shouldRearmPresenceSound } from "./presenceAlert";
+import { MAX_PRESENCE_ALERT_REPEATS, normalizePresenceAlertRepeats, shouldContinuePresencePlayback, shouldStartPresencePlayback } from "./presenceAlert";
 
 describe("camera presence alert policy", () => {
-  it("plays only on a new person entry when a sound is configured", () => {
-    expect(shouldPlayPresenceSound({ personDetected: true, isLatched: false, hasSound: true })).toBe(true);
-    expect(shouldPlayPresenceSound({ personDetected: true, isLatched: true, hasSound: true })).toBe(false);
-    expect(shouldPlayPresenceSound({ personDetected: true, isLatched: false, hasSound: false })).toBe(false);
+  it("starts playback only for a detected person with configured audio", () => {
+    expect(shouldStartPresencePlayback({ personDetected: true, isPlaying: false, hasSound: true })).toBe(true);
+    expect(shouldStartPresencePlayback({ personDetected: true, isPlaying: true, hasSound: true })).toBe(false);
+    expect(shouldStartPresencePlayback({ personDetected: true, isPlaying: false, hasSound: false })).toBe(false);
   });
 
-  it("requires a sustained absence before rearming", () => {
-    expect(shouldRearmPresenceSound({ personDetected: false, absentSince: 100, now: 100 + PRESENCE_REARM_AFTER_MS - 1 })).toBe(false);
-    expect(shouldRearmPresenceSound({ personDetected: false, absentSince: 100, now: 100 + PRESENCE_REARM_AFTER_MS })).toBe(true);
-    expect(shouldRearmPresenceSound({ personDetected: true, absentSince: 100, now: 100 + PRESENCE_REARM_AFTER_MS + 1 })).toBe(false);
+  it("bounds repeat count and stops exactly after the configured number of plays", () => {
+    expect(normalizePresenceAlertRepeats(0)).toBe(1);
+    expect(normalizePresenceAlertRepeats(999)).toBe(MAX_PRESENCE_ALERT_REPEATS);
+    expect(shouldContinuePresencePlayback({ completedPlays: 1, repeatCount: 2 })).toBe(true);
+    expect(shouldContinuePresencePlayback({ completedPlays: 2, repeatCount: 2 })).toBe(false);
   });
 });

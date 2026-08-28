@@ -21,12 +21,13 @@ describe("product image validation", () => {
     expect(Buffer.compare(result.buffer, source)).toBe(0);
   });
 
-  it("accepts only bounded MP3 data for the owner presence alert", () => {
+  it("accepts bounded MP3 uploads and browser-recorded audio for the owner presence alert", () => {
     const result = decodePresenceAudioDataUrl("data:audio/mpeg;base64,aGVsbG8=");
     expect(result.mimeType).toBe("audio/mpeg");
     expect(result.extension).toBe("mp3");
     expect(result.buffer.toString()).toBe("hello");
     expect(MAX_PRESENCE_AUDIO_BYTES).toBe(12 * 1024 * 1024);
-    expect(() => decodePresenceAudioDataUrl("data:audio/wav;base64,aGVsbG8=")).toThrow("Only MP3");
+    expect(decodePresenceAudioDataUrl("data:audio/wav;base64,aGVsbG8=").extension).toBe("wav");
+    expect(() => decodePresenceAudioDataUrl("data:text/plain;base64,aGVsbG8=")).toThrow("Only MP3 uploads");
   });
 });

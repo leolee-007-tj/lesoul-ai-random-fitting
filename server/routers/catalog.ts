@@ -24,7 +24,7 @@ export const catalogRouter = router({
   presenceAlertConfig: publicProcedure.query(async () => {
     const settings = await getReleaseSettings();
     const enabled = Boolean(settings.presenceAlertEnabled && settings.presenceAlertSoundUrl);
-    return { enabled, soundUrl: enabled ? settings.presenceAlertSoundUrl : null };
+    return { enabled, soundUrl: enabled ? settings.presenceAlertSoundUrl : null, repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1)) };
   }),
   bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input, ctx }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
