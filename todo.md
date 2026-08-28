@@ -1293,3 +1293,7 @@
 - [x] Add an administrator control to preview the saved MP3 or browser-recorded alert sound before enabling it.
 - [x] Render enabled and disabled camera-presence states with clearly distinct colors, labels, and accessible state text.
 - [x] Add regression coverage for recording preview and ON/OFF visual state, then verify the administrator settings screen before publishing.
+
+## New arrivals at the top of customer catalog
+- [x] Sort currently visible new arrivals into a dedicated top section before the remaining customer catalog without bypassing VIP early-access filtering.
+- [x] Preserve card pricing, product detail, purchase-list actions, and EN/KO/ZH labels; add regression coverage and verify mobile ordering before publishing.

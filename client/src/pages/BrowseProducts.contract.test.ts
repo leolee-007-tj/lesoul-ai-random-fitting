@@ -14,9 +14,10 @@ describe("complete product image presentation", () => {
     expect(normalized).toContain("object-contain p-1.5");
   });
 
-  it("places new arrivals in a separate top row for non-admin customers", () => {
-    expect(browse).toContain("showNewArrivalRow = user?.role !== \"admin\"");
+  it("places new arrivals in a separate top row for every catalog viewer", () => {
+    expect(browse).toContain("showNewArrivalRow = true");
     expect(browse).toContain("newArrivals");
+    expect(browse).toContain("right.newArrivalAt ?? right.createdAt");
     expect(browse).toContain("NEW ARRIVALS");
     expect(browse).toContain("regularProducts");
     expect(browse).toContain("CUSTOMER_CATALOG_PAGE_SIZE = 6");
