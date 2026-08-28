@@ -5,9 +5,7 @@ export function normalizeProductDetailUrls(urls: readonly string[]) {
 }
 
 export function customerProductImage(asset: ProductImageAsset | null | undefined, fallback = ""): string {
-  // The original is the approved uploaded item image. Some legacy studio-cut
-  // derivatives include visual artifacts, so they are now fallback-only.
-  return asset?.original?.trim() || asset?.studioCut?.trim() || fallback;
+  return asset?.studioCut?.trim() || asset?.original?.trim() || fallback;
 }
 
 export function buildProductGalleryUrls({ frontUrl, backUrl, detailUrls, fallbackUrls = [], fallbackUrl }: { frontUrl?: string | null; backUrl?: string | null; detailUrls?: readonly string[] | null; fallbackUrls?: readonly string[] | null; fallbackUrl?: string | null }) {

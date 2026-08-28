@@ -83,12 +83,12 @@
 .lesoul-app-wrapper { width: 100%; min-height: 100vh; min-height: 100dvh; box-sizing: border-box; padding-right: var(--safe-area-right); padding-left: var(--safe-area-left); background: #f8f7f4; }
 .lesoul-mobile-screen { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; background: #f8f7f4; }
 .lesoul-mobile-header { position: sticky; top: 0; z-index: 30; background: rgba(248,247,244,.92); backdrop-filter: blur(14px); padding-top: var(--safe-area-top); }
-.lesoul-mobile-header header { min-height: 52px; padding-top: .55rem; padding-bottom: .55rem; }
+.lesoul-mobile-header header { min-height: 56px; padding-top: .75rem; padding-bottom: .75rem; }
 .lesoul-mobile-content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
 .lesoul-mobile-screen:has(.lesoul-action-dock) .lesoul-mobile-content { padding-bottom: calc(var(--mobile-nav-height) + var(--mobile-action-height) + var(--safe-area-bottom)); }
 .lesoul-action-dock { position: fixed; z-index: 30; right: var(--safe-area-right); bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); left: var(--safe-area-left); min-height: var(--mobile-action-height); border-top: 1px solid #e5e0d8; background: rgba(255,255,255,.96); padding: .65rem 1rem; backdrop-filter: blur(14px); transition: bottom .18s ease-out; }
 .lesoul-bottom-nav { position: fixed; z-index: 40; right: 0; bottom: 0; left: 0; min-height: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); border-top: 1px solid #e5e0d8; background: rgba(255,255,255,.96); padding-bottom: var(--safe-area-bottom); backdrop-filter: blur(14px); }
-.lesoul-bottom-nav-inner { display: flex; min-height: var(--mobile-nav-height); max-width: 480px; margin: 0 auto; padding: .4rem .5rem; }
+.lesoul-bottom-nav-inner { display: flex; min-height: var(--mobile-nav-height); max-width: 480px; margin: 0 auto; padding: .45rem .75rem; }
 .lesoul-mobile-frame { width: 100%; max-width: 480px; margin: 0 auto; }
 .lesoul-safe-modal { position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain; background: rgba(0,0,0,.32); padding: calc(var(--safe-area-top) + .75rem) calc(var(--safe-area-right) + .75rem) calc(var(--safe-area-bottom) + .75rem) calc(var(--safe-area-left) + .75rem); backdrop-filter: blur(14px); }
 .lesoul-safe-modal > * { margin-top: 0; margin-bottom: 0; }
