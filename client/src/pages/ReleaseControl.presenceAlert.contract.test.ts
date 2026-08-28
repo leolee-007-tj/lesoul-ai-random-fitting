@@ -15,5 +15,8 @@ describe("presence alert owner control", () => {
     expect(page).toContain("presenceUi.enabled");
     expect(page).toContain("bg-emerald-600");
     expect(page).toContain("bg-rose-50");
+    expect(page).toContain('import MobileBottomNav from "@/components/MobileBottomNav"');
+    expect(page).toContain("<MobileBottomNav />");
+    expect(page).toContain("pb-28");
   });
 });

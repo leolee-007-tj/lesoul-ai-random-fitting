@@ -1301,3 +1301,7 @@
 ## Store display price and new-arrival visibility
 - [x] Render the central customer price policy, sale discount display, and new-arrival state on store-display catalog cards without restoring restricted purchase actions.
 - [x] Verify display-only role boundaries remain intact and add regression coverage for price and status badge visibility before publishing.
+
+## Camera alert management mobile navigation recovery
+- [x] Restore the administrator mobile bottom navigation in the camera alert management screen without affecting the store-display-only camera player.
+- [x] Verify the camera alert management, release control, and operations pages preserve the administrator bottom navigation before publishing.
