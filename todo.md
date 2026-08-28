@@ -1283,3 +1283,8 @@
 - [x] Add an owner-managed store display account type with a unique login ID and server-hashed password, separate from NORMAL, VIP, trial, and owner accounts.
 - [x] Limit the store display session to a large-format product browsing experience and camera greeting only; deny purchase list, QR purchase, profile, VIP early access, curation feedback, and all account-management actions.
 - [x] Hide camera greeting from NORMAL, VIP, trial, and owner sessions; provide EN/KO/ZH owner controls to create, view, deactivate, and reset display-account credentials, then regression-test role isolation and display-only access.
+
+## Administrator camera management access
+- [x] Add a visible camera-alert management entry point to the administrator operations screen.
+- [x] Allow authorized administrator sessions to manage MP3/recording, ON/OFF, and repeat count while retaining store-display-only camera playback access.
+- [x] Verify administrator navigation, settings mutations, and display-only playback boundaries before publishing.
