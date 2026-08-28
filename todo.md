@@ -1288,3 +1288,8 @@
 - [x] Add a visible camera-alert management entry point to the administrator operations screen.
 - [x] Allow authorized administrator sessions to manage MP3/recording, ON/OFF, and repeat count while retaining store-display-only camera playback access.
 - [x] Verify administrator navigation, settings mutations, and display-only playback boundaries before publishing.
+
+## Camera alert recording preview and state clarity
+- [x] Add an administrator control to preview the saved MP3 or browser-recorded alert sound before enabling it.
+- [x] Render enabled and disabled camera-presence states with clearly distinct colors, labels, and accessible state text.
+- [x] Add regression coverage for recording preview and ON/OFF visual state, then verify the administrator settings screen before publishing.

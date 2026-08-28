@@ -9,4 +9,12 @@ describe("owner alert-sound recorder", () => {
     expect(component).toContain("reader.readAsDataURL(blob)");
     expect(component).toContain("getTracks().forEach((track) => track.stop())");
   });
+
+  it("lets the administrator preview the just-recorded sound", () => {
+    const component = readFileSync(new URL("./PresenceAudioRecorder.tsx", import.meta.url), "utf8");
+    expect(component).toContain("setPreviewUrl(dataUrl)");
+    expect(component).toContain("togglePreview");
+    expect(component).toContain("copy.preview");
+    expect(component).toContain("copy.stopPreview");
+  });
 });

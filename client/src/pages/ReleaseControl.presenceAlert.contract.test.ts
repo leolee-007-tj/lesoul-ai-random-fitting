@@ -11,5 +11,9 @@ describe("presence alert owner control", () => {
     expect(page).toContain('accept="audio/mpeg,.mp3"');
     expect(page).toContain("maximum 12MB");
     expect(page).toContain("Video is never stored or uploaded");
+    expect(page).toContain("toggleSavedSoundPreview");
+    expect(page).toContain("presenceUi.enabled");
+    expect(page).toContain("bg-emerald-600");
+    expect(page).toContain("bg-rose-50");
   });
 });
