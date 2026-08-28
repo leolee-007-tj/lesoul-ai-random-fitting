@@ -32,4 +32,12 @@ describe("store display account contract", () => {
     expect(presence).toContain("showNavigation={false}");
     expect(displayCatalogue).toContain("catalog.storeDisplayProducts.useQuery");
   });
+
+  it("keeps customer-facing merchandising information without adding purchase actions", () => {
+    const displayCatalogue = read("client/src/pages/StoreDisplayCatalog.tsx");
+    expect(displayCatalogue).toContain("<ProductPrice product={product}");
+    expect(displayCatalogue).toContain("<ProductStatusBadges");
+    expect(displayCatalogue).toContain("showAvailability={false}");
+    expect(displayCatalogue).not.toContain("PurchaseListAddButton");
+  });
 });

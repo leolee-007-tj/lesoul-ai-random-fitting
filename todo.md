@@ -1297,3 +1297,7 @@
 ## New arrivals at the top of customer catalog
 - [x] Sort currently visible new arrivals into a dedicated top section before the remaining customer catalog without bypassing VIP early-access filtering.
 - [x] Preserve card pricing, product detail, purchase-list actions, and EN/KO/ZH labels; add regression coverage and verify mobile ordering before publishing.
+
+## Store display price and new-arrival visibility
+- [x] Render the central customer price policy, sale discount display, and new-arrival state on store-display catalog cards without restoring restricted purchase actions.
+- [x] Verify display-only role boundaries remain intact and add regression coverage for price and status badge visibility before publishing.
