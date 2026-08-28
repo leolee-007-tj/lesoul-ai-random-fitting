@@ -14,5 +14,10 @@ describe("customer profile and curated-look policy", () => {
     expect(profile).toContain("SAVED LOOKS");
     expect(profile).toContain("INTERESTED PIECES");
     expect(profile).toContain("PREVIOUS PURCHASE REQUEST");
+    expect(profile).toContain("quickLooks");
+    expect(profile).toContain("quickInterest");
+    expect(profile).toContain("quickPurchase");
+    expect(profile).not.toContain("Delivery status");
+    expect(profile).not.toContain("Payment status");
   });
 });
