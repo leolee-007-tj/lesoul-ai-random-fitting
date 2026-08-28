@@ -7,8 +7,9 @@ describe("four-product-image policy", () => {
     expect(buildProductGalleryUrls({ frontUrl: "front.jpg", backUrl: "back.jpg", detailUrls: ["detail-1.jpg", "detail-2.jpg", "detail-3.jpg"], fallbackUrls: ["legacy.jpg"], fallbackUrl: "fallback.jpg" })).toEqual(["front.jpg", "back.jpg", "detail-1.jpg", "detail-2.jpg"]);
   });
 
-  it("prefers an accepted studio cut while the original remains stored", () => {
-    expect(customerProductImage({ original: "original.jpg", studioCut: "studio.jpg", thumbnail: "studio.jpg" })).toBe("studio.jpg");
+  it("prefers the approved original and uses a legacy studio cut only as fallback", () => {
+    expect(customerProductImage({ original: "original.jpg", studioCut: "studio.jpg", thumbnail: "studio.jpg" })).toBe("original.jpg");
     expect(customerProductImage({ original: "original.jpg", studioCut: "", thumbnail: "original.jpg" })).toBe("original.jpg");
+    expect(customerProductImage({ original: "", studioCut: "studio.jpg", thumbnail: "studio.jpg" })).toBe("studio.jpg");
   });
 });
