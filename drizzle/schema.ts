@@ -158,6 +158,9 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   pricingMode: mysqlEnum("pricingMode", ["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).default("BASE").notNull(),
   /** Owner option: seasonal/global sale discounts do not apply to products explicitly marked NEW. */
   excludeNewArrivalsFromSale: int("excludeNewArrivalsFromSale").default(0).notNull(),
+  /** Customer devices process their own camera feed locally; the server stores only this owner-controlled alert configuration. */
+  presenceAlertEnabled: int("presenceAlertEnabled").default(0).notNull(),
+  presenceAlertSoundUrl: text("presenceAlertSoundUrl"),
   /** Starts only when an administrator first opens the protected console. Customer access never reads these fields. */
   adminTrialStartedAt: timestamp("adminTrialStartedAt"),
   adminTrialDurationHours: int("adminTrialDurationHours").default(48).notNull(),

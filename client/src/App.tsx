@@ -25,6 +25,7 @@ import TrialStoreConsole from "./pages/TrialStoreConsole";
 import AccountManagement from "./pages/AccountManagement";
 import SaleSettings from "./pages/SaleSettings";
 import VipEarlyAccess from "./pages/VipEarlyAccess";
+import PresenceAlert from "./pages/PresenceAlert";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -38,6 +39,7 @@ function Router() {
       <Route path={"/quick-fit"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/catalog"} component={() => <CustomerGate><BrowseProducts /></CustomerGate>} />
       <Route path={"/vip-early-access"} component={() => <CustomerGate><VipEarlyAccess /></CustomerGate>} />
+      <Route path={"/camera-greeting"} component={() => <CustomerGate><PresenceAlert /></CustomerGate>} />
       <Route path={"/purchase-list"} component={() => <CustomerGate><PurchaseList /></CustomerGate>} />
       <Route path={"/body-model"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/measurements"} component={() => <CustomerGate><Measurements /></CustomerGate>} />

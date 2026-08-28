@@ -1268,3 +1268,8 @@
 ## Roll back COS-inspired interface changes
 - [x] Restore the stable LESOUL interface from before the COS-inspired header, bottom-navigation, catalog, profile, and image-priority changes.
 - [x] Confirm the restored version preserves prior catalog, VIP early-access, sale-settings navigation, and administrator functionality.
+
+## Camera presence sound alert
+- [x] Add owner-only configuration for an MP3 alert file and a global camera-presence ON/OFF switch, storing only the audio reference and settings.
+- [x] Create a customer-facing camera consent flow that detects a person locally in the browser without sending or storing video frames.
+- [x] Play the configured sound once per entry event only after an explicit user gesture enables audio, respect the OFF setting, and add EN/KO/ZH guidance and regression tests.

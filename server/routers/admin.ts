@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 import { createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { ownerProcedure, router } from "../_core/trpc";
@@ -165,6 +166,15 @@ export const adminRouter = router({
   updateProductCategory: ownerProcedure.input(z.object({ id: z.number().int().positive(), nameEn: z.string().trim().min(1).max(120).optional(), nameKo: z.string().trim().min(1).max(120).optional(), nameZh: z.string().trim().min(1).max(120).optional(), baseCategory: z.enum(BASE_CATEGORY_OPTIONS).optional(), measurementFields: z.array(z.enum(MEASUREMENT_FIELD_KEYS)).min(1).max(MEASUREMENT_FIELD_KEYS.length).optional(), isActive: z.number().int().min(0).max(1).optional(), sortOrder: z.number().int().min(0).max(9999).optional() })).mutation(async ({ input }) => { const { id, ...updates } = input; return updateProductCategory(id, updates); }),
   stats: ownerProcedure.query(getAdminStats),
   releaseConfig: ownerProcedure.query(getReleaseSettings),
+  updatePresenceAlertConfig: ownerProcedure.input(z.object({ presenceAlertEnabled: z.number().int().min(0).max(1).optional(), presenceAlertSoundUrl: z.string().min(1).nullable().optional() })).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Presence alert settings are temporarily unavailable.");
+    const current = await getReleaseSettings();
+    const presenceAlertSoundUrl = input.presenceAlertSoundUrl === undefined ? current.presenceAlertSoundUrl : input.presenceAlertSoundUrl;
+    const presenceAlertEnabled = presenceAlertSoundUrl ? (input.presenceAlertEnabled ?? current.presenceAlertEnabled) : 0;
+    await db.update(releaseSettings).set({ presenceAlertEnabled, presenceAlertSoundUrl }).where(eq(releaseSettings.id, 1));
+    return { presenceAlertEnabled, presenceAlertSoundUrl };
+  }),
   updateReleaseConfig: ownerProcedure.input(z.object({ storeName: z.string().trim().min(1).max(80).optional(), storeTaglineEn: z.string().trim().min(1).max(180).optional(), storeTaglineKo: z.string().trim().min(1).max(180).optional(), storeTaglineZh: z.string().trim().min(1).max(180).optional(), pricingMode: z.enum(["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).optional(), excludeNewArrivalsFromSale: z.number().int().min(0).max(1).optional(), adminTrialPaymentQrUrl: z.string().min(1).nullable().optional(), adminTrialUsageGuideQrUrl: z.string().min(1).nullable().optional(), adminTrialPaymentNoticeEn: z.string().trim().min(1).max(800).optional(), adminTrialPaymentNoticeKo: z.string().trim().min(1).max(800).optional(), adminTrialPaymentNoticeZh: z.string().trim().min(1).max(800).optional(), releaseMode: z.enum(["PRIVATE", "BETA_PUBLIC", "REDEEM_CODE"]), betaCatalogLimit: z.number().int().min(4).max(100), betaDailyVisitorLimit: z.number().int().min(0).max(100), betaFreeGenerationAllowance: z.number().int().min(1).max(100).optional(), globalDailyGenerationLimit: z.number().int().min(0).max(1000000), monthlyGenerationLimit: z.number().int().min(0).max(1000000), generationEnabled: z.number().int().min(0).max(1), purchaseMode: z.enum(["PURCHASE_LIST", "QR", "DISABLED"]).optional(), purchaseListMaxItems: z.number().int().min(1).max(20).optional(), purchaseQrEnabled: z.number().int().min(0).max(1).optional(), purchaseNoticeEn: z.string().max(1200).nullable().optional(), purchaseNoticeKo: z.string().max(1200).nullable().optional(), purchaseNoticeZh: z.string().max(1200).nullable().optional(), stylistIncludePreorder: z.number().int().min(0).max(1).optional() })).mutation(async ({ input }) => {
     const db = await getDb(); if (!db) throw new Error("Release settings are temporarily unavailable.");
     const current = await getReleaseSettings();
