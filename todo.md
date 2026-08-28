@@ -1264,3 +1264,7 @@
 ## Sale settings mobile navigation recovery
 - [x] Restore the role-aware mobile bottom navigation on the sale settings screen without duplicating shared layout chrome.
 - [x] Verify the sale settings and adjacent administrator pages retain the bottom navigation on mobile before publishing.
+
+## Roll back COS-inspired interface changes
+- [x] Restore the stable LESOUL interface from before the COS-inspired header, bottom-navigation, catalog, profile, and image-priority changes.
+- [x] Confirm the restored version preserves prior catalog, VIP early-access, sale-settings navigation, and administrator functionality.
