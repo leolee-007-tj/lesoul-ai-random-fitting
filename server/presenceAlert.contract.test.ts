@@ -14,9 +14,9 @@ describe("presence alert server contract", () => {
     expect(admin).toContain("presenceAlertRepeatCount");
   });
 
-  it("exposes a sound URL only while the global feature is enabled", () => {
+  it("exposes a sound URL only to an active store-display session while the global feature is enabled", () => {
     const catalog = read(new URL("./routers/catalog.ts", import.meta.url));
-    expect(catalog).toContain("presenceAlertConfig: publicProcedure");
+    expect(catalog).toContain("presenceAlertConfig: storeDisplayProcedure");
     expect(catalog).toContain("settings.presenceAlertEnabled && settings.presenceAlertSoundUrl");
     expect(catalog).toContain("soundUrl: enabled ? settings.presenceAlertSoundUrl : null");
     expect(catalog).toContain("repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1))");

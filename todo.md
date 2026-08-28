@@ -1278,3 +1278,8 @@
 - [x] Add owner-only browser microphone recording alongside MP3 upload, validate and store the resulting alert audio safely.
 - [x] Add a globally stored alert playback-repeat count and an administrator preview that uses the configured count.
 - [x] Stop camera person detection immediately when alert playback begins, play the sound the configured number of times, then require a new manual camera start; add EN/KO/ZH guidance and regression coverage.
+
+## Store display catalog account
+- [x] Add an owner-managed store display account type with a unique login ID and server-hashed password, separate from NORMAL, VIP, trial, and owner accounts.
+- [x] Limit the store display session to a large-format product browsing experience and camera greeting only; deny purchase list, QR purchase, profile, VIP early access, curation feedback, and all account-management actions.
+- [x] Hide camera greeting from NORMAL, VIP, trial, and owner sessions; provide EN/KO/ZH owner controls to create, view, deactivate, and reset display-account credentials, then regression-test role isolation and display-only access.

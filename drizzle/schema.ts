@@ -5,13 +5,13 @@ import type { CompatibilityWeights, StylistProductMetadata } from "../shared/sty
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
-  /** Username/password identities are reserved for administrator-created VIP accounts. */
+  /** Username/password identities are reserved for administrator-created controlled account types. */
   username: varchar("username", { length: 64 }).unique(),
   passwordHash: varchar("passwordHash", { length: 256 }),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "vip", "admin", "store_trial"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "vip", "admin", "store_trial", "store_display"]).default("user").notNull(),
   isActive: int("isActive").default(1).notNull(),
   /** The configured owner is the sole primary administrator and operator. */
   isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull(),
