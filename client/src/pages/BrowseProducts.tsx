@@ -5,6 +5,7 @@ import PurchaseListAddButton from "@/components/PurchaseListAddButton";
 import ProductPrice from "@/components/ProductPrice";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import BlackColorVerificationNotice from "@/components/BlackColorVerificationNotice";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { getVisitorId } from "@/lib/visitor";
 import { localizedProductName } from "@shared/productCommerce";
@@ -29,6 +30,7 @@ function chunkProducts<T>(items: T[], size: number) {
 export default function BrowseProducts() {
   const [location, navigate] = useLocation();
   const { i18n } = useTranslation();
+  const { user } = useAuth();
   const utils = trpc.useUtils();
   const language = i18n.language;
   const locale = language.startsWith("ko") ? "ko" : language.startsWith("zh") ? "zh" : "en";
@@ -45,10 +47,10 @@ export default function BrowseProducts() {
   const products = catalog.data ?? [];
   const detailInput = (productId: number) => ({ productId, visitorId: getVisitorId(), browseAll: true });
   const prefetchDetail = (productId: number) => void utils.catalog.productDetail.prefetch(detailInput(productId), { staleTime: 60_000 });
-  const showNewArrivalRow = true;
+  const showNewArrivalRow = user?.role !== "admin";
   const { visible, newArrivals, regularProducts } = useMemo(() => {
     const filtered = category === "all" ? products : products.filter((product) => product.category === category);
-    const arrivals = filtered.filter((product) => isNewArrival(product)).sort((left, right) => Number(new Date(right.newArrivalAt ?? right.createdAt ?? 0)) - Number(new Date(left.newArrivalAt ?? left.createdAt ?? 0)));
+    const arrivals = filtered.filter((product) => isNewArrival(product));
     return { visible: filtered, newArrivals: arrivals, regularProducts: showNewArrivalRow ? filtered.filter((product) => !isNewArrival(product)) : filtered };
   }, [category, products, showNewArrivalRow]);
   const newArrivalPages = useMemo(() => showNewArrivalRow ? chunkProducts(newArrivals, CUSTOMER_CATALOG_PAGE_SIZE) : [], [newArrivals, showNewArrivalRow]);

@@ -4,16 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { clearExplicitLogout, getVisitorId, restoreVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, KeyRound, LockKeyhole, MonitorPlay, ShieldCheck, Store } from "lucide-react";
+import { ArrowRight, KeyRound, LockKeyhole, ShieldCheck, Store } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
-type LoginMode = "normal" | "vip" | "trial" | "display" | "admin";
+type LoginMode = "normal" | "vip" | "trial" | "admin";
 
 export default function Login() {
   const [, navigate] = useLocation();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const [mode, setMode] = useState<LoginMode>("normal");
   const [username, setUsername] = useState("");
@@ -22,11 +22,9 @@ export default function Login() {
   const [visitorId] = useState(() => getVisitorId());
   const guestLogin = trpc.auth.guestLogin.useMutation();
   const vipLogin = trpc.auth.vipLogin.useMutation();
-  const storeDisplayLogin = trpc.auth.storeDisplayLogin.useMutation();
   const trialStoreLogin = trpc.auth.trialStoreLogin.useMutation();
   const adminLogin = trpc.auth.adminLogin.useMutation();
   const next = new URLSearchParams(window.location.search).get("next") || "/";
-  const displayCopy = i18n.language.startsWith("ko") ? { tab: "매장 디스플레이", body: "매장 화면 전용 계정입니다. 큰 상품 보기와 방문 알림만 사용할 수 있습니다.", submit: "디스플레이 시작", invalid: "디스플레이 ID 또는 비밀번호가 올바르지 않습니다.", inactive: "이 디스플레이 계정은 현재 비활성 상태입니다." } : i18n.language.startsWith("zh") ? { tab: "店铺展示", body: "这是店铺展示专用账户，仅可浏览大图商品和使用到店提醒。", submit: "进入展示模式", invalid: "展示 ID 或密码不正确。", inactive: "此展示账户当前已停用。" } : { tab: "STORE DISPLAY", body: "This store-display account can only browse large products and use the visitor alert.", submit: "START DISPLAY", invalid: "The display ID or password is incorrect.", inactive: "This display account is currently inactive." };
 
   const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
   const finishNormal = (destination = safeNext) => {
@@ -60,31 +58,28 @@ export default function Login() {
         ? await vipLogin.mutateAsync({ username, password })
         : mode === "trial"
           ? await trialStoreLogin.mutateAsync({ username, password })
-          : mode === "display"
-            ? await storeDisplayLogin.mutateAsync({ username, password })
-            : await adminLogin.mutateAsync({ username, password });
+          : await adminLogin.mutateAsync({ username, password });
       if (!result.success) {
-        const inactiveCopy = mode === "vip" ? t("auth.vipInactive") : mode === "trial" ? t("auth.trialInactive") : mode === "display" ? displayCopy.inactive : t("auth.adminInactive");
-        const invalidCopy = mode === "vip" ? t("auth.vipInvalid") : mode === "trial" ? t("auth.trialInvalid") : mode === "display" ? displayCopy.invalid : t("auth.adminInvalid");
+        const inactiveCopy = mode === "vip" ? t("auth.vipInactive") : mode === "trial" ? t("auth.trialInactive") : t("auth.adminInactive");
+        const invalidCopy = mode === "vip" ? t("auth.vipInvalid") : mode === "trial" ? t("auth.trialInvalid") : t("auth.adminInvalid");
         return setMessage(result.reason === "inactive" ? inactiveCopy : invalidCopy);
       }
       clearExplicitLogout();
       void utils.auth.me.invalidate().catch(() => undefined);
       if (mode === "admin") navigate("/operations");
       else if (mode === "trial") navigate("/trial-store");
-      else if (mode === "display") navigate("/store-display");
       else navigate(safeNext);
     } catch {
       setMessage(t("auth.unavailable"));
     }
   }
 
-  const pending = guestLogin.isPending || vipLogin.isPending || trialStoreLogin.isPending || storeDisplayLogin.isPending || adminLogin.isPending;
+  const pending = guestLogin.isPending || vipLogin.isPending || trialStoreLogin.isPending || adminLogin.isPending;
   const setLoginMode = (nextMode: LoginMode) => { setMode(nextMode); setMessage(""); };
   const credentialMode = mode !== "normal";
-  const credentialIcon = mode === "vip" ? <KeyRound size={16} className="text-[#413b34]" /> : mode === "trial" ? <Store size={16} className="text-[#413b34]" /> : mode === "display" ? <MonitorPlay size={16} className="text-[#413b34]" /> : <ShieldCheck size={16} className="text-[#413b34]" />;
-  const credentialBody = mode === "vip" ? t("auth.vipBody") : mode === "trial" ? t("auth.trialBody") : mode === "display" ? displayCopy.body : t("auth.adminBody");
-  const credentialSubmit = mode === "vip" ? t("auth.vipSubmit") : mode === "trial" ? t("auth.trialSubmit") : mode === "display" ? displayCopy.submit : t("auth.adminSubmit");
+  const credentialIcon = mode === "vip" ? <KeyRound size={16} className="text-[#413b34]" /> : mode === "trial" ? <Store size={16} className="text-[#413b34]" /> : <ShieldCheck size={16} className="text-[#413b34]" />;
+  const credentialBody = mode === "vip" ? t("auth.vipBody") : mode === "trial" ? t("auth.trialBody") : t("auth.adminBody");
+  const credentialSubmit = mode === "vip" ? t("auth.vipSubmit") : mode === "trial" ? t("auth.trialSubmit") : t("auth.adminSubmit");
 
   return <MobileScreen>
     <main className="mx-auto flex min-h-[72svh] w-full max-w-md items-center px-5 pb-14">
@@ -94,8 +89,8 @@ export default function Login() {
         <h1 className="mt-2 font-serif text-4xl text-[#201c18]">{t("auth.title")}</h1>
         <p className="mt-3 text-sm leading-6 text-[#71685f]">{t("auth.body")}</p>
 
-        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-[#f1ede6] p-1 sm:grid-cols-5">
-          {(["normal", "vip", "trial", "display", "admin"] as const).map((item) => <button key={item} type="button" onClick={() => setLoginMode(item)} className={`h-10 rounded-lg text-[11px] font-bold ${mode === item ? "bg-white shadow-sm" : "text-[#74695e]"}`}>{item === "display" ? displayCopy.tab : t(`auth.${item === "normal" ? "normalTab" : item === "vip" ? "vipTab" : item === "trial" ? "trialTab" : "adminTab"}`)}</button>)}
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-[#f1ede6] p-1">
+          {(["normal", "vip", "trial", "admin"] as const).map((item) => <button key={item} type="button" onClick={() => setLoginMode(item)} className={`h-10 rounded-lg text-[11px] font-bold ${mode === item ? "bg-white shadow-sm" : "text-[#74695e]"}`}>{t(`auth.${item === "normal" ? "normalTab" : item === "vip" ? "vipTab" : item === "trial" ? "trialTab" : "adminTab"}`)}</button>)}
         </div>
 
         {!credentialMode ? <div className="mt-5">

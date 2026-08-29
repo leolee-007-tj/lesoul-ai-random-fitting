@@ -7,11 +7,10 @@ type MobileScreenProps = {
   children: ReactNode;
   action?: ReactNode;
   showHeader?: boolean;
-  showNavigation?: boolean;
   className?: string;
 };
 
-export default function MobileScreen({ children, action, showHeader = true, showNavigation = true, className = "" }: MobileScreenProps) {
+export default function MobileScreen({ children, action, showHeader = true, className = "" }: MobileScreenProps) {
   useEffect(() => {
     const viewport = window.visualViewport;
     const updateViewport = () => {
@@ -43,6 +42,7 @@ export default function MobileScreen({ children, action, showHeader = true, show
     {showHeader && <div className="lesoul-mobile-header"><AppHeader /></div>}
     <main className="lesoul-mobile-content">{children}</main>
     {action && <div className="lesoul-action-dock">{action}</div>}
-    {showNavigation && <><PurchaseListFab /><MobileBottomNav /></>}
+    <PurchaseListFab />
+    <MobileBottomNav />
   </div>;
 }

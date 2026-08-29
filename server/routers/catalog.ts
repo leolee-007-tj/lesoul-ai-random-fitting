@@ -3,7 +3,7 @@ import { createGeneration, getCatalog, getGenerationForUser, getProductDetailByI
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
-import { protectedProcedure, publicProcedure, router, storeDisplayProcedure } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { canViewVipEarlyAccess, getCurrentEntitlement, getReleaseSettings, selectVisibleProducts } from "../access";
 import { getPurchaseAvailability } from "../../shared/purchasePolicy";
 
@@ -20,15 +20,6 @@ export const catalogRouter = router({
   branding: publicProcedure.query(async () => {
     const settings = await getReleaseSettings();
     return { storeName: settings.storeName || "LESOUL LOOK", storeTaglineEn: settings.storeTaglineEn || "A quieter way to discover your next LOOK.", storeTaglineKo: settings.storeTaglineKo || "다음 LOOK을 더 조용하고 선명하게 발견하는 방법.", storeTaglineZh: settings.storeTaglineZh || "以更安静、更清晰的方式发现你的下一套 LOOK。" };
-  }),
-  presenceAlertConfig: storeDisplayProcedure.query(async () => {
-    const settings = await getReleaseSettings();
-    const enabled = Boolean(settings.presenceAlertEnabled && settings.presenceAlertSoundUrl);
-    return { enabled, soundUrl: enabled ? settings.presenceAlertSoundUrl : null, repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1)) };
-  }),
-  storeDisplayProducts: storeDisplayProcedure.query(async () => {
-    const catalog = await getCatalog();
-    return catalog.products.filter((product) => product.isActive !== 0 && product.vipEarlyAccess !== 1).map(({ purchaseUrl, purchasePlatform, purchaseQrUrl, ...product }) => product);
   }),
   bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input, ctx }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);

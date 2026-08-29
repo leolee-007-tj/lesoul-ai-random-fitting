@@ -29,10 +29,9 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   useEffect(() => {
     if (!allowAdmin && !loading && user?.role === "admin" && location !== "/operations") navigate("/operations");
     if (!loading && user?.role === "store_trial" && location !== "/trial-store") navigate("/trial-store");
-    if (!loading && user?.role === "store_display" && location !== "/store-display") navigate("/store-display");
   }, [allowAdmin, loading, location, navigate, user?.role]);
 
-  const redirectedRole = (!allowAdmin && user?.role === "admin") || (user?.role === "store_trial" && location !== "/trial-store") || (user?.role === "store_display" && location !== "/store-display");
+  const redirectedRole = (!allowAdmin && user?.role === "admin") || (user?.role === "store_trial" && location !== "/trial-store");
   useEffect(() => {
     if (!loading && !isAuthenticated && explicitlyLoggedOut && location !== "/login") navigate(`/login?next=${encodeURIComponent(location)}`);
   }, [explicitlyLoggedOut, isAuthenticated, loading, location, navigate]);

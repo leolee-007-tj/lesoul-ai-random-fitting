@@ -65,16 +65,6 @@ export const appRouter = router({
       ctx.res.cookie(VIP_ACCESS_COOKIE, createVipAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: VIP_ACCESS_MAX_AGE_MS });
       return { success: true as const };
     }),
-    storeDisplayLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) throw new Error("STORE_DISPLAY_LOGIN_UNAVAILABLE");
-      const account = (await db.select().from(users).where(eq(users.username, normalizeVipUsername(input.username))).limit(1))[0];
-      if (!account || account.role !== "store_display" || !verifyVipPassword(input.password, account.passwordHash)) return { success: false as const, reason: "invalid" as const };
-      if (!account.isActive) return { success: false as const, reason: "inactive" as const };
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.cookie(VIP_ACCESS_COOKIE, createVipAccessToken({ userId: account.id, openId: account.openId }), { ...cookieOptions, maxAge: VIP_ACCESS_MAX_AGE_MS });
-      return { success: true as const };
-    }),
     adminLogin: publicProcedure.input(z.object({ username: z.string().trim().min(3).max(64), password: z.string().min(8).max(128) })).mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("ADMIN_LOGIN_UNAVAILABLE");

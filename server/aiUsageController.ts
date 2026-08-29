@@ -7,7 +7,7 @@ export type AiFeatureType = "AI_BODY_MODEL" | "AI_FITTING" | "LIYING_AI" | "QUIC
 export type AiUsageOutcome = "SUCCESS" | "FAILED" | "CANCELLED" | "BLOCKED_BY_LIMIT" | "BLOCKED_BY_BUDGET" | "PAUSED";
 export type AiBlockReason = "paused" | "budget_limit" | "daily_limit" | "global_limit" | "monthly_limit" | "redeem_required" | "redeem_exhausted" | "quota_exhausted" | "role_forbidden" | "style_match_disabled" | "style_match_quota";
 export type AiRole = "ADMIN" | "VIP" | "NORMAL";
-export type AiActor = { openId: string; role: "admin" | "vip" | "user" | "store_trial" | "store_display" } | null | undefined;
+export type AiActor = { openId: string; role: "admin" | "vip" | "user" | "store_trial" } | null | undefined;
 
 export const ROLE_AI_PERMISSIONS = {
   ADMIN: { quickAI: false, liyingAI: true, styleMatch: true, aiFitting: true, aiBodyModel: true, regeneration: true },

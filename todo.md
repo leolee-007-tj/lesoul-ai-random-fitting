@@ -1265,43 +1265,9 @@
 - [x] Restore the role-aware mobile bottom navigation on the sale settings screen without duplicating shared layout chrome.
 - [x] Verify the sale settings and adjacent administrator pages retain the bottom navigation on mobile before publishing.
 
-## Roll back COS-inspired interface changes
-- [x] Restore the stable LESOUL interface from before the COS-inspired header, bottom-navigation, catalog, profile, and image-priority changes.
-- [x] Confirm the restored version preserves prior catalog, VIP early-access, sale-settings navigation, and administrator functionality.
 
-## Camera presence sound alert
-- [x] Add owner-only configuration for an MP3 alert file and a global camera-presence ON/OFF switch, storing only the audio reference and settings.
-- [x] Create a customer-facing camera consent flow that detects a person locally in the browser without sending or storing video frames.
-- [x] Play the configured sound once per entry event only after an explicit user gesture enables audio, respect the OFF setting, and add EN/KO/ZH guidance and regression tests.
-
-## Presence alert recording and playback control
-- [x] Add owner-only browser microphone recording alongside MP3 upload, validate and store the resulting alert audio safely.
-- [x] Add a globally stored alert playback-repeat count and an administrator preview that uses the configured count.
-- [x] Stop camera person detection immediately when alert playback begins, play the sound the configured number of times, then require a new manual camera start; add EN/KO/ZH guidance and regression coverage.
-
-## Store display catalog account
-- [x] Add an owner-managed store display account type with a unique login ID and server-hashed password, separate from NORMAL, VIP, trial, and owner accounts.
-- [x] Limit the store display session to a large-format product browsing experience and camera greeting only; deny purchase list, QR purchase, profile, VIP early access, curation feedback, and all account-management actions.
-- [x] Hide camera greeting from NORMAL, VIP, trial, and owner sessions; provide EN/KO/ZH owner controls to create, view, deactivate, and reset display-account credentials, then regression-test role isolation and display-only access.
-
-## Administrator camera management access
-- [x] Add a visible camera-alert management entry point to the administrator operations screen.
-- [x] Allow authorized administrator sessions to manage MP3/recording, ON/OFF, and repeat count while retaining store-display-only camera playback access.
-- [x] Verify administrator navigation, settings mutations, and display-only playback boundaries before publishing.
-
-## Camera alert recording preview and state clarity
-- [x] Add an administrator control to preview the saved MP3 or browser-recorded alert sound before enabling it.
-- [x] Render enabled and disabled camera-presence states with clearly distinct colors, labels, and accessible state text.
-- [x] Add regression coverage for recording preview and ON/OFF visual state, then verify the administrator settings screen before publishing.
-
-## New arrivals at the top of customer catalog
-- [x] Sort currently visible new arrivals into a dedicated top section before the remaining customer catalog without bypassing VIP early-access filtering.
-- [x] Preserve card pricing, product detail, purchase-list actions, and EN/KO/ZH labels; add regression coverage and verify mobile ordering before publishing.
-
-## Store display price and new-arrival visibility
-- [x] Render the central customer price policy, sale discount display, and new-arrival state on store-display catalog cards without restoring restricted purchase actions.
-- [x] Verify display-only role boundaries remain intact and add regression coverage for price and status badge visibility before publishing.
-
-## Camera alert management mobile navigation recovery
-- [x] Restore the administrator mobile bottom navigation in the camera alert management screen without affecting the store-display-only camera player.
-- [x] Verify the camera alert management, release control, and operations pages preserve the administrator bottom navigation before publishing.
+## 2026-08-29 Store display category filter
+- [x] 디스플레이 매장 계정 상품 카탈로그에 일반 사용자와 동일한 카테고리 필터 추가
+- [x] 디스플레이 카테고리 필터의 EN/KO/ZH 라벨과 선택 상태 구현
+- [x] 디스플레이 카테고리 필터의 신상품 우선 정렬·가격·배지 표시 회귀 검증
+- [x] 디스플레이 카테고리 필터 테스트와 프로덕션 빌드 통과

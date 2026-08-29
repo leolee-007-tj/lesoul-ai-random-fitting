@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeImageDataUrl, decodePresenceAudioDataUrl, MAX_PRESENCE_AUDIO_BYTES, MAX_PRODUCT_IMAGE_BYTES } from "./uploads";
+import { decodeImageDataUrl, MAX_PRODUCT_IMAGE_BYTES } from "./uploads";
 
 describe("product image validation", () => {
   it("decodes permitted image data and normalizes JPEG extension", () => {
@@ -19,15 +19,5 @@ describe("product image validation", () => {
     const source = Buffer.from([0, 1, 2, 3, 255]);
     const result = decodeImageDataUrl(`data:image/png;base64,${source.toString("base64")}`, MAX_PRODUCT_IMAGE_BYTES);
     expect(Buffer.compare(result.buffer, source)).toBe(0);
-  });
-
-  it("accepts bounded MP3 uploads and browser-recorded audio for the owner presence alert", () => {
-    const result = decodePresenceAudioDataUrl("data:audio/mpeg;base64,aGVsbG8=");
-    expect(result.mimeType).toBe("audio/mpeg");
-    expect(result.extension).toBe("mp3");
-    expect(result.buffer.toString()).toBe("hello");
-    expect(MAX_PRESENCE_AUDIO_BYTES).toBe(12 * 1024 * 1024);
-    expect(decodePresenceAudioDataUrl("data:audio/wav;base64,aGVsbG8=").extension).toBe("wav");
-    expect(() => decodePresenceAudioDataUrl("data:text/plain;base64,aGVsbG8=")).toThrow("Only MP3 uploads");
   });
 });

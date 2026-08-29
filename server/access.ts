@@ -34,7 +34,7 @@ export async function canGenerate(visitorId: string, actor?: AiActor): Promise<A
   return { allowed: decision.allowed, ...(decision.reason ? { reason: reasonMap[decision.reason] } : {}), releaseMode: decision.releaseMode, catalogTier: decision.catalogTier, remaining: decision.remaining, isVip: decision.isVip };
 }
 
-export type CustomerRole = "user" | "vip" | "admin" | "store_trial" | "store_display" | null | undefined;
+export type CustomerRole = "user" | "vip" | "admin" | "store_trial" | null | undefined;
 
 /** Customer-facing VIP previews are enforced server-side and never rely on a hidden client card. */
 export function canViewVipEarlyAccess(item: { vipEarlyAccess?: number | null }, role: CustomerRole) {
