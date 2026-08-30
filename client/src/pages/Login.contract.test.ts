@@ -12,15 +12,18 @@ describe("login navigation", () => {
     expect(source).toContain('item === "normal" ? "normalTab"');
   });
 
-  it("restores VIP and store-trial credential entry without changing server-side verification", () => {
-    expect(source).toContain('type LoginMode = "normal" | "vip" | "trial" | "admin"');
+  it("restores VIP, store-display, and store-trial credential entry without changing server-side verification", () => {
+    expect(source).toContain('type LoginMode = "normal" | "vip" | "trial" | "display" | "admin"');
     expect(source).toContain("trpc.auth.vipLogin.useMutation()");
     expect(source).toContain("trpc.auth.trialStoreLogin.useMutation()");
+    expect(source).toContain("trpc.auth.storeDisplayLogin.useMutation()");
     expect(source).toContain('item === "vip" ? "vipTab"');
     expect(source).toContain('item === "trial" ? "trialTab"');
+    expect(source).toContain('item === "display" ? displayCopy.tab');
     expect(source).toContain("navigate(\"/trial-store\")");
     expect(router).toContain("vipLogin:");
     expect(router).toContain("trialStoreLogin:");
+    expect(router).toContain("storeDisplayLogin:");
   });
 
   it("keeps the administrator credential form separate from customer accounts", () => {

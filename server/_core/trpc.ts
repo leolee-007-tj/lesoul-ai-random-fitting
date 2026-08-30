@@ -23,6 +23,9 @@ export function resolveCustomerVisitorId(ctx: TrpcContext, requestedVisitorId: s
   if (!ctx.user) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
   }
+  if (ctx.user.role === "store_display") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "STORE_DISPLAY_READ_ONLY" });
+  }
   const accountVisitorId = `account:${ctx.user.openId}`;
   if (requestedVisitorId !== accountVisitorId) {
     throw new TRPCError({ code: "FORBIDDEN", message: "ACCOUNT_OWNERSHIP_MISMATCH" });
@@ -46,6 +49,14 @@ const requireUser = t.middleware(async opts => {
 });
 
 export const protectedProcedure = t.procedure.use(requireUser);
+
+/** A store display is intentionally limited to the managed catalogue and local greeting screen. */
+export const storeDisplayProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    if (!opts.ctx.user || opts.ctx.user.role !== "store_display") throw new TRPCError({ code: "FORBIDDEN", message: "STORE_DISPLAY_ONLY" });
+    return opts.next({ ctx: { ...opts.ctx, user: opts.ctx.user } });
+  }),
+);
 
 export function isPrimaryOperator(user: NonNullable<TrpcContext["user"]>) {
   return Boolean((ENV.ownerOpenId && user.openId === ENV.ownerOpenId) || (user.role === "admin" && user.isPrimaryAdmin));
@@ -84,6 +95,9 @@ export const customerProcedure = t.procedure.use(
     const { ctx, next } = opts;
     if (!ctx.user && !ctx.testAccess) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+    }
+    if (ctx.user?.role === "store_display") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "STORE_DISPLAY_READ_ONLY" });
     }
     return next({ ctx });
   }),
