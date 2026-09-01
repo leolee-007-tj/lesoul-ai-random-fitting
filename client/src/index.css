@@ -62,10 +62,10 @@
 @layer base {
   * { @apply border-border outline-ring/50; }
   html, body, #root { width: 100%; min-height: 100%; min-height: 100dvh; margin: 0; padding: 0; }
-  body { @apply bg-background text-foreground antialiased; font-family: "Noto Sans KR", sans-serif; letter-spacing: -0.015em; overflow-x: hidden; }
-  html[lang^="en"] body { font-family: "Inter", sans-serif; }
-  html[lang^="ko"] body { font-family: "Noto Sans KR", sans-serif; }
-  html[lang^="zh"] body { font-family: "Noto Sans SC", sans-serif; }
+  body { @apply bg-background text-foreground antialiased; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "PingFang TC", "Noto Sans CJK KR", "Noto Sans CJK SC", sans-serif; letter-spacing: -0.015em; overflow-x: hidden; }
+  html[lang^="en"] body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  html[lang^="ko"] body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans CJK KR", sans-serif; }
+  html[lang^="zh"] body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "PingFang TC", "Noto Sans CJK SC", sans-serif; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [type="button"]:not(:disabled), [type="submit"]:not(:disabled), [type="reset"]:not(:disabled), a[href], select:not(:disabled), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) { @apply cursor-pointer; }
 }
 
@@ -77,7 +77,7 @@
 }
 
 @layer utilities {
-  .font-serif { font-family: "Playfair Display", "Noto Sans KR", serif; }
+  .font-serif { font-family: Georgia, "Times New Roman", "Songti SC", "Noto Serif CJK SC", serif; }
 }
 
 .lesoul-app-wrapper { width: 100%; min-height: 100vh; min-height: 100dvh; box-sizing: border-box; padding-right: var(--safe-area-right); padding-left: var(--safe-area-left); background: #f8f7f4; }
