@@ -487,4 +487,15 @@ export type CuratedOutfitItem = typeof curatedOutfitItems.$inferSelect;
 export type GenerationLog = typeof generationLogs.$inferSelect;
 export type AiUsageEvent = typeof aiUsageEvents.$inferSelect;
 export type AiAccessBlock = typeof aiAccessBlocks.$inferSelect;
+/** Anonymous, daily-deduplicated product funnel events. No raw contact, IP, or device identifier is stored. */
+export const productEngagementEvents = mysqlTable("productEngagementEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull().references(() => products.id),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  eventType: mysqlEnum("eventType", ["DETAIL_VIEW", "PURCHASE_LIST_ADD"]).notNull(),
+  eventDay: varchar("eventDay", { length: 10 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [uniqueIndex("product_engagement_daily_unique").on(table.productId, table.visitorId, table.eventType, table.eventDay)]);
+
 export type SiteVisitSummary = typeof siteVisitSummaries.$inferSelect;
+export type ProductEngagementEvent = typeof productEngagementEvents.$inferSelect;

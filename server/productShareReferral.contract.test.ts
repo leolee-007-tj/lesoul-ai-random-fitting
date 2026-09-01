@@ -19,8 +19,8 @@ describe("WeChat product-share referral contract", () => {
     const catalog = source("./routers/catalog.ts");
     const operations = source("./routers/operations.ts");
     expect(catalog).toContain("trackWeChatShareVisit: publicProcedure");
-    expect(catalog).toContain("visitorId: z.string().min(1).max(96)");
-    expect(catalog).toContain('ctx.user?.role === "admin" ? false');
+    expect(catalog).toContain("visitorId: z.string().regex(/^visitor_[A-Za-z0-9-]{8,80}$/)");
+    expect(catalog).toContain('["admin", "store_display", "store_trial"].includes(ctx.user?.role ?? "") ? false');
     expect(operations).toContain("productShareAnalytics: ownerProcedure");
     expect(operations).toContain("groupBy(productShareVisits.productId)");
   });

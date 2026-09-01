@@ -2,7 +2,7 @@ import { and, count, desc, eq, gte, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { aiAccessBlocks, aiUsageEvents, productShareVisits, products, redeemCodes, releaseSettings, trialStoreProducts, trialStores, users, visitorEntitlements } from "../../drizzle/schema";
-import { getDb, getSiteVisitAnalytics } from "../db";
+import { getDb, getProductConversionAnalytics, getSiteVisitAnalytics } from "../db";
 import { getCentralEntitlement, getCentralSettings } from "../aiUsageController";
 import { isPrimaryOperator, ownerOnlyProcedure, ownerProcedure, publicProcedure, router } from "../_core/trpc";
 import { ENV } from "../_core/env";
@@ -268,6 +268,7 @@ export const operationsRouter = router({
     };
   }),
   siteVisitAnalytics: ownerProcedure.query(async () => getSiteVisitAnalytics()),
+  productConversionAnalytics: ownerProcedure.query(async () => getProductConversionAnalytics()),
   productShareAnalytics: ownerProcedure.query(async () => {
     const db = await getDb();
     if (!db) throw new Error("Product share analytics are temporarily unavailable.");

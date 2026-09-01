@@ -3,6 +3,7 @@ import PurchaseListAddButton from "@/components/PurchaseListAddButton";
 import ProductPrice from "@/components/ProductPrice";
 import FitReferenceNotice from "@/components/FitReferenceNotice";
 import WeChatShareGuide from "@/components/WeChatShareGuide";
+import { getAnalyticsConsent } from "@/lib/siteAnalytics";
 import { getVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { localizedProductDescription, localizedProductMeta, localizedProductName } from "@shared/productCommerce";
@@ -12,7 +13,7 @@ import { buildProductGalleryUrls, customerProductImage } from "@shared/productIm
 import { ChevronLeft, LoaderCircle, QrCode, X } from "lucide-react";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import BlackColorVerificationNotice from "@/components/BlackColorVerificationNotice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const categoryLabel = (category: string, language: string) => {
@@ -25,8 +26,9 @@ const measurementLabels = (language: string) => language.startsWith("ko") ? { sh
 export default function ProductDetailScreen({ productId, onClose, browseAll = false, initialProduct }: { productId: number; onClose: () => void; browseAll?: boolean; initialProduct?: any }) {
   const { i18n, t } = useTranslation(); const language = i18n.language;
   const copy = language.startsWith("ko") ? { loading: "상품 정보를 불러오는 중…", unavailable: "상품 정보를 찾을 수 없습니다.", back: "뒤로", details: "상품 정보", sizes: "사이즈", measurements: "실측 (cm)", info: "상품 설명", components: "세트 구성품", componentsNote: "아래 개별 가격의 합계가 세트 정가입니다.", buy: "구매 QR 보기", consult: "구매 문의", sold: t("product.soldOutNotice"), stock: t("product.status.inStock"), preorder: t("product.status.preOrder"), color: "색상", season: "시즌", style: "스타일", free: "F (Free Size)" } : language.startsWith("zh") ? { loading: "正在加载商品信息…", unavailable: "未找到商品信息。", back: "返回", details: "商品信息", sizes: "尺码", measurements: "实测尺寸 (cm)", info: "商品说明", components: "套装组成", componentsNote: "以下单件价格之和为套装原价。", buy: "查看付款二维码", consult: "咨询购买", sold: t("product.soldOutNotice"), stock: t("product.status.inStock"), preorder: t("product.status.preOrder"), color: "颜色", season: "季节", style: "风格", free: "F（均码）" } : { loading: "Loading product details…", unavailable: "Product information is unavailable.", back: "Back", details: "PRODUCT DETAILS", sizes: "SIZES", measurements: "MEASUREMENTS (CM)", info: "DESCRIPTION", components: "SET COMPONENTS", componentsNote: "The individual prices below add up to the set's original price.", buy: "VIEW PAYMENT QR", consult: "PURCHASE INQUIRY", sold: t("product.soldOutNotice"), stock: t("product.status.inStock"), preorder: t("product.status.preOrder"), color: "Color", season: "Season", style: "Style", free: "F (Free Size)" };
-  const detail = trpc.catalog.productDetail.useQuery({ productId, visitorId: getVisitorId(), browseAll }, { staleTime: 60_000, gcTime: 5 * 60_000 }); const purchaseConfig = trpc.purchase.config.useQuery(undefined, { staleTime: 60_000 });
+  const detail = trpc.catalog.productDetail.useQuery({ productId, visitorId: getVisitorId(), browseAll }, { staleTime: 60_000, gcTime: 5 * 60_000 }); const purchaseConfig = trpc.purchase.config.useQuery(undefined, { staleTime: 60_000 }); const trackEngagement = trpc.catalog.trackProductEngagement.useMutation();
   const [activeImage, setActiveImage] = useState<string | null>(null); const [purchasing, setPurchasing] = useState(false);
+  useEffect(() => { if (detail.data?.status !== "available" || getAnalyticsConsent() !== "accepted") return; void trackEngagement.mutate({ productId, visitorId: getVisitorId(), eventType: "DETAIL_VIEW" }); }, [detail.data?.status, productId]);
   const liveProduct = detail.data?.status === "available" ? detail.data.product : null;
   const product = (liveProduct ?? initialProduct) as NonNullable<typeof liveProduct> | null;
   if (detail.isLoading && !product) return <div className="lesoul-safe-modal z-50"><div className="mx-auto grid min-h-64 max-w-sm place-items-center rounded-[1.7rem] bg-white p-6 shadow-2xl"><LoaderCircle className="animate-spin" /><span className="sr-only">{copy.loading}</span></div></div>;

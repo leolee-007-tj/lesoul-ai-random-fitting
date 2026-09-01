@@ -1,9 +1,10 @@
 import { count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, siteVisitSummaries, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
+import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productEngagementEvents, productShareVisits, releaseSettings, siteVisitSummaries, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
+import { summarizeProductConversions, type ProductConversionEventType } from "../shared/productConversion";
 import { isStylistEligible } from "../shared/productAvailability";
 import { resolveCatalogDisplay } from "../shared/catalogDisplay";
 import { baseCategoryToCoreCategory, DEFAULT_MANAGED_CATEGORIES, type BaseCategory } from "../shared/productCategories";
@@ -167,6 +168,27 @@ export async function getSiteVisitAnalytics() {
   const rows = await db.select().from(siteVisitSummaries).orderBy(desc(siteVisitSummaries.lastSeenAt));
   const aggregate = (key: keyof Pick<SiteVisitInput, "deviceType" | "operatingSystem" | "browser" | "locale">) => Object.entries(rows.reduce<Record<string, number>>((acc, row) => { const value = String(row[key] || "unknown"); acc[value] = (acc[value] ?? 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1]).map(([label, visits]) => ({ label, visits }));
   return { totalVisits: rows.length, uniqueVisitors: new Set(rows.map((row) => row.visitorId)).size, byDevice: aggregate("deviceType"), byOs: aggregate("operatingSystem"), byBrowser: aggregate("browser"), byLocale: aggregate("locale"), recent: rows.slice(0, 12).map(({ visitorId: _visitorId, ...row }) => row) };
+}
+
+export async function recordProductEngagement(input: { productId: number; visitorId: string; eventType: ProductConversionEventType }) {
+  const db = await getDb();
+  if (!db) return false;
+  const product = (await db.select({ id: products.id, isActive: products.isActive }).from(products).where(eq(products.id, input.productId)).limit(1))[0];
+  if (!product || product.isActive === 0) return false;
+  const eventDay = new Date().toISOString().slice(0, 10);
+  await db.insert(productEngagementEvents).values({ ...input, eventDay }).onDuplicateKeyUpdate({ set: { visitorId: input.visitorId } });
+  return true;
+}
+
+export async function getProductConversionAnalytics() {
+  const db = await getDb();
+  if (!db) return { totalProductViews: 0, products: [] };
+  const [events, shareCounts, productRows] = await Promise.all([
+    db.select({ productId: productEngagementEvents.productId, visitorId: productEngagementEvents.visitorId, eventType: productEngagementEvents.eventType }).from(productEngagementEvents),
+    db.select({ productId: productShareVisits.productId, visits: count() }).from(productShareVisits).groupBy(productShareVisits.productId),
+    db.select({ id: products.id, name: products.name, nameEn: products.nameEn, nameKo: products.nameKo, nameZh: products.nameZh, imageUrl: products.imageUrl }).from(products).where(eq(products.isActive, 1)),
+  ]);
+  return summarizeProductConversions(events, shareCounts.map((item) => ({ productId: item.productId, visits: Number(item.visits) })), productRows);
 }
 
 export async function listWeChatProductShareAnalytics() {
