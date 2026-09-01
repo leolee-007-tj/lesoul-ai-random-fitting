@@ -34,8 +34,9 @@ describe("complete product image presentation", () => {
   });
 
   it("keeps the complete image visible in product details and trial catalog cards", () => {
-    expect(detail).toContain('className="aspect-[4/5] w-full rounded-2xl bg-[#e7e0d6] object-contain p-2"');
+    expect(detail).toContain("PRODUCT_IMAGE_SURFACE_CLASS");
+    expect(detail).toContain("object-contain p-2");
     expect(detail).toContain('className="h-full w-full object-contain"');
-    expect(trial).toContain('className="aspect-[4/5] w-full bg-[#f4f1eb] object-contain"');
+    expect(trial).toContain('className="aspect-[4/5] w-full bg-white object-contain"');
   });
 });

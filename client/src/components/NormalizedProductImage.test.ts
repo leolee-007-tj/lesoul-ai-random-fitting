@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getContainedImageScale, getProductImageVisibilityClass } from "./NormalizedProductImage";
+import { getContainedImageScale, getProductImageVisibilityClass, PRODUCT_IMAGE_SURFACE_CLASS } from "./NormalizedProductImage";
 
 describe("contained product image scale", () => {
   it("keeps a visual cushion for full garment visibility without enlarging image sources", () => {
@@ -12,5 +12,9 @@ describe("contained product image scale", () => {
     expect(getProductImageVisibilityClass(false, false)).toBe("opacity-0");
     expect(getProductImageVisibilityClass(true, false)).toBe("opacity-100");
     expect(getProductImageVisibilityClass(true, true)).toBe("opacity-0");
+  });
+
+  it("uses a clean white surface behind product photos instead of a gray overlay", () => {
+    expect(PRODUCT_IMAGE_SURFACE_CLASS).toBe("bg-white");
   });
 });

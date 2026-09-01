@@ -9,6 +9,8 @@ type NormalizedProductImageProps = {
   imageClassName?: string;
 };
 
+export const PRODUCT_IMAGE_SURFACE_CLASS = "bg-white";
+
 export function getContainedImageScale(catalogDisplay?: NormalizedProductImageProps["catalogDisplay"]) {
   const requestedScale = catalogDisplay?.effectiveScale ?? catalogDisplay?.manualScale ?? 1;
   return Math.min(requestedScale, 0.94);
@@ -31,5 +33,5 @@ export default function NormalizedProductImage({ src, alt, catalogDisplay, class
   const x = catalogDisplay?.objectPositionX ?? 50;
   const y = catalogDisplay?.objectPositionY ?? 50;
   const visibilityClass = getProductImageVisibilityClass(isLoaded, hasError);
-  return <div aria-busy={!isLoaded && !hasError} className={`relative overflow-hidden bg-[#f4f1eb]/70 ${className}`}><div aria-hidden="true" className={`absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-[#ddd4c8]/25 transition-opacity duration-300 motion-reduce:transition-none ${isLoaded || hasError ? "opacity-0" : "opacity-100"}`} /><img src={src} alt={alt} onLoad={() => setIsLoaded(true)} onError={() => setHasError(true)} className={`relative h-full w-full object-contain p-1.5 transition-[opacity,transform] duration-300 motion-reduce:transition-none ${visibilityClass} ${imageClassName}`} style={{ objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${x}% ${y}%` }} /></div>;
+  return <div aria-busy={!isLoaded && !hasError} className={`relative overflow-hidden ${PRODUCT_IMAGE_SURFACE_CLASS} ${className}`}><img src={src} alt={alt} onLoad={() => setIsLoaded(true)} onError={() => setHasError(true)} className={`relative h-full w-full object-contain p-1.5 transition-[opacity,transform] duration-300 motion-reduce:transition-none ${visibilityClass} ${imageClassName}`} style={{ objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${x}% ${y}%` }} /></div>;
 }
