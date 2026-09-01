@@ -288,7 +288,10 @@ export async function getPublishedCuratedOutfits(input: { includePreorder?: bool
   const visibleProducts = products.filter((product) => product.vipEarlyAccess !== 1 || input.role === "vip" || input.role === "admin");
   const visibleProductIds = new Set(visibleProducts.map((product) => product.id));
   return outfits
+    // Customer-facing curated looks follow the administrator's latest saved order.
+    // The product-picker category filter in OutfitManager remains available only while building a look.
     .filter((outfit) => outfit.items.length >= 2 && outfit.items.every((item) => visibleProductIds.has(item.productId)))
+    .sort((left, right) => Number(new Date(right.createdAt)) - Number(new Date(left.createdAt)) || right.id - left.id)
     .slice(0, input.limit ?? 3)
     .map((outfit) => ({
       ...outfit,

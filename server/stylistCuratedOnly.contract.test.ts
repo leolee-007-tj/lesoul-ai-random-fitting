@@ -23,6 +23,13 @@ describe("administrator-curated looks only contract", () => {
     expect(page).not.toContain("trpc.stylist.products.useQuery");
   });
 
+  it("orders customer-facing looks by the administrator's latest saved time", () => {
+    const db = source("./db.ts");
+    expect(db).toContain("Customer-facing curated looks follow the administrator's latest saved order");
+    expect(db).toContain("new Date(right.createdAt)");
+    expect(db).toContain("right.id - left.id");
+  });
+
   it("keeps administrator writes separate from customer reads", () => {
     const manager = source("../client/src/pages/OutfitManager.tsx");
     expect(manager).toContain("trpc.admin.curatedOutfits.useQuery");
