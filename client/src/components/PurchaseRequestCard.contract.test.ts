@@ -14,12 +14,14 @@ describe("purchase request share card contract", () => {
     expect(source).toContain("Sold-out items are excluded from the total and shared image.");
   });
 
-  it("shares the current purchase-list image through the mobile share sheet with a save fallback", () => {
+  it("previews the current purchase-list image and shares it without a save action", () => {
     const source = read("client/src/components/PurchaseRequestCard.tsx");
+    expect(source).toContain("setPreviewBlob(image)");
+    expect(source).toContain("URL.createObjectURL(image)");
     expect(source).toContain("new File([image], fileName, { type: \"image/png\" })");
     expect(source).toContain("navigator.share({ title: copy.title, text: copy.message, files: [file] })");
-    expect(source).toContain("downloadBlob(image, fileName)");
     expect(source).toContain("navigator.clipboard?.writeText(copy.message)");
+    expect(source).not.toContain("downloadBlob(image, fileName)");
   });
 
   it("provides localized purchase-list and share copy for all supported languages", () => {
