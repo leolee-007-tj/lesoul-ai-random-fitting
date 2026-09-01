@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, saveStylistFeedback } from "../db";
+import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, getPublishedCuratedOutfits, saveStylistFeedback } from "../db";
 import { canViewVipEarlyAccess, getReleaseSettings } from "../access";
 import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { recommendCuratedTopLooks, validateRecommendedProductIds } from "../stylistEngine";
@@ -12,6 +12,17 @@ export const stylistRouter = router({
   products: publicProcedure.query(async ({ ctx }) => {
     const settings = await getReleaseSettings();
     return (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
+  }),
+  published: customerProcedure.input(z.object({ locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
+    const settings = await getReleaseSettings();
+    const outfits = await getPublishedCuratedOutfits({ includePreorder: Boolean(settings.stylistIncludePreorder), role: ctx.user?.role, limit: 3 });
+    return outfits.map((outfit) => ({
+      lookId: `CURATED_${outfit.id}`,
+      name: input.locale === "ko" ? outfit.nameKo : input.locale === "zh" ? outfit.nameZh : outfit.nameEn,
+      reason: input.locale === "ko" ? outfit.reasonKo : input.locale === "zh" ? outfit.reasonZh : outfit.reasonEn,
+      stylePresetKey: outfit.stylePresetKey,
+      products: outfit.items.map((item) => item.product).filter(Boolean),
+    }));
   }),
   recommend: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
     const [settings, presets] = await Promise.all([getReleaseSettings(), getActiveStylePresets()]);

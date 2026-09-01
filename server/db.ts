@@ -279,6 +279,23 @@ export async function getEligibleCuratedOutfits(input: { stylePresetKey: StylePr
   });
 }
 
+/** The customer-facing source of truth: only active outfits saved by the administrator. */
+export async function getPublishedCuratedOutfits(input: { includePreorder?: boolean; role?: User["role"]; limit?: number }) {
+  const [outfits, products] = await Promise.all([
+    listCuratedOutfits(false),
+    getActiveStylistProducts(Boolean(input.includePreorder)),
+  ]);
+  const visibleProducts = products.filter((product) => product.vipEarlyAccess !== 1 || input.role === "vip" || input.role === "admin");
+  const visibleProductIds = new Set(visibleProducts.map((product) => product.id));
+  return outfits
+    .filter((outfit) => outfit.items.length >= 2 && outfit.items.every((item) => visibleProductIds.has(item.productId)))
+    .slice(0, input.limit ?? 3)
+    .map((outfit) => ({
+      ...outfit,
+      items: outfit.items.map((item) => ({ ...item, product: visibleProducts.find((product) => product.id === item.productId) ?? null })),
+    }));
+}
+
 function normaliseCuratedItems(items: CuratedOutfitWrite["items"]) {
   const deduped = new Map<number, { productId: number; isAnchor: number; sortOrder: number }>();
   items.forEach((item, index) => {

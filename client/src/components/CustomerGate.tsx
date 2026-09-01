@@ -3,11 +3,13 @@ import { getVisitorId, hasExplicitLogout, restoreVisitorId } from "@/lib/visitor
 import { trpc } from "@/lib/trpc";
 import { LoaderCircle } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
 export default function CustomerGate({ children, allowAdmin = false }: { children: ReactNode; allowAdmin?: boolean }) {
   const { isAuthenticated, loading, user } = useAuth();
   const [location, navigate] = useLocation();
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const guestLogin = trpc.auth.guestLogin.useMutation();
   const [visitorId] = useState(() => getVisitorId());
@@ -38,7 +40,7 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   }, [explicitlyLoggedOut, isAuthenticated, loading, location, navigate]);
 
   if (loading || explicitlyLoggedOut || !isAuthenticated || guestLogin.isPending || redirectedRole) {
-    return <main className="grid min-h-svh place-items-center bg-[#fbfaf8] text-[#5f574f]"><LoaderCircle className="animate-spin" size={22} /><span className="sr-only">Checking access</span></main>;
+    return <main className="grid min-h-svh place-items-center bg-[#fbfaf8] text-[#5f574f]"><LoaderCircle className="animate-spin" size={22} /><span className="sr-only">{t("dashboard.checkingAccess")}</span></main>;
   }
   return <>{children}</>;
 }

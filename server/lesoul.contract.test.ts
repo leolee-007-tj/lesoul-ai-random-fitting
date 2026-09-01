@@ -20,7 +20,7 @@ describe("LESOUL experience API contract", () => {
     expect(procedures).toEqual(expect.arrayContaining([
       "catalog.bootstrap", "catalog.products", "catalog.productDetail", "catalog.browseProducts",
       "admin.products", "admin.productCategories", "admin.createProduct", "admin.updateProduct", "admin.deleteProduct", "admin.deleteProducts", "admin.deleteAllProducts",
-      "stylist.presets", "stylist.recommend", "stylist.feedback", "purchase.createRequest",
+      "stylist.presets", "stylist.products", "stylist.published", "stylist.recommend", "stylist.feedback", "purchase.createRequest",
     ]));
   });
 });
@@ -64,6 +64,8 @@ describe("customer-facing curated experience contract", () => {
     expect(stylist).toContain("CURATED LOOKS");
     expect(stylist).not.toContain("body: fitBody");
     expect(router).toContain("getEligibleCuratedOutfits");
+    expect(router).toContain("getPublishedCuratedOutfits");
+    expect(router).toContain("published: customerProcedure");
     expect(router).not.toContain("prioritizeCuratedTopLooks");
   });
 
