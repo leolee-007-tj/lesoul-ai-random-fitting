@@ -20,7 +20,7 @@ type CuratedSelection = {
 export default function StyleMatch() {
   const { i18n } = useTranslation();
   const [, navigate] = useLocation();
-  const { addItem } = usePurchaseList();
+  const { addItems } = usePurchaseList();
   const [notice, setNotice] = useState<string | null>(null);
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
@@ -30,10 +30,11 @@ export default function StyleMatch() {
   }[locale];
 
   const useLook = (selection: CuratedSelection) => {
-    for (const product of selection.products) {
+    const purchaseItems = selection.products.map((product) => {
       const sizes = sizesFor(product);
-      addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: sizes[0] ?? "FREE", availableSizes: sizes, quantity: 1, currentPrice: getEffectivePrice(product), source: "catalog" });
-    }
+      return { productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageUrl, catalogDisplay: product.catalogDisplay, selectedSize: sizes[0] ?? "FREE", availableSizes: sizes, quantity: 1, currentPrice: getEffectivePrice(product), source: "catalog" as const };
+    });
+    addItems(purchaseItems);
     setNotice(copy.added);
   };
 

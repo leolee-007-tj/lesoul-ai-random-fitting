@@ -28,6 +28,7 @@ type PurchaseListContextValue = {
   itemCount: number;
   referenceTotal: number;
   addItem: (item: Omit<PurchaseListItem, "quantity"> & { quantity?: number }) => void;
+  addItems: (items: Array<Omit<PurchaseListItem, "quantity"> & { quantity?: number }>) => void;
   updateItem: (productId: number, selectedSize: string, patch: Partial<Pick<PurchaseListItem, "selectedSize" | "quantity" | "currentPrice">>) => void;
   removeItem: (productId: number, selectedSize: string) => void;
   clearItems: () => void;
@@ -47,6 +48,16 @@ function loadItems(storageKey: string): PurchaseListItem[] {
 function persist(storageKey: string, items: PurchaseListItem[]) {
   try { localStorage.setItem(storageKey, JSON.stringify(items)); } catch { /* Keep the session usable if storage is unavailable. */ }
   window.dispatchEvent(new CustomEvent("lesoul-purchase", { detail: { event: "purchase_list_changed", timestamp: Date.now(), itemCount: items.reduce((total, item) => total + item.quantity, 0) } }));
+}
+
+type PurchaseListInput = Omit<PurchaseListItem, "quantity"> & { quantity?: number };
+
+export function mergePurchaseListItem(items: PurchaseListItem[], input: PurchaseListInput) {
+  const quantity = Math.max(1, input.quantity ?? 1);
+  const existing = items.find((item) => item.productId === input.productId && item.selectedSize === input.selectedSize);
+  return existing
+    ? items.map((item) => item === existing ? { ...item, quantity: Math.min(99, item.quantity + quantity), currentPrice: input.currentPrice, purchaseType: input.purchaseType ?? item.purchaseType ?? "NORMAL" } : item)
+    : [...items, { ...input, purchaseType: input.purchaseType ?? "NORMAL", quantity }];
 }
 
 export function PurchaseListProvider({ children }: { children: ReactNode }) {
@@ -73,11 +84,15 @@ export function PurchaseListProvider({ children }: { children: ReactNode }) {
     itemCount: items.reduce((total, item) => total + item.quantity, 0),
     referenceTotal: items.reduce((total, item) => total + item.currentPrice * item.quantity, 0),
     addItem: (input) => {
-      const quantity = Math.max(1, input.quantity ?? 1);
-      const existing = items.find((item) => item.productId === input.productId && item.selectedSize === input.selectedSize);
-      const next = existing ? items.map((item) => item === existing ? { ...item, quantity: Math.min(99, item.quantity + quantity), currentPrice: input.currentPrice, purchaseType: input.purchaseType ?? item.purchaseType ?? "NORMAL" } : item) : [...items, { ...input, purchaseType: input.purchaseType ?? "NORMAL", quantity }];
-      commit(next);
+      commit(mergePurchaseListItem(items, input));
       window.dispatchEvent(new CustomEvent("lesoul-purchase", { detail: { event: "purchase_list_item_added", productId: input.productId, timestamp: Date.now() } }));
+    },
+    addItems: (inputs) => {
+      if (!inputs.length) return;
+      commit(inputs.reduce(mergePurchaseListItem, items));
+      for (const input of inputs) {
+        window.dispatchEvent(new CustomEvent("lesoul-purchase", { detail: { event: "purchase_list_item_added", productId: input.productId, timestamp: Date.now() } }));
+      }
     },
     updateItem: (productId, selectedSize, patch) => commit(items.map((item) => item.productId === productId && item.selectedSize === selectedSize ? { ...item, ...patch, quantity: Math.max(1, Math.min(99, patch.quantity ?? item.quantity)) } : item)),
     removeItem: (productId, selectedSize) => { commit(items.filter((item) => item.productId !== productId || item.selectedSize !== selectedSize)); window.dispatchEvent(new CustomEvent("lesoul-purchase", { detail: { event: "purchase_list_item_removed", productId, timestamp: Date.now() } })); },
