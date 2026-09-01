@@ -33,6 +33,13 @@ describe("complete product image presentation", () => {
     expect(detail).toContain("excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale}");
   });
 
+  it("removes card-level purchase actions while retaining the detail purchase action", () => {
+    expect(browse).not.toContain("PurchaseListAddButton");
+    expect(browse).not.toContain('source="catalog"');
+    expect(detail).toContain("PurchaseListAddButton");
+    expect(detail).not.toContain('source="catalog"');
+  });
+
   it("keeps the complete image visible in product details and trial catalog cards", () => {
     expect(detail).toContain("PRODUCT_IMAGE_SURFACE_CLASS");
     expect(detail).toContain("object-contain p-2");
