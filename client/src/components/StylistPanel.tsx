@@ -21,6 +21,7 @@ export type StylistProduct = {
   priceSale?: number | null;
   saleEnabled?: number | boolean | null;
   availabilityStatus?: "AVAILABLE" | "PREORDER" | "IN_STOCK" | "PRE_ORDER" | "SOLD_OUT" | null;
+  isActive?: number | boolean | null;
   isNew?: number | boolean | null;
   garmentMeasurements?: import("@shared/fitEngine").GarmentMeasurements | null;
   sizeOptions?: Array<{ label?: string }> | null;
