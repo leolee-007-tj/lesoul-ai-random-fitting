@@ -372,6 +372,13 @@
       "when": 1787888942369,
       "tag": "0052_curvy_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "5",
+      "when": 1788238488122,
+      "tag": "0053_slippery_mastermind",
+      "breakpoints": true
     }
   ]
 }

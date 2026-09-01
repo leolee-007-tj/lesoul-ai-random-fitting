@@ -449,6 +449,21 @@ export const productShareVisits = mysqlTable("productShareVisits", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => [uniqueIndex("product_share_visit_daily_unique").on(table.productId, table.visitorId, table.source, table.visitDay)]);
 
+/** Anonymous customer-facing daily visits. The browser sends coarse categories only; no IP or raw User-Agent is retained. */
+export const siteVisitSummaries = mysqlTable("siteVisitSummaries", {
+  id: int("id").autoincrement().primaryKey(),
+  visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  visitDay: varchar("visitDay", { length: 10 }).notNull(),
+  deviceType: mysqlEnum("deviceType", ["phone", "tablet", "desktop", "unknown"]).default("unknown").notNull(),
+  operatingSystem: varchar("operatingSystem", { length: 32 }).default("unknown").notNull(),
+  browser: varchar("browser", { length: 32 }).default("unknown").notNull(),
+  screenClass: varchar("screenClass", { length: 32 }).default("unknown").notNull(),
+  locale: varchar("locale", { length: 8 }).default("en").notNull(),
+  entryPath: varchar("entryPath", { length: 160 }).default("/").notNull(),
+  lastSeenAt: timestamp("lastSeenAt").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [uniqueIndex("site_visit_daily_unique").on(table.visitorId, table.visitDay)]);
+
 /** Owner-controlled AI access pause for a concrete signed-in account or anonymous visitor ID. */
 export const aiAccessBlocks = mysqlTable("aiAccessBlocks", {
   visitorId: varchar("visitorId", { length: 96 }).primaryKey(),
@@ -472,3 +487,4 @@ export type CuratedOutfitItem = typeof curatedOutfitItems.$inferSelect;
 export type GenerationLog = typeof generationLogs.$inferSelect;
 export type AiUsageEvent = typeof aiUsageEvents.$inferSelect;
 export type AiAccessBlock = typeof aiAccessBlocks.$inferSelect;
+export type SiteVisitSummary = typeof siteVisitSummaries.$inferSelect;

@@ -1,6 +1,6 @@
 import { count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
+import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productShareVisits, releaseSettings, siteVisitSummaries, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -140,6 +140,33 @@ export async function recordWeChatProductShareVisit(input: { productId: number; 
   const visitDay = new Date().toISOString().slice(0, 10);
   await db.insert(productShareVisits).values({ productId: input.productId, visitorId: input.visitorId, visitDay }).onDuplicateKeyUpdate({ set: { visitorId: input.visitorId } });
   return true;
+}
+
+export type SiteVisitInput = {
+  visitorId: string;
+  deviceType: "phone" | "tablet" | "desktop" | "unknown";
+  operatingSystem: string;
+  browser: string;
+  screenClass: string;
+  locale: string;
+  entryPath: string;
+};
+
+/** Store one privacy-minimized visit per opaque visitor and UTC day. */
+export async function recordSiteVisit(input: SiteVisitInput) {
+  const db = await getDb();
+  if (!db) return false;
+  const visitDay = new Date().toISOString().slice(0, 10);
+  await db.insert(siteVisitSummaries).values({ ...input, visitDay }).onDuplicateKeyUpdate({ set: { ...input, lastSeenAt: new Date() } });
+  return true;
+}
+
+export async function getSiteVisitAnalytics() {
+  const db = await getDb();
+  if (!db) return { totalVisits: 0, uniqueVisitors: 0, byDevice: [], byOs: [], byBrowser: [], byLocale: [], recent: [] };
+  const rows = await db.select().from(siteVisitSummaries).orderBy(desc(siteVisitSummaries.lastSeenAt));
+  const aggregate = (key: keyof Pick<SiteVisitInput, "deviceType" | "operatingSystem" | "browser" | "locale">) => Object.entries(rows.reduce<Record<string, number>>((acc, row) => { const value = String(row[key] || "unknown"); acc[value] = (acc[value] ?? 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1]).map(([label, visits]) => ({ label, visits }));
+  return { totalVisits: rows.length, uniqueVisitors: new Set(rows.map((row) => row.visitorId)).size, byDevice: aggregate("deviceType"), byOs: aggregate("operatingSystem"), byBrowser: aggregate("browser"), byLocale: aggregate("locale"), recent: rows.slice(0, 12).map(({ visitorId: _visitorId, ...row }) => row) };
 }
 
 export async function listWeChatProductShareAnalytics() {

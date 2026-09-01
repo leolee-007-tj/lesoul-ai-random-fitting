@@ -1,5 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getVisitorId, hasExplicitLogout, restoreVisitorId } from "@/lib/visitor";
+import { getAnalyticsConsent, getSiteVisitPayload } from "@/lib/siteAnalytics";
+import AnalyticsConsentBanner from "@/components/AnalyticsConsentBanner";
 import { trpc } from "@/lib/trpc";
 import { LoaderCircle } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -9,10 +11,13 @@ import { useLocation } from "wouter";
 export default function CustomerGate({ children, allowAdmin = false }: { children: ReactNode; allowAdmin?: boolean }) {
   const { isAuthenticated, loading, user } = useAuth();
   const [location, navigate] = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const utils = trpc.useUtils();
   const guestLogin = trpc.auth.guestLogin.useMutation();
+  const trackSiteVisit = trpc.catalog.trackSiteVisit.useMutation();
   const [visitorId] = useState(() => getVisitorId());
+  const [analyticsConsent, setAnalyticsConsent] = useState(() => getAnalyticsConsent());
+  const trackedVisitDay = useRef("");
   const startedGuestEntry = useRef(false);
   const explicitlyLoggedOut = hasExplicitLogout();
 
@@ -29,6 +34,13 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   }, [explicitlyLoggedOut, guestLogin, isAuthenticated, loading, location, navigate, utils, visitorId]);
 
   useEffect(() => {
+    if (loading || !isAuthenticated || analyticsConsent !== "accepted" || trackedVisitDay.current) return;
+    const day = new Date().toISOString().slice(0, 10);
+    trackedVisitDay.current = day;
+    trackSiteVisit.mutate(getSiteVisitPayload(i18n.language, location));
+  }, [analyticsConsent, i18n.language, isAuthenticated, loading, location, trackSiteVisit]);
+
+  useEffect(() => {
     if (!allowAdmin && !loading && user?.role === "admin" && location !== "/operations") navigate("/operations");
     if (!loading && user?.role === "store_trial" && location !== "/trial-store") navigate("/trial-store");
     if (!loading && user?.role === "store_display" && location !== "/store-display") navigate("/store-display");
@@ -42,5 +54,5 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   if (loading || explicitlyLoggedOut || !isAuthenticated || guestLogin.isPending || redirectedRole) {
     return <main className="grid min-h-svh place-items-center bg-[#fbfaf8] text-[#5f574f]"><LoaderCircle className="animate-spin" size={22} /><span className="sr-only">{t("dashboard.checkingAccess")}</span></main>;
   }
-  return <>{children}</>;
+  return <>{children}<AnalyticsConsentBanner onDecision={() => setAnalyticsConsent(getAnalyticsConsent())} /></>;
 }
