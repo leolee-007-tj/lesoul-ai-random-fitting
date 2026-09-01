@@ -52,9 +52,20 @@ describe("login navigation", () => {
   it("navigates immediately after the server confirms login", () => {
     expect(source).toContain("void utils.auth.testSession.invalidate().catch(() => undefined);");
     expect(source).toContain("void utils.auth.me.invalidate().catch(() => undefined);");
+    expect(source).toContain("void utils.auth.me.refetch().catch(() => undefined);");
     expect(source).toContain("restoreVisitorId(result.visitorId);");
     expect(source).not.toContain("await utils.auth.testSession.invalidate();");
     expect(source).not.toContain("await utils.auth.me.invalidate();");
+  });
+
+  it("redirects an already-authenticated session away from the login screen", () => {
+    expect(source).toContain("const auth = useAuth();");
+    expect(source).toContain('window.location.pathname !== "/login"');
+    expect(source).toContain('auth.user?.role === "admin" ? "/operations"');
+    expect(source).toContain('auth.user?.role === "store_trial" ? "/trial-store"');
+    expect(source).toContain('auth.user?.role === "store_display" ? "/store-display"');
+    expect(source).toContain('next !== "/login"');
+    expect(source).toContain('!next.startsWith("/login?")');
   });
 
   it("clears explicit logout state when normal entry succeeds", () => {

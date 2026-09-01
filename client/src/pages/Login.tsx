@@ -1,11 +1,12 @@
 import MobileScreen from "@/components/MobileScreen";
 import { startLogin } from "@/const";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { clearExplicitLogout, getVisitorId, restoreVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
 import { ArrowRight, KeyRound, LockKeyhole, MonitorPlay, ShieldCheck, Store } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
@@ -14,6 +15,7 @@ type LoginMode = "normal" | "vip" | "trial" | "display" | "admin";
 export default function Login() {
   const [, navigate] = useLocation();
   const { t, i18n } = useTranslation();
+  const auth = useAuth();
   const utils = trpc.useUtils();
   const [mode, setMode] = useState<LoginMode>("normal");
   const [username, setUsername] = useState("");
@@ -28,12 +30,20 @@ export default function Login() {
   const next = new URLSearchParams(window.location.search).get("next") || "/";
   const displayCopy = i18n.language.startsWith("ko") ? { tab: "매장 디스플레이", body: "매장 화면 전용 계정입니다. 큰 상품 보기와 방문 알림만 사용할 수 있습니다.", submit: "디스플레이 시작", invalid: "디스플레이 ID 또는 비밀번호가 올바르지 않습니다.", inactive: "이 디스플레이 계정은 현재 비활성 상태입니다." } : i18n.language.startsWith("zh") ? { tab: "店铺展示", body: "这是店铺展示专用账户，仅可浏览大图商品和使用到店提醒。", submit: "进入展示模式", invalid: "展示 ID 或密码不正确。", inactive: "此展示账户当前已停用。" } : { tab: "STORE DISPLAY", body: "This store-display account can only browse large products and use the visitor alert.", submit: "START DISPLAY", invalid: "The display ID or password is incorrect.", inactive: "This display account is currently inactive." };
 
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
-  const finishNormal = (destination = safeNext) => {
+  const safeNext = next.startsWith("/") && !next.startsWith("//") && next !== "/login" && !next.startsWith("/login?") ? next : "/";
+  const pending = guestLogin.isPending || vipLogin.isPending || trialStoreLogin.isPending || storeDisplayLogin.isPending || adminLogin.isPending;
+  const finishNormal = (destination = safeNext, activeVisitorId?: string) => {
+    if (activeVisitorId) utils.auth.testSession.setData(undefined, { active: true, visitorId: activeVisitorId });
     void utils.auth.testSession.invalidate().catch(() => undefined);
     void utils.auth.me.invalidate().catch(() => undefined);
     navigate(destination);
   };
+
+  useEffect(() => {
+    if (auth.loading || pending || !auth.isAuthenticated || window.location.pathname !== "/login") return;
+    const destination = auth.user?.role === "admin" ? "/operations" : auth.user?.role === "store_trial" ? "/trial-store" : auth.user?.role === "store_display" ? "/store-display" : safeNext;
+    navigate(destination);
+  }, [auth.isAuthenticated, auth.loading, auth.user?.role, navigate, pending, safeNext]);
 
   async function continueAsGuest() {
     setMessage("");
@@ -41,7 +51,7 @@ export default function Login() {
       const result = await guestLogin.mutateAsync({ visitorId });
       clearExplicitLogout();
       restoreVisitorId(result.visitorId);
-      finishNormal();
+      finishNormal(safeNext, result.visitorId);
     } catch {
       setMessage(t("auth.unavailable"));
     }
@@ -69,6 +79,7 @@ export default function Login() {
         return setMessage(result.reason === "inactive" ? inactiveCopy : invalidCopy);
       }
       clearExplicitLogout();
+      void utils.auth.me.refetch().catch(() => undefined);
       void utils.auth.me.invalidate().catch(() => undefined);
       if (mode === "admin") navigate("/operations");
       else if (mode === "trial") navigate("/trial-store");
@@ -79,7 +90,6 @@ export default function Login() {
     }
   }
 
-  const pending = guestLogin.isPending || vipLogin.isPending || trialStoreLogin.isPending || storeDisplayLogin.isPending || adminLogin.isPending;
   const setLoginMode = (nextMode: LoginMode) => { setMode(nextMode); setMessage(""); };
   const credentialMode = mode !== "normal";
   const credentialIcon = mode === "vip" ? <KeyRound size={16} className="text-[#413b34]" /> : mode === "trial" ? <Store size={16} className="text-[#413b34]" /> : mode === "display" ? <MonitorPlay size={16} className="text-[#413b34]" /> : <ShieldCheck size={16} className="text-[#413b34]" />;
