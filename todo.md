@@ -1385,3 +1385,15 @@
 - [x] 비밀번호·API key·token·service_role·인증서·개인정보를 제외하거나 안전한 placeholder로 대체한 export 사본 구성
 - [x] 프로젝트 구조·실행·배포·API/Supabase/GitHub·환경변수·남은 오류·최근 수정 내용을 handoff.md에 정리
 - [x] ZIP 압축 목록과 민감정보 패턴을 검증하고 최종 ZIP 및 handoff.md 전달
+
+## 2026-09-02 WeChat Mini Program shared API design
+- [x] 웹앱의 상품·이미지·상품 실측·고객 치수·visitorId 데이터 경계 정리
+- [x] 공통 API endpoint·인증·위챗 계정 연결·이미지 접근·동기화 규칙 설계
+- [x] 권한·개인정보·중복 연결·데이터 이전·备案·미니프로그램 운영 조건 정리
+- [x] 단계별 구현 순서와 테스트 기준을 handoff 가능한 Markdown 문서로 작성
+
+## 2026-09-02 Qingdao Manus access check
+- [x] 현재 Manus 공개 주소의 DNS·TLS·HTTPS·리다이렉트·초기 HTML/자산 응답 점검
+- [x] 중국 네트워크에서 차단될 수 있는 외부 CDN·폰트·이미지·API 의존성 재확인
+- [x] 칭다오 현지 회선에서만 확인 가능한 DNS·통신사·WeChat WebView 테스트 절차 정리
+- [x] 접속 가능성·검증 한계·공유 전 조치 결과 전달
