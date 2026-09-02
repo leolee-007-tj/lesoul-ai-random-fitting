@@ -1367,3 +1367,21 @@
 - [x] 일반 사용자 카드 이미지 위 구매목록 담기 버튼을 제거하고 상품 클릭·상세 진입은 유지
 - [x] 상품 상세 화면의 구매목록 담기와 기존 데이터 흐름은 유지
 - [x] 역할별 구매 기능·모바일 이미지 가림 회귀 테스트와 프로덕션 빌드 후 체크포인트 저장
+
+## 2026-09-01 Tencent Cloud custom domain
+- [ ] Tencent Cloud에서 lesoullook.com 등록 가능 여부와 현재 등록·갱신 가격 확인
+- [ ] 중국 내 등록 실명 인증·备案·해외 사업자 연결 조건 확인
+- [ ] 실제 결제 전 가격·조건을 사용자에게 제시하고 명시적 승인 받기
+- [ ] 구매 후 Tencent DNS와 Manus custom domain을 연결하고 HTTPS·DNS 전파 검증
+
+## 2026-09-01 Tencent China .cn domain
+- [ ] 중국판 Tencent Cloud에서 lesoullook.cn 등록 가능 여부와 최종 등록·갱신 가격 확인
+- [ ] 배우자 명의实名认证과 ICP备案 및 해외 호스팅 연결 조건 확인
+- [ ] 실제 결제 전 최종 가격과 조건을 제시하고 명시적 승인 받기
+- [ ] 구매 후 Tencent DNS와 Manus 사용자 도메인을 연결하고 HTTPS·중국 접속을 검증
+
+## 2026-09-02 Secure source export
+- [x] 전체 소스·숨김 파일·설정 구조를 감사하고 민감정보 포함 파일을 식별
+- [x] 비밀번호·API key·token·service_role·인증서·개인정보를 제외하거나 안전한 placeholder로 대체한 export 사본 구성
+- [x] 프로젝트 구조·실행·배포·API/Supabase/GitHub·환경변수·남은 오류·최근 수정 내용을 handoff.md에 정리
+- [x] ZIP 압축 목록과 민감정보 패턴을 검증하고 최종 ZIP 및 handoff.md 전달
