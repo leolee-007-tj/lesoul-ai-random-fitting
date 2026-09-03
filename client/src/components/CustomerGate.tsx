@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getVisitorId, hasExplicitLogout, restoreVisitorId } from "@/lib/visitor";
-import { getAnalyticsConsent, getSiteVisitPayload } from "@/lib/siteAnalytics";
-import AnalyticsConsentBanner from "@/components/AnalyticsConsentBanner";
+import { getSiteVisitPayload } from "@/lib/siteAnalytics";
+import AnonymousAnalyticsNotice from "@/components/AnonymousAnalyticsNotice";
 import { trpc } from "@/lib/trpc";
 import { LoaderCircle } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -16,7 +16,6 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   const guestLogin = trpc.auth.guestLogin.useMutation();
   const trackSiteVisit = trpc.catalog.trackSiteVisit.useMutation();
   const [visitorId] = useState(() => getVisitorId());
-  const [analyticsConsent, setAnalyticsConsent] = useState(() => getAnalyticsConsent());
   const trackedVisitDay = useRef("");
   const startedGuestEntry = useRef(false);
   const explicitlyLoggedOut = hasExplicitLogout();
@@ -34,11 +33,11 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   }, [explicitlyLoggedOut, guestLogin, isAuthenticated, loading, location, navigate, utils, visitorId]);
 
   useEffect(() => {
-    if (loading || !isAuthenticated || analyticsConsent !== "accepted" || trackedVisitDay.current) return;
+    if (loading || !isAuthenticated || trackedVisitDay.current) return;
     const day = new Date().toISOString().slice(0, 10);
     trackedVisitDay.current = day;
     trackSiteVisit.mutate(getSiteVisitPayload(i18n.language, location));
-  }, [analyticsConsent, i18n.language, isAuthenticated, loading, location, trackSiteVisit]);
+  }, [i18n.language, isAuthenticated, loading, location, trackSiteVisit]);
 
   useEffect(() => {
     if (!allowAdmin && !loading && user?.role === "admin" && location !== "/operations") navigate("/operations");
@@ -54,5 +53,6 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   if (loading || explicitlyLoggedOut || !isAuthenticated || guestLogin.isPending || redirectedRole) {
     return <main className="grid min-h-svh place-items-center bg-[#fbfaf8] text-[#5f574f]"><LoaderCircle className="animate-spin" size={22} /><span className="sr-only">{t("dashboard.checkingAccess")}</span></main>;
   }
-  return <>{children}<AnalyticsConsentBanner onDecision={() => setAnalyticsConsent(getAnalyticsConsent())} /></>;
+  const showAnalyticsNotice = user?.role === "user" || user?.role === "vip";
+  return <>{children}{showAnalyticsNotice ? <AnonymousAnalyticsNotice /> : null}</>;
 }

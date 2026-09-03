@@ -3,7 +3,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import type { CatalogDisplaySettings } from "@shared/catalogDisplay";
 import { getOriginalPrice } from "@shared/productCommerce";
-import { getAnalyticsConsent } from "@/lib/siteAnalytics";
 import { getVisitorId } from "@/lib/visitor";
 import { resolveCentralPrice } from "@shared/pricingPolicy";
 import { normaliseAvailabilityStatus } from "@shared/productAvailability";
@@ -24,6 +23,6 @@ export default function PurchaseListAddButton({ product, source = "detail", clas
   const alreadyListed = items.some((item) => item.productId === product.id && item.selectedSize === selectedSize);
   const limitReached = !alreadyListed && items.length >= (config.data?.maxItems ?? 10);
   const previewPricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, tier: user?.role === "vip" ? "VIP" : "NORMAL", quantity: items.reduce((sum, item) => sum + item.quantity, 0) + 1, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale });
-  const addToPurchaseList = (event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageUrl, productType: product.productType, setComponents: product.setComponents, catalogDisplay: product.catalogDisplay, selectedSize, availableSizes: sizes, recommendedSize: product.recommendedSize, currentPrice: previewPricing.unitPrice, purchaseType: reservation ? "RESERVATION" : "NORMAL", source }); if (getAnalyticsConsent() === "accepted") void trackEngagement.mutate({ productId: product.id, visitorId: getVisitorId(), eventType: "PURCHASE_LIST_ADD" }); setAdded(true); window.setTimeout(() => setAdded(false), 1800); };
+  const addToPurchaseList = (event: MouseEvent<HTMLButtonElement>) => { event.stopPropagation(); addItem({ productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageUrl, productType: product.productType, setComponents: product.setComponents, catalogDisplay: product.catalogDisplay, selectedSize, availableSizes: sizes, recommendedSize: product.recommendedSize, currentPrice: previewPricing.unitPrice, purchaseType: reservation ? "RESERVATION" : "NORMAL", source }); void trackEngagement.mutate({ productId: product.id, visitorId: getVisitorId(), eventType: "PURCHASE_LIST_ADD" }); setAdded(true); window.setTimeout(() => setAdded(false), 1800); };
   return <button disabled={limitReached || soldOut} onClick={addToPurchaseList} className={`inline-flex min-h-9 w-full items-center justify-center gap-1 rounded-lg bg-black px-3 py-2 text-[10px] font-bold text-white transition active:scale-[.97] disabled:opacity-40 ${className}`}>{added ? <Check size={13} /> : <ClipboardPlus size={13} />}{soldOut ? copy.sold : limitReached ? copy.limit : added ? copy.added : reservation ? copy.reserve : copy.add}</button>;
 }

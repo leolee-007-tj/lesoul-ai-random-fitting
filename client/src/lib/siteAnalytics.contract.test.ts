@@ -3,34 +3,43 @@ import { readFileSync } from "node:fs";
 
 const source = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 
-describe("privacy-minimized site analytics contract", () => {
-  it("does not retain raw IP, user-agent, or exact device model data", () => {
+describe("privacy-minimized anonymous site analytics contract", () => {
+  it("sends only an opaque visitor id, supported locale, and bounded entry path", () => {
     const analytics = source("./siteAnalytics.ts");
     const schema = source("../../../drizzle/schema.ts");
-    expect(analytics).toContain("getCoarseDeviceInfo");
+    expect(analytics).toContain("getVisitorId");
+    expect(analytics).toContain("entryPath.slice(0, 160)");
+    expect(analytics).not.toContain("getCoarseDeviceInfo");
     expect(analytics).not.toContain("device.model");
+    expect(analytics).not.toContain("operatingSystem");
+    expect(analytics).not.toContain("navigator.userAgent");
     expect(schema).toContain("siteVisitSummaries");
     expect(schema).not.toContain("userAgent");
     expect(schema).not.toContain("ipAddress");
   });
 
-  it("requires an explicit visitor consent choice before the customer gate tracks a visit", () => {
+  it("uses a non-interactive footer notice instead of a consent dialog", () => {
     const gate = source("../components/CustomerGate.tsx");
+    const notice = source("../components/AnonymousAnalyticsNotice.tsx");
     const banner = source("../components/AnalyticsConsentBanner.tsx");
-    expect(gate).toContain('analyticsConsent !== "accepted"');
-    expect(gate).toContain("trackSiteVisit.mutate");
-    expect(banner).toContain('"accepted"');
-    expect(banner).toContain('"declined"');
+    expect(gate).not.toContain("analyticsConsent");
+    expect(gate).toContain("AnonymousAnalyticsNotice");
+    expect(notice).toContain('role="note"');
+    expect(notice).not.toContain("onDecision");
+    expect(banner).toContain("AnonymousAnalyticsNotice");
+    expect(banner).not.toContain("setAnalyticsConsent");
   });
 
-  it("keeps visit analytics behind the owner procedure and daily visitor uniqueness", () => {
+  it("keeps only the opaque visitor id and daily uniqueness at the server boundary", () => {
     const router = source("../../../server/routers/operations.ts");
     const catalog = source("../../../server/routers/catalog.ts");
     const db = source("../../../server/db.ts");
     const schema = source("../../../drizzle/schema.ts");
     expect(router).toContain("siteVisitAnalytics: ownerProcedure");
     expect(catalog).toContain("trackSiteVisit");
-    expect(db).toContain("recordSiteVisit");
+    expect(catalog).not.toContain("deviceType: z.enum");
+    expect(db).toContain("uniqueVisitors: new Set");
+    expect(db).toContain('deviceType: "unknown"');
     expect(schema).toContain("site_visit_daily_unique");
   });
 });

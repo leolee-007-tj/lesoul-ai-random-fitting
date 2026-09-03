@@ -11,6 +11,12 @@ describe("camera presence sound screen", () => {
     expect(page).toContain("shouldStartPresencePlayback");
     expect(page).toContain("shouldContinuePresencePlayback");
     expect(page).toContain("getTracks().forEach((track) => track.stop())");
+    expect(page).toContain("facingMode: { ideal: \"user\" }");
+    expect(page).toContain("HTMLMediaElement.HAVE_CURRENT_DATA");
+    expect(page).toContain("Technical details");
+    expect(page).toContain("navigator.clipboard?.writeText(technicalError)");
+    expect(page).toContain("void audio.play().then");
+    expect(page).not.toContain("await audio.play()");
     expect(page).toContain("config.data.repeatCount ?? 1");
     expect(page).toContain("Your camera feed stays on this device");
     expect(page).not.toContain("storagePut");

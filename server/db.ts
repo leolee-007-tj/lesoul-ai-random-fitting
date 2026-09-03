@@ -145,29 +145,25 @@ export async function recordWeChatProductShareVisit(input: { productId: number; 
 
 export type SiteVisitInput = {
   visitorId: string;
-  deviceType: "phone" | "tablet" | "desktop" | "unknown";
-  operatingSystem: string;
-  browser: string;
-  screenClass: string;
-  locale: string;
+  locale: "en" | "ko" | "zh";
   entryPath: string;
 };
 
-/** Store one privacy-minimized visit per opaque visitor and UTC day. */
+/** Store one opaque visitor per UTC day; all device and location fields are intentionally neutralized. */
 export async function recordSiteVisit(input: SiteVisitInput) {
   const db = await getDb();
   if (!db) return false;
   const visitDay = new Date().toISOString().slice(0, 10);
-  await db.insert(siteVisitSummaries).values({ ...input, visitDay }).onDuplicateKeyUpdate({ set: { ...input, lastSeenAt: new Date() } });
+  const privacyFields = { deviceType: "unknown" as const, operatingSystem: "unknown", browser: "unknown", screenClass: "unknown" };
+  await db.insert(siteVisitSummaries).values({ ...input, ...privacyFields, visitDay }).onDuplicateKeyUpdate({ set: { ...input, ...privacyFields, lastSeenAt: new Date() } });
   return true;
 }
 
 export async function getSiteVisitAnalytics() {
   const db = await getDb();
-  if (!db) return { totalVisits: 0, uniqueVisitors: 0, byDevice: [], byOs: [], byBrowser: [], byLocale: [], recent: [] };
-  const rows = await db.select().from(siteVisitSummaries).orderBy(desc(siteVisitSummaries.lastSeenAt));
-  const aggregate = (key: keyof Pick<SiteVisitInput, "deviceType" | "operatingSystem" | "browser" | "locale">) => Object.entries(rows.reduce<Record<string, number>>((acc, row) => { const value = String(row[key] || "unknown"); acc[value] = (acc[value] ?? 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1]).map(([label, visits]) => ({ label, visits }));
-  return { totalVisits: rows.length, uniqueVisitors: new Set(rows.map((row) => row.visitorId)).size, byDevice: aggregate("deviceType"), byOs: aggregate("operatingSystem"), byBrowser: aggregate("browser"), byLocale: aggregate("locale"), recent: rows.slice(0, 12).map(({ visitorId: _visitorId, ...row }) => row) };
+  if (!db) return { uniqueVisitors: 0 };
+  const rows = await db.select({ visitorId: siteVisitSummaries.visitorId }).from(siteVisitSummaries);
+  return { uniqueVisitors: new Set(rows.map((row) => row.visitorId)).size };
 }
 
 export async function recordProductEngagement(input: { productId: number; visitorId: string; eventType: ProductConversionEventType }) {
