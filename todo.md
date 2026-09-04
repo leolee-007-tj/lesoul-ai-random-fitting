@@ -1421,11 +1421,11 @@
 - [x] iPad·모바일 회귀 테스트·프로덕션 빌드·체크포인트 저장
 
 ## 2026-09-03 iPad permission and admin toggle fix
-- [ ] iPad Safari에서 사용자 버튼 동작으로 getUserMedia 권한창이 나타나는지 재현
-- [ ] HTTPS·Safari 권한 상태·카메라 요청 조건과 오류 상태를 점검해 복구 안내 추가
-- [ ] 관리자 카메라 감지 ON/OFF 버튼의 클릭·disabled 조건·mutation 저장·캐시 갱신을 점검
-- [ ] 관리자 설정값이 디스플레이 감지 화면에 실제 반영되고 반복 재생 설정과 함께 동작하는지 검증
-- [ ] iPad·관리자 설정 회귀 테스트·프로덕션 빌드·체크포인트 저장
+- [x] iPad Safari에서 사용자 버튼 동작으로 getUserMedia 권한창이 나타나는지 재현
+- [x] HTTPS·Safari 권한 상태·카메라 요청 조건과 오류 상태를 점검해 복구 안내 추가
+- [x] 관리자 카메라 감지 ON/OFF 버튼의 클릭·disabled 조건·mutation 저장·캐시 갱신을 점검
+- [x] 관리자 설정값이 디스플레이 감지 화면에 실제 반영되고 반복 재생 설정과 함께 동작하는지 검증
+- [x] iPad·관리자 설정 회귀 테스트·프로덕션 빌드·체크포인트 저장
 
 - [x] Add an explicit iPad-friendly “Turn on camera” action in Store Display mode that requests camera permission only from a user gesture and shows clear ready/error states.
 - [x] Add owner-only Store Display account status data with per-store camera online indicators and per-store camera detection ON/OFF controls, without exposing private credentials.
