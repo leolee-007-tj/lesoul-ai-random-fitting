@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { normalizePresenceAlertRepeats, shouldContinuePresencePlayback, shouldStartPresencePlayback } from "../shared/presenceAlert";
 
 const read = (url: URL) => readFileSync(url, "utf8");
 
@@ -12,13 +13,35 @@ describe("presence alert server contract", () => {
     expect(admin).toContain("updatePresenceAlertConfig: ownerProcedure");
     expect(admin).toContain("presenceAlertSoundUrl");
     expect(admin).toContain("presenceAlertRepeatCount");
+    expect(admin).toContain("const presenceAlertEnabled = input.presenceAlertEnabled ?? current.presenceAlertEnabled");
   });
 
-  it("exposes a sound URL only to an active store-display session while the global feature is enabled", () => {
+  it("scopes the sound URL to the store-display account and supports a local fallback tone", () => {
     const catalog = read(new URL("./routers/catalog.ts", import.meta.url));
     expect(catalog).toContain("presenceAlertConfig: storeDisplayProcedure");
-    expect(catalog).toContain("settings.presenceAlertEnabled && settings.presenceAlertSoundUrl");
-    expect(catalog).toContain("soundUrl: enabled ? settings.presenceAlertSoundUrl : null");
-    expect(catalog).toContain("repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1))");
+    expect(catalog).toContain("ctx.user.presenceCameraEnabled !== 0");
+    expect(catalog).toContain("DEFAULT_PRESENCE_ALERT_SOUND");
+    expect(catalog).toContain("presenceAlertHeartbeat: storeDisplayProcedure");
+    expect(catalog).toContain("presenceCameraLastSeenAt");
+  });
+
+  it("keeps playback bounded and only starts after a person and available sound", () => {
+    expect(normalizePresenceAlertRepeats(99)).toBe(5);
+    expect(normalizePresenceAlertRepeats(0)).toBe(1);
+    expect(shouldStartPresencePlayback({ personDetected: true, isPlaying: false, hasSound: true })).toBe(true);
+    expect(shouldStartPresencePlayback({ personDetected: true, isPlaying: false, hasSound: false })).toBe(false);
+    expect(shouldContinuePresencePlayback({ completedPlays: 1, repeatCount: 2 })).toBe(true);
+    expect(shouldContinuePresencePlayback({ completedPlays: 2, repeatCount: 2 })).toBe(false);
+  });
+
+  it("keeps owner-only per-display camera controls and visible camera status in the account list", () => {
+    const operations = read(new URL("./routers/operations.ts", import.meta.url));
+    const manager = read(new URL("../client/src/components/StoreDisplayAccountManager.tsx", import.meta.url));
+    expect(operations).toContain("updateStoreDisplayCamera: ownerOnlyProcedure");
+    expect(operations).toContain("presenceCameraEnabled");
+    expect(operations).toContain("cameraActive");
+    expect(manager).toContain("카메라 켜짐");
+    expect(manager).toContain("updateStoreDisplayCamera");
+    expect(manager).toContain("bg-emerald-500");
   });
 });

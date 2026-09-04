@@ -13,6 +13,10 @@ export const users = mysqlTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "vip", "admin", "store_trial", "store_display"]).default("user").notNull(),
   isActive: int("isActive").default(1).notNull(),
+  /** Owner-controlled permission for the Store Display camera greeting. */
+  presenceCameraEnabled: int("presenceCameraEnabled").default(1).notNull(),
+  /** Short-lived heartbeat used only to show whether a display is currently online. */
+  presenceCameraLastSeenAt: timestamp("presenceCameraLastSeenAt"),
   /** The configured owner is the sole primary administrator and operator. */
   isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull(),
   /** Password-based administrator trial begins independently on that account's first protected console visit. */

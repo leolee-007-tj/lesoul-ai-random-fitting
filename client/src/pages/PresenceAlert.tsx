@@ -25,6 +25,7 @@ export default function PresenceAlert() {
   }[locale];
   const [, navigate] = useLocation();
   const config = trpc.catalog.presenceAlertConfig.useQuery();
+  const heartbeat = trpc.catalog.presenceAlertHeartbeat.useMutation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -46,8 +47,9 @@ export default function PresenceAlert() {
     audioRef.current?.pause();
     if (audioRef.current) audioRef.current.onended = null;
     playbackRef.current = false;
+    heartbeat.mutate({ active: false });
     setState("idle");
-  }, []);
+  }, [heartbeat]);
 
   useEffect(() => () => stop(), [stop]);
 
@@ -78,6 +80,7 @@ export default function PresenceAlert() {
       video.setAttribute("muted", "true");
       video.srcObject = stream;
       await video.play();
+      heartbeat.mutate({ active: true });
       const vision = await import("@mediapipe/tasks-vision");
       const detector = await vision.ObjectDetector.createFromOptions(detectorAssets, { baseOptions: { modelAssetPath: personModelUrl }, scoreThreshold: 0.5, runningMode: "VIDEO", categoryAllowlist: ["person"], maxResults: 1 });
       detectorRef.current = detector as PersonDetector;

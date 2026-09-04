@@ -24,7 +24,7 @@ export default function AccountManagement() {
   const [tab, setTab] = useState<AccountTab>("overview");
   const displayCopy = locale === "ko" ? { tab: "매장 디스플레이", guide: "매장 디스플레이는 큰 상품 보기와 카메라 방문 알림만 허용하는 전용 계정입니다." } : locale === "zh" ? { tab: "店铺展示", guide: "店铺展示账户仅可大图浏览商品和使用摄像头到店提醒。" } : { tab: "Store display", guide: "Store display accounts only show large products and the camera visitor alert." };
   const owner = trpc.operations.ownerStatus.useQuery();
-  const people = trpc.operations.users.useQuery({ locale }, { enabled: Boolean(owner.data?.isOwner) });
+  const people = trpc.operations.users.useQuery({ locale }, { enabled: Boolean(owner.data?.isOwner), refetchInterval: 15_000 });
   const setUserAccess = trpc.operations.setUserAccess.useMutation({ onSuccess: () => void people.refetch() });
   const accounts = people.data?.accounts ?? [];
   const visitors = people.data?.visitors ?? [];

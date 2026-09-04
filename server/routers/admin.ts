@@ -171,7 +171,7 @@ export const adminRouter = router({
     if (!db) throw new Error("Presence alert settings are temporarily unavailable.");
     const current = await getReleaseSettings();
     const presenceAlertSoundUrl = input.presenceAlertSoundUrl === undefined ? current.presenceAlertSoundUrl : input.presenceAlertSoundUrl;
-    const presenceAlertEnabled = presenceAlertSoundUrl ? (input.presenceAlertEnabled ?? current.presenceAlertEnabled) : 0;
+    const presenceAlertEnabled = input.presenceAlertEnabled ?? current.presenceAlertEnabled;
     const presenceAlertRepeatCount = Math.min(5, Math.max(1, input.presenceAlertRepeatCount ?? current.presenceAlertRepeatCount ?? 1));
     await db.update(releaseSettings).set({ presenceAlertEnabled, presenceAlertSoundUrl, presenceAlertRepeatCount }).where(eq(releaseSettings.id, 1));
     return { presenceAlertEnabled, presenceAlertSoundUrl, presenceAlertRepeatCount };

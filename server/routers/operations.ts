@@ -104,7 +104,7 @@ export const operationsRouter = router({
     const db = await getDb();
     if (!db) throw new Error("Operations data is temporarily unavailable.");
     const [registered, events, blocks] = await Promise.all([
-      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, isPrimaryAdmin: users.isPrimaryAdmin, adminTrialStartedAt: users.adminTrialStartedAt, adminTrialDurationHours: users.adminTrialDurationHours, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn }).from(users).orderBy(desc(users.lastSignedIn)),
+      db.select({ id: users.id, openId: users.openId, username: users.username, name: users.name, email: users.email, role: users.role, isActive: users.isActive, isPrimaryAdmin: users.isPrimaryAdmin, adminTrialStartedAt: users.adminTrialStartedAt, adminTrialDurationHours: users.adminTrialDurationHours, createdAt: users.createdAt, lastSignedIn: users.lastSignedIn, presenceCameraEnabled: users.presenceCameraEnabled, presenceCameraLastSeenAt: users.presenceCameraLastSeenAt }).from(users).orderBy(desc(users.lastSignedIn)),
       db.select().from(aiUsageEvents).orderBy(desc(aiUsageEvents.startedAt)),
       db.select().from(aiAccessBlocks),
     ]);
@@ -115,7 +115,7 @@ export const operationsRouter = router({
       const visitorId = `account:${account.openId}`; const usage = usageByVisitor.get(visitorId) ?? []; const entitlement = await getCentralEntitlement(visitorId);
       const usageByFeature = Object.fromEntries(Array.from(new Set(usage.map((event) => event.featureType))).map((feature) => [feature, usage.filter((event) => event.featureType === feature).length]));
       const displayName = account.name?.trim() || anonymousNickname(`account:${account.role}:${account.username || account.openId}`, input.locale);
-      return { kind: "account" as const, visitorId, displayName, user: account, aiRequestCount: usage.length, usageByFeature, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: account.role === "vip", generationAllowance: entitlement?.generationAllowance ?? null, generationUsed: entitlement?.generationUsed ?? null, entitlementExpiresAt: entitlement?.expiresAt ?? null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null };
+      return { kind: "account" as const, visitorId, displayName, user: account, aiRequestCount: usage.length, usageByFeature, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: account.role === "vip", generationAllowance: entitlement?.generationAllowance ?? null, generationUsed: entitlement?.generationUsed ?? null, entitlementExpiresAt: entitlement?.expiresAt ?? null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null, cameraEnabled: account.role === "store_display" && account.presenceCameraEnabled !== 0, cameraActive: account.role === "store_display" && Boolean(account.presenceCameraLastSeenAt && Date.now() - account.presenceCameraLastSeenAt.getTime() < 120_000) };
     }));
     const visitorAggregates = Array.from(usageByVisitor.entries()).filter(([visitorId]) => !visitorId.startsWith("account:")).map(([visitorId, usage]) => ({ kind: "visitor" as const, visitorId, displayName: anonymousNickname(visitorId, input.locale), user: { id: null, openId: null, username: null, name: null, email: null, role: "user", isActive: 1, createdAt: null, lastSignedIn: null }, aiRequestCount: usage.length, latestAiRequestAt: usage[0]?.startedAt ?? null, isVip: false, generationAllowance: null, generationUsed: null, entitlementExpiresAt: null, isBlocked: Boolean(blockByVisitor.get(visitorId)?.isActive), blockReason: blockByVisitor.get(visitorId)?.reason ?? null }));
     return { accounts, visitors: visitorAggregates };
@@ -171,6 +171,14 @@ export const operationsRouter = router({
     if (input.newPassword) set.passwordHash = hashVipPassword(input.newPassword);
     if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, input.userId));
     return { success: true };
+  }),
+  updateStoreDisplayCamera: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), enabled: z.boolean() })).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("STORE_DISPLAY_CAMERA_SERVICE_UNAVAILABLE");
+    const account = (await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, input.userId)).limit(1))[0];
+    if (!account || account.role !== "store_display") throw new Error("STORE_DISPLAY_ACCOUNT_NOT_FOUND");
+    await db.update(users).set({ presenceCameraEnabled: input.enabled ? 1 : 0, presenceCameraLastSeenAt: input.enabled ? undefined : null }).where(eq(users.id, input.userId));
+    return { success: true, enabled: input.enabled };
   }),
   setAdminPassword: ownerOnlyProcedure.input(z.object({ userId: z.number().int().positive(), username: z.string().trim().min(3).max(64).regex(/^[A-Za-z0-9._-]+$/), newPassword: z.string().min(8).max(128) })).mutation(async ({ input }) => {
     const db = await getDb();

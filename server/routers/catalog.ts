@@ -1,11 +1,14 @@
 import { z } from "zod";
-import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, listGenerationsForUser, recordProductEngagement, recordSiteVisit, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult } from "../db";
+import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, listGenerationsForUser, recordProductEngagement, recordSiteVisit, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
 import { protectedProcedure, publicProcedure, router, storeDisplayProcedure } from "../_core/trpc";
 import { canViewVipEarlyAccess, getCurrentEntitlement, getReleaseSettings, selectVisibleProducts } from "../access";
 import { getPurchaseAvailability } from "../../shared/purchasePolicy";
+import { users } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { DEFAULT_PRESENCE_ALERT_SOUND } from "../../shared/presenceAlert";
 
 const lookCode = () => `LOOK-${Math.floor(100 + Math.random() * 900)}`;
 
@@ -21,10 +24,18 @@ export const catalogRouter = router({
     const settings = await getReleaseSettings();
     return { storeName: settings.storeName || "LESOUL LOOK", storeTaglineEn: settings.storeTaglineEn || "A quieter way to discover your next LOOK.", storeTaglineKo: settings.storeTaglineKo || "다음 LOOK을 더 조용하고 선명하게 발견하는 방법.", storeTaglineZh: settings.storeTaglineZh || "以更安静、更清晰的方式发现你的下一套 LOOK。" };
   }),
-  presenceAlertConfig: storeDisplayProcedure.query(async () => {
+  presenceAlertConfig: storeDisplayProcedure.query(async ({ ctx }) => {
     const settings = await getReleaseSettings();
-    const enabled = Boolean(settings.presenceAlertEnabled && settings.presenceAlertSoundUrl);
-    return { enabled, soundUrl: enabled ? settings.presenceAlertSoundUrl : null, repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1)) };
+    const cameraEnabledForAccount = ctx.user.presenceCameraEnabled !== 0;
+    const enabled = Boolean(settings.presenceAlertEnabled && cameraEnabledForAccount);
+    const lastSeen = ctx.user.presenceCameraLastSeenAt?.getTime() ?? 0;
+    return { enabled, cameraEnabled: cameraEnabledForAccount, cameraActive: Date.now() - lastSeen < 120_000, soundUrl: enabled ? (settings.presenceAlertSoundUrl ?? DEFAULT_PRESENCE_ALERT_SOUND) : null, repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1)) };
+  }),
+  presenceAlertHeartbeat: storeDisplayProcedure.input(z.object({ active: z.boolean() })).mutation(async ({ ctx, input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Presence alert status is temporarily unavailable.");
+    await db.update(users).set({ presenceCameraLastSeenAt: input?.active ? new Date() : null }).where(eq(users.id, ctx.user.id));
+    return { active: Boolean(input?.active) };
   }),
   storeDisplayProducts: storeDisplayProcedure.query(async () => {
     const catalog = await getCatalog();

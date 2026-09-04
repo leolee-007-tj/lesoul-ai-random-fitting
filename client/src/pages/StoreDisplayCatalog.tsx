@@ -18,10 +18,10 @@ export default function StoreDisplayCatalog() {
   const { i18n } = useTranslation();
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = locale === "ko"
-    ? { eyebrow: "STORE DISPLAY", title: "상품 둘러보기", body: "매장 디스플레이 전용 화면입니다. 상품 정보만 크게 보여 줍니다.", camera: "방문 알림", logout: "디스플레이 로그아웃", loading: "상품을 불러오는 중입니다.", empty: "표시할 상품이 없습니다.", all: "전체", newArrivals: "신상품", allProducts: "전체 상품", categoryLabel: "상품 종류" }
+    ? { eyebrow: "STORE DISPLAY", title: "상품 둘러보기", body: "매장 디스플레이 전용 화면입니다. 상품 정보만 크게 보여 줍니다.", camera: "카메라 켜기", logout: "디스플레이 로그아웃", loading: "상품을 불러오는 중입니다.", empty: "표시할 상품이 없습니다.", all: "전체", newArrivals: "신상품", allProducts: "전체 상품", categoryLabel: "상품 종류" }
     : locale === "zh"
-      ? { eyebrow: "STORE DISPLAY", title: "浏览商品", body: "店铺展示专用页面，仅以大尺寸展示商品信息。", camera: "到店提醒", logout: "退出展示模式", loading: "正在加载商品…", empty: "暂无可展示的商品。", all: "全部", newArrivals: "新品", allProducts: "全部商品", categoryLabel: "商品分类" }
-      : { eyebrow: "STORE DISPLAY", title: "Browse products", body: "A store-display-only view with large product information.", camera: "Visitor alert", logout: "Exit display", loading: "Loading products…", empty: "There are no products to display.", all: "All", newArrivals: "NEW ARRIVALS", allProducts: "ALL PRODUCTS", categoryLabel: "Product categories" };
+      ? { eyebrow: "STORE DISPLAY", title: "浏览商品", body: "店铺展示专用页面，仅以大尺寸展示商品信息。", camera: "开启摄像头", logout: "退出展示模式", loading: "正在加载商品…", empty: "暂无可展示的商品。", all: "全部", newArrivals: "新品", allProducts: "全部商品", categoryLabel: "商品分类" }
+      : { eyebrow: "STORE DISPLAY", title: "Browse products", body: "A store-display-only view with large product information.", camera: "TURN ON CAMERA", logout: "Exit display", loading: "Loading products…", empty: "There are no products to display.", all: "All", newArrivals: "NEW ARRIVALS", allProducts: "ALL PRODUCTS", categoryLabel: "Product categories" };
   const categoryLabels = locale === "ko"
     ? { top: "상의", bottom: "하의", outer: "아우터", dress: "원피스", shoes: "신발", bag: "가방" }
     : locale === "zh"
@@ -52,7 +52,7 @@ export default function StoreDisplayCatalog() {
           <p className="mt-2 max-w-xl text-sm leading-5 text-[#746a60]">{copy.body}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {alert.data?.enabled && <button type="button" onClick={() => navigate("/camera-greeting")} className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#d8d0c7] bg-white px-3 text-[11px] font-bold"><Camera size={15} />{copy.camera}</button>}
+          <button type="button" onClick={() => navigate("/camera-greeting")} className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-[11px] font-bold transition active:scale-[.98] ${alert.data?.enabled ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-[#d8d0c7] bg-white text-[#403830]"}`}><Camera size={15} />{copy.camera}</button>
           <button type="button" onClick={() => void logout()} className="grid size-10 place-items-center rounded-xl border border-[#d8d0c7] bg-white" aria-label={copy.logout}><LogOut size={16} /></button>
         </div>
       </header>
