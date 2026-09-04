@@ -12,6 +12,13 @@ describe("camera presence sound screen", () => {
     expect(page).toContain("shouldContinuePresencePlayback");
     expect(page).toContain("getTracks().forEach((track) => track.stop())");
     expect(page).toContain("facingMode: { ideal: \"user\" }");
+    expect(page).toContain("camera_permission_fallback");
+    expect(page).toContain("VIDEO_METADATA_TIMEOUT");
+    expect(page).toContain("permissionBlocked");
+    expect(page).toContain("modelFailed");
+    expect(page).toContain("audio_playback:");
+    expect(page).toContain("카메라 다시 시도");
+    expect(page).toContain("Safari가 카메라 접근을 차단했습니다");
     expect(page).toContain("HTMLMediaElement.HAVE_CURRENT_DATA");
     expect(page).toContain("Technical details");
     expect(page).toContain("navigator.clipboard?.writeText(technicalError)");

@@ -1430,3 +1430,8 @@
 - [x] Add an explicit iPad-friendly “Turn on camera” action in Store Display mode that requests camera permission only from a user gesture and shows clear ready/error states.
 - [x] Add owner-only Store Display account status data with per-store camera online indicators and per-store camera detection ON/OFF controls, without exposing private credentials.
 - [x] Verify Store Display and owner role boundaries, camera status refresh, iPad permission messaging, Vitest coverage, responsive screenshots, and production build.
+
+## 2026-09-04 iPad unexpected camera error
+- [x] Reproduce and classify the iPad display-mode unexpected camera error by initialization stage.
+- [x] Add iPad-specific permission, stream, video-readiness, and MediaPipe failure handling with actionable recovery guidance.
+- [x] Add retry/reset UI and regression coverage, then rerun mobile screenshots, type checks, tests, and production build.
