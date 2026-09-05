@@ -14,8 +14,11 @@ describe("store display catalog redesign", () => {
   });
 
   it("uses horizontal swipe cards and shuffles the display order", () => {
-    expect(display).toContain("function shuffle");
-    expect(display).toContain("useMemo(() => shuffle(catalog.data ?? [])");
+    expect(display).toContain("shuffleWithinNewArrivalGroups");
+    expect(display).toContain("newArrivalProducts");
+    expect(display).toContain("currentProducts");
+    expect(display).toContain("copy.newArrivals");
+    expect(display).toContain("copy.currentProducts");
     expect(display).toContain("overflow-x-auto");
     expect(display).toContain("snap-x snap-mandatory");
     expect(display).toContain("shrink-0 snap-start");

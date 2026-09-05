@@ -1449,3 +1449,8 @@
 - [x] Remove camera controls, routes, and camera-related display-mode UI without removing unrelated admin account functionality.
 - [x] Add inventory quantity editing for the owner and synchronize sold-out status to inventory 0 in both directions safely.
 - [x] Add regression tests, role-boundary checks, mobile/iPad visual verification, type checks, production build, and checkpoint.
+
+## 2026-09-05 separate new-arrival and in-stock ordering
+- [x] Keep new-arrival products as a separate first group and shuffle only within that group on every non-admin refresh.
+- [x] Keep current/in-stock products as a separate group below new arrivals and shuffle only within that group on every non-admin refresh.
+- [x] Preserve the two-group order in Store Display horizontal browsing and all non-admin catalogs, with regression tests and a new checkpoint.

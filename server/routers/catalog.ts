@@ -9,16 +9,11 @@ import { getPurchaseAvailability } from "../../shared/purchasePolicy";
 import { users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { DEFAULT_PRESENCE_ALERT_SOUND } from "../../shared/presenceAlert";
+import { shuffleWithinNewArrivalGroups } from "../../shared/catalogOrder";
 
 const lookCode = () => `LOOK-${Math.floor(100 + Math.random() * 900)}`;
 
-function shuffleCustomerProducts<T>(items: T[]) {
-  const result = [...items];
-  for (let index = result.length - 1; index > 0; index -= 1) { const swap = Math.floor(Math.random() * (index + 1)); [result[index], result[swap]] = [result[swap], result[index]]; }
-  return result;
-}
-
-function customerOrder<T>(items: T[], role?: string | null) { return role === "admin" ? items : shuffleCustomerProducts(items); }
+function customerOrder<T extends { isNew?: number | boolean | null }>(items: T[], role?: string | null) { return role === "admin" ? items : shuffleWithinNewArrivalGroups(items); }
 
 async function createEditorialFallback(id: number, look: string, place: string) {
   const safeLook = look.replace(/[<>&"']/g, "");
