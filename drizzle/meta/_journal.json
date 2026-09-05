@@ -393,6 +393,20 @@
       "when": 1788491038578,
       "tag": "0055_lively_shocker",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "5",
+      "when": 1788492261244,
+      "tag": "0056_bizarre_meteorite",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "5",
+      "when": 1788572886018,
+      "tag": "0057_unusual_hawkeye",
+      "breakpoints": true
     }
   ]
 }

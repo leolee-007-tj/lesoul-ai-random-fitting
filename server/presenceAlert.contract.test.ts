@@ -23,6 +23,8 @@ describe("presence alert server contract", () => {
     expect(catalog).toContain("DEFAULT_PRESENCE_ALERT_SOUND");
     expect(catalog).toContain("presenceAlertHeartbeat: storeDisplayProcedure");
     expect(catalog).toContain("presenceCameraLastSeenAt");
+    expect(catalog).toContain("errorStage: z.string().trim().max(96).optional()");
+    expect(catalog).toContain("safeErrorStage");
   });
 
   it("keeps playback bounded and only starts after a person and available sound", () => {
@@ -34,14 +36,13 @@ describe("presence alert server contract", () => {
     expect(shouldContinuePresencePlayback({ completedPlays: 2, repeatCount: 2 })).toBe(false);
   });
 
-  it("keeps owner-only per-display camera controls and visible camera status in the account list", () => {
+  it("removes camera controls and camera status from the display account manager", () => {
     const operations = read(new URL("./routers/operations.ts", import.meta.url));
     const manager = read(new URL("../client/src/components/StoreDisplayAccountManager.tsx", import.meta.url));
     expect(operations).toContain("updateStoreDisplayCamera: ownerOnlyProcedure");
-    expect(operations).toContain("presenceCameraEnabled");
-    expect(operations).toContain("cameraActive");
-    expect(manager).toContain("카메라 켜짐");
-    expect(manager).toContain("updateStoreDisplayCamera");
-    expect(manager).toContain("bg-emerald-500");
+    expect(manager).not.toContain("updateStoreDisplayCamera");
+    expect(manager).not.toContain("카메라 켜짐");
+    expect(manager).not.toContain("cameraActive");
+    expect(manager).not.toContain("최근 오류");
   });
 });

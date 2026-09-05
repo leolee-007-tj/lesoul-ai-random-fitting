@@ -14,23 +14,22 @@ describe("store display account contract", () => {
     expect(trpc).toContain("STORE_DISPLAY_READ_ONLY");
   });
 
-  it("exposes only display catalogue and visitor-alert configuration through store-display procedures", () => {
+  it("exposes only the camera-free display catalogue through the display procedure", () => {
     const catalog = read("server/routers/catalog.ts");
     expect(catalog).toContain("storeDisplayProducts: storeDisplayProcedure");
-    expect(catalog).toContain("presenceAlertConfig: storeDisplayProcedure");
     expect(catalog).toContain("product.vipEarlyAccess !== 1");
   });
 
-  it("uses a display-only route for large catalogue and camera greeting instead of customer screens", () => {
+  it("uses a display-only route for large horizontally swipeable catalogue cards", () => {
     const app = read("client/src/App.tsx");
     const customerGate = read("client/src/components/CustomerGate.tsx");
-    const presence = read("client/src/pages/PresenceAlert.tsx");
     const displayCatalogue = read("client/src/pages/StoreDisplayCatalog.tsx");
     expect(app).toContain('<StoreDisplayGate><StoreDisplayCatalog /></StoreDisplayGate>');
-    expect(app).toContain('<StoreDisplayGate><PresenceAlert /></StoreDisplayGate>');
+    expect(app).not.toContain("PresenceAlert");
     expect(customerGate).toContain('user?.role === "store_display"');
-    expect(presence).toContain("showNavigation={false}");
     expect(displayCatalogue).toContain("catalog.storeDisplayProducts.useQuery");
+    expect(displayCatalogue).toContain("overflow-x-auto");
+    expect(displayCatalogue).not.toContain("getUserMedia");
   });
 
   it("keeps customer-facing merchandising information without adding purchase actions", () => {

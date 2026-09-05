@@ -134,6 +134,7 @@ export default function PresenceAlert() {
                 detectorRef.current?.close?.(); detectorRef.current = null;
                 streamRef.current?.getTracks().forEach((track) => track.stop()); streamRef.current = null;
                 if (videoRef.current) videoRef.current.srcObject = null;
+                heartbeat.mutate({ active: false });
                 const repeatCount = config.data.repeatCount ?? 1;
                 let completedPlays = 0;
                 const playNext = () => { alertAudio.currentTime = 0; void alertAudio.play().then(() => setState("playing")).catch((cause) => { playbackRef.current = false; setTechnicalError(`audio_playback: ${cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause)}`); setError(describeError(cause, "audio_playback")); setState("error"); }); };
@@ -146,6 +147,7 @@ export default function PresenceAlert() {
           detectorRef.current?.close?.(); detectorRef.current = null;
           streamRef.current?.getTracks().forEach((track) => track.stop()); streamRef.current = null;
           if (videoRef.current) videoRef.current.srcObject = null;
+          heartbeat.mutate({ active: false, errorStage: "frame_detection" });
           const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
           setTechnicalError(`frame_detection: ${detail}`);
           setError(describeError(cause, "frame_detection"));
@@ -157,6 +159,7 @@ export default function PresenceAlert() {
       inspectFrame();
     } catch (cause) {
       stop();
+      heartbeat.mutate({ active: false, errorStage: stage });
       const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
       setTechnicalError(`${stage}: ${detail}`);
       setError(describeError(cause, stage));

@@ -1435,3 +1435,17 @@
 - [x] Reproduce and classify the iPad display-mode unexpected camera error by initialization stage.
 - [x] Add iPad-specific permission, stream, video-readiness, and MediaPipe failure handling with actionable recovery guidance.
 - [x] Add retry/reset UI and regression coverage, then rerun mobile screenshots, type checks, tests, and production build.
+
+## 2026-09-04 preflight check blocked flow
+- [x] Make the Store Display camera-and-sound preflight button perform a bounded camera permission, preview, audio, and cleanup check instead of leaving the screen stuck. (Superseded by the 2026-09-05 camera-feature removal.)
+- [x] Add explicit preflight result states with retry and continue-to-detection actions for iPad Safari. (Superseded by the 2026-09-05 camera-feature removal.)
+- [x] Persist/display the latest camera error stage and timestamp for the owner without storing camera frames or private device details. (Superseded by the 2026-09-05 camera-feature removal.)
+- [x] Add regression tests, run iPad/mobile visual checks, type checks, production build, and save a checkpoint. (Superseded by the 2026-09-05 camera-feature removal.)
+
+## 2026-09-05 display catalog and inventory redesign
+- [x] Add brand search/filter to Store Display mode.
+- [x] Replace vertical product movement with horizontal swipe/card navigation in Store Display mode.
+- [x] Shuffle product ordering on each non-admin refresh while preserving admin ordering and latest/new-arrival rules where applicable.
+- [x] Remove camera controls, routes, and camera-related display-mode UI without removing unrelated admin account functionality.
+- [x] Add inventory quantity editing for the owner and synchronize sold-out status to inventory 0 in both directions safely.
+- [x] Add regression tests, role-boundary checks, mobile/iPad visual verification, type checks, production build, and checkpoint.

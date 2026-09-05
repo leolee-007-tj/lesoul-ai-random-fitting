@@ -17,6 +17,9 @@ export const users = mysqlTable("users", {
   presenceCameraEnabled: int("presenceCameraEnabled").default(1).notNull(),
   /** Short-lived heartbeat used only to show whether a display is currently online. */
   presenceCameraLastSeenAt: timestamp("presenceCameraLastSeenAt"),
+  /** Sanitized camera initialization stage only; no frames, device identifiers, or raw UA are stored. */
+  presenceCameraLastError: varchar("presenceCameraLastError", { length: 96 }),
+  presenceCameraLastErrorAt: timestamp("presenceCameraLastErrorAt"),
   /** The configured owner is the sole primary administrator and operator. */
   isPrimaryAdmin: int("isPrimaryAdmin").default(0).notNull(),
   /** Password-based administrator trial begins independently on that account's first protected console visit. */
@@ -56,6 +59,8 @@ export const products = mysqlTable("products", {
   color: varchar("color", { length: 80 }).notNull(),
   style: varchar("style", { length: 200 }).notNull(),
   status: mysqlEnum("status", ["in_stock", "sold_out"]).default("in_stock").notNull(),
+  /** Owner-managed stock count; sold-out products are always synchronized to zero. */
+  inventoryQuantity: int("inventoryQuantity").default(0).notNull(),
   /** Public catalog visibility remains separate from current sales availability. */
   isActive: int("isActive").default(1).notNull(),
   availabilityStatus: mysqlEnum("availabilityStatus", ["IN_STOCK", "PRE_ORDER", "SOLD_OUT"]).default("IN_STOCK").notNull(),

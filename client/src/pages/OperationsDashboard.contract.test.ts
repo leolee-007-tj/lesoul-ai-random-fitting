@@ -5,14 +5,14 @@ const dashboard = readFileSync(new URL("./OperationsDashboard.tsx", import.meta.
 const adminRouter = readFileSync(new URL("../../../server/routers/admin.ts", import.meta.url), "utf8");
 const catalogRouter = readFileSync(new URL("../../../server/routers/catalog.ts", import.meta.url), "utf8");
 
-describe("administrator camera management entry", () => {
-  it("shows an explicit camera-alert management link on operations", () => {
-    expect(dashboard).toContain('href="/release-control"');
-    expect(dashboard).toContain("copy.camera");
-    expect(dashboard).toContain("<Camera size={15} />");
+describe("administrator operations after camera removal", () => {
+  it("does not expose camera management from operations", () => {
+    expect(dashboard).not.toContain('href="/release-control"');
+    expect(dashboard).not.toContain("<Camera");
+    expect(dashboard).not.toContain("copy.camera");
   });
 
-  it("keeps configuration administrator-only and playback configuration display-only", () => {
+  it("keeps legacy camera server procedures role-protected if old data remains", () => {
     expect(adminRouter).toContain("updatePresenceAlertConfig: ownerProcedure");
     expect(catalogRouter).toContain("presenceAlertConfig: storeDisplayProcedure");
   });

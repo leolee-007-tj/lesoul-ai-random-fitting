@@ -25,7 +25,6 @@ import TrialStoreConsole from "./pages/TrialStoreConsole";
 import AccountManagement from "./pages/AccountManagement";
 import SaleSettings from "./pages/SaleSettings";
 import VipEarlyAccess from "./pages/VipEarlyAccess";
-import PresenceAlert from "./pages/PresenceAlert";
 import StoreDisplayGate from "./components/StoreDisplayGate";
 import StoreDisplayCatalog from "./pages/StoreDisplayCatalog";
 
@@ -42,7 +41,6 @@ function Router() {
       <Route path={"/quick-fit"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/catalog"} component={() => <CustomerGate><BrowseProducts /></CustomerGate>} />
       <Route path={"/vip-early-access"} component={() => <CustomerGate><VipEarlyAccess /></CustomerGate>} />
-      <Route path={"/camera-greeting"} component={() => <StoreDisplayGate><PresenceAlert /></StoreDisplayGate>} />
       <Route path={"/purchase-list"} component={() => <CustomerGate><PurchaseList /></CustomerGate>} />
       <Route path={"/body-model"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/measurements"} component={() => <CustomerGate><Measurements /></CustomerGate>} />

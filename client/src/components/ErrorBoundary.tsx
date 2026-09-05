@@ -24,7 +24,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      const copy = i18n.language.startsWith("ko") ? { title: "예기치 않은 오류가 발생했습니다.", reload: "페이지 새로고침" } : i18n.language.startsWith("zh") ? { title: "发生了意外错误。", reload: "重新加载页面" } : { title: "An unexpected error occurred.", reload: "Reload Page" };
+      const copy = i18n.language.startsWith("ko") ? { title: "예기치 않은 오류가 발생했습니다.", reload: "페이지 새로고침", retry: "다시 시도", back: "이전 화면으로", details: "오류 세부 정보" } : i18n.language.startsWith("zh") ? { title: "发生了意外错误。", reload: "重新加载页面", retry: "重试", back: "返回上一页", details: "错误详情" } : { title: "An unexpected error occurred.", reload: "Reload Page", retry: "Try Again", back: "Go Back", details: "Error details" };
       return (
         <div className="flex items-center justify-center min-h-screen p-8 bg-background">
           <div className="flex flex-col items-center w-full max-w-2xl p-8">
@@ -34,7 +34,19 @@ class ErrorBoundary extends Component<Props, State> {
             />
 
             <h2 className="text-xl mb-6">{copy.title}</h2>
-
+            {this.state.error?.message && <details className="mb-6 w-full max-w-xl rounded-lg border border-border bg-muted/40 p-3 text-left text-xs"><summary className="cursor-pointer font-semibold">{copy.details}</summary><code className="mt-2 block break-words whitespace-pre-wrap">{this.state.error.message}</code></details>}
+            <div className="flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg",
+                "border border-border bg-background text-foreground",
+                "hover:opacity-90 cursor-pointer"
+              )}
+            >
+              <RotateCcw size={16} aria-hidden="true" />
+              {copy.retry}
+            </button>
             <button
               onClick={() => window.location.reload()}
               className={cn(
@@ -46,6 +58,14 @@ class ErrorBoundary extends Component<Props, State> {
               <RotateCcw size={16} aria-hidden="true" />
               {copy.reload}
             </button>
+            <button
+              onClick={() => window.history.back()}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg",
+                "text-muted-foreground hover:opacity-90 cursor-pointer"
+              )}
+            >{copy.back}</button>
+            </div>
           </div>
         </div>
       );

@@ -12,6 +12,14 @@ import { DEFAULT_PRESENCE_ALERT_SOUND } from "../../shared/presenceAlert";
 
 const lookCode = () => `LOOK-${Math.floor(100 + Math.random() * 900)}`;
 
+function shuffleCustomerProducts<T>(items: T[]) {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) { const swap = Math.floor(Math.random() * (index + 1)); [result[index], result[swap]] = [result[swap], result[index]]; }
+  return result;
+}
+
+function customerOrder<T>(items: T[], role?: string | null) { return role === "admin" ? items : shuffleCustomerProducts(items); }
+
 async function createEditorialFallback(id: number, look: string, place: string) {
   const safeLook = look.replace(/[<>&"']/g, "");
   const safePlace = place.replace(/[<>&"']/g, "");
@@ -29,30 +37,32 @@ export const catalogRouter = router({
     const cameraEnabledForAccount = ctx.user.presenceCameraEnabled !== 0;
     const enabled = Boolean(settings.presenceAlertEnabled && cameraEnabledForAccount);
     const lastSeen = ctx.user.presenceCameraLastSeenAt?.getTime() ?? 0;
-    return { enabled, cameraEnabled: cameraEnabledForAccount, cameraActive: Date.now() - lastSeen < 120_000, soundUrl: enabled ? (settings.presenceAlertSoundUrl ?? DEFAULT_PRESENCE_ALERT_SOUND) : null, repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1)) };
+    return { enabled, cameraEnabled: cameraEnabledForAccount, cameraActive: Date.now() - lastSeen < 120_000, lastErrorStage: ctx.user.presenceCameraLastError ?? null, lastErrorAt: ctx.user.presenceCameraLastErrorAt?.getTime() ?? null, soundUrl: enabled ? (settings.presenceAlertSoundUrl ?? DEFAULT_PRESENCE_ALERT_SOUND) : null, repeatCount: Math.min(5, Math.max(1, settings.presenceAlertRepeatCount ?? 1)) };
   }),
-  presenceAlertHeartbeat: storeDisplayProcedure.input(z.object({ active: z.boolean() })).mutation(async ({ ctx, input }) => {
+  presenceAlertHeartbeat: storeDisplayProcedure.input(z.object({ active: z.boolean(), errorStage: z.string().trim().max(96).optional() })).mutation(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new Error("Presence alert status is temporarily unavailable.");
-    await db.update(users).set({ presenceCameraLastSeenAt: input?.active ? new Date() : null }).where(eq(users.id, ctx.user.id));
-    return { active: Boolean(input?.active) };
+    const safeErrorStage = input.errorStage?.replace(/[^a-z0-9_:-]/gi, "").slice(0, 96) || null;
+    await db.update(users).set({ presenceCameraLastSeenAt: input.active ? new Date() : null, presenceCameraLastError: input.active ? null : safeErrorStage, presenceCameraLastErrorAt: input.active ? null : safeErrorStage ? new Date() : undefined }).where(eq(users.id, ctx.user.id));
+    return { active: Boolean(input.active), errorStage: safeErrorStage };
   }),
   storeDisplayProducts: storeDisplayProcedure.query(async () => {
     const catalog = await getCatalog();
-    return catalog.products.filter((product) => product.isActive !== 0 && product.vipEarlyAccess !== 1).map(({ purchaseUrl, purchasePlatform, purchaseQrUrl, ...product }) => product);
+    const products = catalog.products.filter((product) => product.isActive !== 0 && product.vipEarlyAccess !== 1);
+    return customerOrder(products, undefined).map(({ purchaseUrl, purchasePlatform, purchaseQrUrl, ...product }) => product);
   }),
   bootstrap: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input, ctx }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    const customerProducts = selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit, ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
+    const customerProducts = customerOrder(selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit, ctx.user?.role), ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
     return { ...catalog, products: customerProducts, access: { releaseMode: settings.releaseMode, catalogTier: tier, betaCatalogLimit: settings.betaCatalogLimit, generationEnabled: Boolean(settings.generationEnabled) } };
   }),
   products: publicProcedure.input(z.object({ visitorId: z.string().min(1).max(96).optional() }).optional()).query(async ({ input, ctx }) => {
     const [catalog, settings, entitlement] = await Promise.all([getCatalog(), getReleaseSettings(), input?.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     const tier = settings.releaseMode === "PRIVATE" ? "full" : settings.releaseMode === "BETA_PUBLIC" ? "beta" : entitlement?.catalogTier ?? "beta";
-    return selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit, ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
+    return customerOrder(selectVisibleProducts(catalog.products, tier, settings.betaCatalogLimit, ctx.user?.role), ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product);
   }),
-  browseProducts: publicProcedure.query(async ({ ctx }) => (await getCatalog()).products.filter((product) => product.isActive !== 0 && canViewVipEarlyAccess(product, ctx.user?.role)).map(({ purchaseUrl, purchasePlatform, ...product }) => product)),
+  browseProducts: publicProcedure.query(async ({ ctx }) => { const products = (await getCatalog()).products.filter((product) => product.isActive !== 0 && canViewVipEarlyAccess(product, ctx.user?.role)); return customerOrder(products, ctx.user?.role).map(({ purchaseUrl, purchasePlatform, ...product }) => product); }),
   productDetail: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().min(1).max(96).optional(), browseAll: z.boolean().optional() })).query(async ({ input, ctx }) => {
     const [product, settings, entitlement] = await Promise.all([getProductDetailById(input.productId), getReleaseSettings(), input.visitorId ? getCurrentEntitlement(input.visitorId) : undefined]);
     if (!product) return { status: "not_found" as const, product: null };
