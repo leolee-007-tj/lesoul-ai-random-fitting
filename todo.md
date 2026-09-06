@@ -1459,3 +1459,8 @@
 - [x] Add a diagonal, stamp-like SOLD OUT overlay for sold-out products without obscuring the product image or core information.
 - [x] Remove the dark-color caution notice from general catalog cards and show it only at the bottom of every product detail view after the user opens a product.
 - [x] Add localized regression tests, mobile visual checks, type checks, production build, and checkpoint.
+
+## 2026-09-05 universal detail color notice
+- [x] Remove the dark-color warning from all catalog/list surfaces.
+- [x] Show a subtle localized lighting/color-difference notice for every product inside the opened product detail content near the bottom.
+- [x] Add regression tests, mobile verification, type checks, production build, and checkpoint.
