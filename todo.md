@@ -1454,3 +1454,8 @@
 - [x] Keep new-arrival products as a separate first group and shuffle only within that group on every non-admin refresh.
 - [x] Keep current/in-stock products as a separate group below new arrivals and shuffle only within that group on every non-admin refresh.
 - [x] Preserve the two-group order in Store Display horizontal browsing and all non-admin catalogs, with regression tests and a new checkpoint.
+
+## 2026-09-05 sold-out stamp and detail notice
+- [x] Add a diagonal, stamp-like SOLD OUT overlay for sold-out products without obscuring the product image or core information.
+- [x] Remove the dark-color caution notice from general catalog cards and show it only at the bottom of every product detail view after the user opens a product.
+- [x] Add localized regression tests, mobile visual checks, type checks, production build, and checkpoint.

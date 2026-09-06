@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { commerceResources } from "@/i18n/commerceResources";
 import { hasVisibleProductStatusBadge, shouldShowRegularPriceBadge } from "./ProductStatusBadges";
 
@@ -13,6 +14,13 @@ describe("hasVisibleProductStatusBadge", () => {
 
   it("keeps availability badges on all other product surfaces", () => {
     expect(hasVisibleProductStatusBadge(true, false)).toBe(true);
+  });
+
+  it("renders sold-out as a diagonal center stamp instead of a top status pill", () => {
+    const source = readFileSync(new URL("./ProductStatusBadges.tsx", import.meta.url), "utf8");
+    expect(source).toContain('rotate-[-18deg]');
+    expect(source).toContain('availability === "SOLD_OUT"');
+    expect(source).toContain('copy.sold');
   });
 
   it("keeps the regular-price badge label localized in all supported languages", () => {
