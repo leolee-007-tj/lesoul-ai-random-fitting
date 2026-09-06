@@ -14,5 +14,5 @@ export function shouldShowBlackColorVerificationNotice(color: string | null | un
 
 export default function BlackColorVerificationNotice({ color, className = "" }: { color: string | null | undefined; className?: string }) {
   const { i18n } = useTranslation();
-  return <aside className={`flex gap-1.5 rounded-lg border border-[#e6dfd6] bg-[#f3efe9]/75 px-2.5 py-1.5 text-[9px] leading-3.5 text-[#81776d] ${className}`}><AlertTriangle size={11} className="mt-0.5 shrink-0 text-[#a79a8d]" aria-hidden="true" /><p>{getBlackColorVerificationNotice(i18n.language)}</p></aside>;
+  return <aside data-detail-modal-color-notice="true" role="note" className={`flex gap-1.5 rounded-lg border border-[#e6dfd6] bg-[#f3efe9]/75 px-2.5 py-1.5 text-[9px] leading-3.5 text-[#81776d] ${className}`}><AlertTriangle size={11} className="mt-0.5 shrink-0 text-[#a79a8d]" aria-hidden="true" /><p>{getBlackColorVerificationNotice(i18n.language)}</p></aside>;
 }

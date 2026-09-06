@@ -1464,3 +1464,7 @@
 - [x] Remove the dark-color warning from all catalog/list surfaces.
 - [x] Show a subtle localized lighting/color-difference notice for every product inside the opened product detail content near the bottom.
 - [x] Add regression tests, mobile verification, type checks, production build, and checkpoint.
+
+## 2026-09-05 detail-modal-only color notice
+- [x] Keep the color-difference notice inside the newly opened ProductDetailScreen modal only; remove it from all catalog and outer surfaces.
+- [x] Add modal-versus-list regression coverage, mobile verification, type checks, production build, and checkpoint.
