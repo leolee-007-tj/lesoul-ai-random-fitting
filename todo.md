@@ -1481,3 +1481,8 @@
 - [x] Restore reliable page-level vertical scrolling on web and improve horizontal swipe responsiveness on iPad display rows without mixing new-arrival/current-product groups.
 - [x] Review upload-time anti-search watermark feasibility; do not claim search prevention, and skip implementation if it cannot provide a meaningful guarantee. Skipped: no watermark can reliably prevent image search or copying, so no misleading upload processing was added.
 - [x] Add role, multilingual, QR, scrolling regression tests, run type checks and production build, then save a checkpoint.
+
+## 2026-09-07 global touch scrolling repair
+- [x] Make page-level vertical touch scrolling reliable across mobile, iPhone, and iPad screens.
+- [x] Make Store Display horizontal rows respond to direct finger dragging without sticky snap or child controls blocking the gesture.
+- [x] Add scroll regression coverage, mobile/iPad screenshots, type checks, production build, and checkpoint.

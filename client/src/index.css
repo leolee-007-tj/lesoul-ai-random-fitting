@@ -81,10 +81,11 @@
 }
 
 .lesoul-app-wrapper { width: 100%; min-height: 100vh; min-height: 100dvh; box-sizing: border-box; padding-right: var(--safe-area-right); padding-left: var(--safe-area-left); background: #f8f7f4; }
-.lesoul-mobile-screen { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; background: #f8f7f4; }
+.lesoul-mobile-screen { min-height: 100vh; min-height: 100dvh; display: block; background: #f8f7f4; }
+@media (hover: none) and (pointer: coarse) { html, body { min-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; } }
 .lesoul-mobile-header { position: sticky; top: 0; z-index: 30; background: rgba(248,247,244,.92); backdrop-filter: blur(14px); padding-top: var(--safe-area-top); }
 .lesoul-mobile-header header { min-height: 56px; padding-top: .75rem; padding-bottom: .75rem; }
-.lesoul-mobile-content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
+.lesoul-mobile-content { width: 100%; min-height: 0; overflow: visible; overscroll-behavior: auto; padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
 .lesoul-mobile-screen:has(.lesoul-action-dock) .lesoul-mobile-content { padding-bottom: calc(var(--mobile-nav-height) + var(--mobile-action-height) + var(--safe-area-bottom)); }
 .lesoul-action-dock { position: fixed; z-index: 30; right: var(--safe-area-right); bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); left: var(--safe-area-left); min-height: var(--mobile-action-height); border-top: 1px solid #e5e0d8; background: rgba(255,255,255,.96); padding: .65rem 1rem; backdrop-filter: blur(14px); transition: bottom .18s ease-out; }
 .lesoul-bottom-nav { position: fixed; z-index: 40; right: 0; bottom: 0; left: 0; min-height: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); border-top: 1px solid #e5e0d8; background: rgba(255,255,255,.96); padding-bottom: var(--safe-area-bottom); backdrop-filter: blur(14px); }
@@ -92,9 +93,9 @@
 .lesoul-mobile-frame { width: 100%; max-width: 480px; margin: 0 auto; }
 .lesoul-safe-modal { position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain; background: rgba(0,0,0,.32); padding: calc(var(--safe-area-top) + .75rem) calc(var(--safe-area-right) + .75rem) calc(var(--safe-area-bottom) + .75rem) calc(var(--safe-area-left) + .75rem); backdrop-filter: blur(14px); }
   .lesoul-safe-modal > * { margin-top: 0; margin-bottom: 0; }
-  .lesoul-display-row { display: flex; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scroll-behavior: smooth; touch-action: pan-x; scrollbar-width: thin; padding-bottom: .75rem; }
+  .lesoul-display-row { display: flex; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: none; scroll-behavior: auto; touch-action: pan-x; scrollbar-width: thin; padding-bottom: .75rem; }
   .lesoul-display-row > * { scroll-snap-align: start; }
-  @media (min-width: 744px) { .lesoul-display-row { scroll-snap-type: x mandatory; scroll-padding-inline: .5rem; gap: 1rem; } .lesoul-display-row > * { min-width: min(36vw, 360px); } }
+  @media (min-width: 744px) { .lesoul-display-row { scroll-padding-inline: .5rem; gap: 1rem; } .lesoul-display-row > * { min-width: min(36vw, 360px); } }
   @media (prefers-reduced-motion: reduce) { .lesoul-display-row { scroll-behavior: auto; } }
 body:has(.lesoul-bottom-nav) > #root > div > main { padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom) + 1.5rem); }
 body:has(.lesoul-bottom-nav) > #root > div > header { position: sticky; top: 0; z-index: 30; background: rgba(248,247,244,.94); padding-top: calc(.75rem + var(--safe-area-top)); backdrop-filter: blur(14px); }
