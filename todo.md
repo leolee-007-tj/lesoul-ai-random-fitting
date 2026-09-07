@@ -1486,3 +1486,8 @@
 - [x] Make page-level vertical touch scrolling reliable across mobile, iPhone, and iPad screens.
 - [x] Make Store Display horizontal rows respond to direct finger dragging without sticky snap or child controls blocking the gesture.
 - [x] Add scroll regression coverage, mobile/iPad screenshots, type checks, production build, and checkpoint.
+
+## 2026-09-07 mobile inquiry QR enlargement
+- [x] Make the small Store Inquiry QR in the standalone mobile product detail clickable.
+- [x] Open a large, screenshot-friendly QR overlay with WeChat guidance, safe margins, and a clear close action.
+- [x] Add localized regression coverage, mobile visual verification, type checks, production build, and checkpoint.

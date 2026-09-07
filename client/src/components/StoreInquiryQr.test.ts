@@ -20,5 +20,8 @@ describe("store inquiry pricing visibility", () => {
     const source = readFileSync(new URL("./StoreInquiryQr.tsx", import.meta.url), "utf8");
     expect(source).toContain("adminTrialPaymentQrUrl");
     expect(source).toContain("data-store-inquiry-qr");
+    expect(source).toContain("setExpanded(true)");
+    expect(source).toContain("max-w-[min(78vw,320px)]");
+    expect(source).toContain("Screenshot this QR");
   });
 });
