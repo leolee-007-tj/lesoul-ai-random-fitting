@@ -19,8 +19,8 @@ describe("store display catalog redesign", () => {
     expect(display).toContain("currentProducts");
     expect(display).toContain("copy.newArrivals");
     expect(display).toContain("copy.currentProducts");
+    expect(display).toContain("lesoul-display-row");
     expect(display).toContain("overflow-x-auto");
-    expect(display).toContain("snap-x snap-mandatory");
     expect(display).toContain("shrink-0 snap-start");
   });
 

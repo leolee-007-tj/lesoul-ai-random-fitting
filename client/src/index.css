@@ -62,7 +62,7 @@
 @layer base {
   * { @apply border-border outline-ring/50; }
   html, body, #root { width: 100%; min-height: 100%; min-height: 100dvh; margin: 0; padding: 0; }
-  body { @apply bg-background text-foreground antialiased; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "PingFang TC", "Noto Sans CJK KR", "Noto Sans CJK SC", sans-serif; letter-spacing: -0.015em; overflow-x: hidden; }
+  body { @apply bg-background text-foreground antialiased; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "PingFang TC", "Noto Sans CJK KR", "Noto Sans CJK SC", sans-serif; letter-spacing: -0.015em; overflow-x: hidden; overflow-y: auto; }
   html[lang^="en"] body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
   html[lang^="ko"] body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans CJK KR", sans-serif; }
   html[lang^="zh"] body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "PingFang TC", "Noto Sans CJK SC", sans-serif; }
@@ -91,7 +91,11 @@
 .lesoul-bottom-nav-inner { display: flex; min-height: var(--mobile-nav-height); max-width: 480px; margin: 0 auto; padding: .45rem .75rem; }
 .lesoul-mobile-frame { width: 100%; max-width: 480px; margin: 0 auto; }
 .lesoul-safe-modal { position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain; background: rgba(0,0,0,.32); padding: calc(var(--safe-area-top) + .75rem) calc(var(--safe-area-right) + .75rem) calc(var(--safe-area-bottom) + .75rem) calc(var(--safe-area-left) + .75rem); backdrop-filter: blur(14px); }
-.lesoul-safe-modal > * { margin-top: 0; margin-bottom: 0; }
+  .lesoul-safe-modal > * { margin-top: 0; margin-bottom: 0; }
+  .lesoul-display-row { display: flex; overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scroll-behavior: smooth; touch-action: pan-x; scrollbar-width: thin; padding-bottom: .75rem; }
+  .lesoul-display-row > * { scroll-snap-align: start; }
+  @media (min-width: 744px) { .lesoul-display-row { scroll-snap-type: x mandatory; scroll-padding-inline: .5rem; gap: 1rem; } .lesoul-display-row > * { min-width: min(36vw, 360px); } }
+  @media (prefers-reduced-motion: reduce) { .lesoul-display-row { scroll-behavior: auto; } }
 body:has(.lesoul-bottom-nav) > #root > div > main { padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom) + 1.5rem); }
 body:has(.lesoul-bottom-nav) > #root > div > header { position: sticky; top: 0; z-index: 30; background: rgba(248,247,244,.94); padding-top: calc(.75rem + var(--safe-area-top)); backdrop-filter: blur(14px); }
 

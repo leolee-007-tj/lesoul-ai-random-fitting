@@ -1468,3 +1468,16 @@
 ## 2026-09-05 detail-modal-only color notice
 - [x] Keep the color-difference notice inside the newly opened ProductDetailScreen modal only; remove it from all catalog and outer surfaces.
 - [x] Add modal-versus-list regression coverage, mobile verification, type checks, production build, and checkpoint.
+
+## 2026-09-05 VIP-only pricing and WeChat inquiry display
+- [x] Keep administrator price entry and existing VIP price display unchanged.
+- [x] Hide product prices from general users and Store Display mode, including cards, detail modal, purchase list, curated looks, and display browsing.
+- [x] Add a localized top inquiry notice and reuse the administrator payment QR for general and Store Display users.
+- [x] Add role-boundary regression tests, multilingual checks, mobile verification, type checks, production build, and checkpoint.
+
+## 2026-09-06 inquiry QR, scrolling, and watermark review
+- [x] Replace non-VIP price areas in the first product view and opened detail modal with a localized store-inquiry label and the shared administrator payment QR; preserve VIP and administrator price visibility.
+- [x] Ensure the shared QR is loaded from the existing administrator payment QR setting and show a clear fallback when it is not configured.
+- [x] Restore reliable page-level vertical scrolling on web and improve horizontal swipe responsiveness on iPad display rows without mixing new-arrival/current-product groups.
+- [x] Review upload-time anti-search watermark feasibility; do not claim search prevention, and skip implementation if it cannot provide a meaningful guarantee. Skipped: no watermark can reliably prevent image search or copying, so no misleading upload processing was added.
+- [x] Add role, multilingual, QR, scrolling regression tests, run type checks and production build, then save a checkpoint.

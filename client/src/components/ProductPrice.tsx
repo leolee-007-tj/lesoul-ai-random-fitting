@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { getOriginalPrice, toProductLocale, type LocalizedProduct } from "@shared/productCommerce";
 import { formatCentralDiscount, resolveCentralPrice } from "@shared/pricingPolicy";
 import { useTranslation } from "react-i18next";
+import StoreInquiryQr, { isPriceVisibleToRole } from "@/components/StoreInquiryQr";
 
 type PriceProduct = LocalizedProduct & { price: number; normalDiscountPercent?: number | null; vipDiscountPercent?: number | null; isNew?: number | boolean | null; availabilityStatus?: string | null; status?: string | null };
 
@@ -14,6 +15,7 @@ export default function ProductPrice({ product, className = "" }: { product: Pri
   const { i18n } = useTranslation();
   const { user } = useAuth();
   const config = trpc.purchase.config.useQuery();
+  if (!isPriceVisibleToRole(user?.role)) return <StoreInquiryQr className={className} />;
   const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale });
   const unavailable = product.availabilityStatus === "SOLD_OUT" || product.status === "sold_out";
   if (unavailable || pricing.discountPercent <= 0) return <span className={`font-semibold text-[#25211d] ${className}`}>{cny(pricing.original)}</span>;

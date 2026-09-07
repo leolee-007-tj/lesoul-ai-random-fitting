@@ -17,7 +17,7 @@ function requestNumber() {
 export const purchaseRouter = router({
   config: publicProcedure.query(async () => {
     const settings = await getReleaseSettings();
-    return { mode: settings.purchaseMode, maxItems: settings.purchaseListMaxItems, pricingMode: settings.pricingMode, excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
+    return { mode: settings.purchaseMode, maxItems: settings.purchaseListMaxItems, pricingMode: settings.pricingMode, excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale, adminTrialPaymentQrUrl: settings.adminTrialPaymentQrUrl, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
   }),
   createRequest: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), items: requestItems, source: z.enum(["ai_fitting", "quick_fit", "catalog", "detail"]).optional(), generationId: z.string().max(96).nullable().optional(), lookId: z.string().max(96).nullable().optional() })).mutation(async ({ input, ctx }) => {
     const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
