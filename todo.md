@@ -1491,3 +1491,8 @@
 - [x] Make the small Store Inquiry QR in the standalone mobile product detail clickable.
 - [x] Open a large, screenshot-friendly QR overlay with WeChat guidance, safe margins, and a clear close action.
 - [x] Add localized regression coverage, mobile visual verification, type checks, production build, and checkpoint.
+
+## 2026-09-07 QR image save
+- [x] Add an Image Save button inside the enlarged QR popup.
+- [x] Save the configured QR as a PNG when the browser permits, with a fallback guide for iPhone or embedded browsers.
+- [x] Add localized regression coverage, mobile verification, type checks, production build, and checkpoint.

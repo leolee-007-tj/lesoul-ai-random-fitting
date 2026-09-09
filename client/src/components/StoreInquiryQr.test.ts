@@ -23,5 +23,9 @@ describe("store inquiry pricing visibility", () => {
     expect(source).toContain("setExpanded(true)");
     expect(source).toContain("max-w-[min(78vw,320px)]");
     expect(source).toContain("Screenshot this QR");
+    expect(source).toContain("saveQrImage");
+    expect(source).toContain("download = filename");
+    expect(source).toContain("lesoul-wechat-qr.png");
+    expect(source).toContain("Automatic saving is limited");
   });
 });
