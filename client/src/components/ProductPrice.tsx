@@ -5,17 +5,17 @@ import { formatCentralDiscount, resolveCentralPrice } from "@shared/pricingPolic
 import { useTranslation } from "react-i18next";
 import StoreInquiryQr, { isPriceVisibleToRole } from "@/components/StoreInquiryQr";
 
-type PriceProduct = LocalizedProduct & { price: number; normalDiscountPercent?: number | null; vipDiscountPercent?: number | null; isNew?: number | boolean | null; availabilityStatus?: string | null; status?: string | null };
+type PriceProduct = LocalizedProduct & { id: number; price: number; normalDiscountPercent?: number | null; vipDiscountPercent?: number | null; isNew?: number | boolean | null; availabilityStatus?: string | null; status?: string | null };
 
 function cny(value: number) {
   return `¥${Math.max(0, Math.round(value)).toLocaleString("en-US")}`;
 }
 
-export default function ProductPrice({ product, className = "" }: { product: PriceProduct; className?: string; detail?: boolean }) {
+export default function ProductPrice({ product, className = "", detail = false }: { product: PriceProduct; className?: string; detail?: boolean }) {
   const { i18n } = useTranslation();
   const { user } = useAuth();
   const config = trpc.purchase.config.useQuery();
-  if (!isPriceVisibleToRole(user?.role)) return <StoreInquiryQr className={className} />;
+  if (!isPriceVisibleToRole(user?.role)) return <StoreInquiryQr productId={detail ? product.id : undefined} className={className} />;
   const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale });
   const unavailable = product.availabilityStatus === "SOLD_OUT" || product.status === "sold_out";
   if (unavailable || pricing.discountPercent <= 0) return <span className={`font-semibold text-[#25211d] ${className}`}>{cny(pricing.original)}</span>;

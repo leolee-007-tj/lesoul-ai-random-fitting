@@ -1496,3 +1496,8 @@
 - [x] Add an Image Save button inside the enlarged QR popup.
 - [x] Save the configured QR as a PNG when the browser permits, with a fallback guide for iPhone or embedded browsers.
 - [x] Add localized regression coverage, mobile verification, type checks, production build, and checkpoint.
+
+## 2026-09-09 product link sharing
+- [x] Add a current-product link copy/share button inside the Store Inquiry area of the product detail page.
+- [x] Use the standalone product URL and show localized copied or fallback guidance for mobile and embedded browsers.
+- [x] Add link-sharing regression coverage, mobile verification, type checks, production build, and checkpoint.

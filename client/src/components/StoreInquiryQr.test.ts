@@ -27,5 +27,8 @@ describe("store inquiry pricing visibility", () => {
     expect(source).toContain("download = filename");
     expect(source).toContain("lesoul-wechat-qr.png");
     expect(source).toContain("Automatic saving is limited");
+    expect(source).toContain("/catalog?product=${productId}&source=wechat_share");
+    expect(source).toContain("navigator.clipboard.writeText(productUrl)");
+    expect(source).toContain("Share product link");
   });
 });
