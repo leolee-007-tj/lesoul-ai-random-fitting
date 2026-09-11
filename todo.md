@@ -1512,3 +1512,9 @@
 - [x] Remove touch gesture blockers and prevent modal open/close from leaving body or root scrolling locked.
 - [x] Make Store Display horizontal product rows smoothly draggable with momentum and without overly strong snap behavior.
 - [x] Add mobile/iPad regression coverage, screenshots, type checks, production build, and checkpoint.
+
+## 2026-09-11 display position and touch feedback
+- [x] Add per-group current product position and progress bar below each Store Display horizontal row.
+- [x] Track the centered/nearest visible card independently for new-arrival and current-product groups.
+- [x] Add a subtle touch/selected-card scale and visual feedback animation that respects reduced-motion preferences.
+- [x] Add mobile/iPad regression coverage, accessibility checks, screenshots, type checks, production build, and checkpoint.

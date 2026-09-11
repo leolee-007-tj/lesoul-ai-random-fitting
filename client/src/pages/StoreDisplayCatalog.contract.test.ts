@@ -24,6 +24,17 @@ describe("store display catalog redesign", () => {
     expect(display).toContain("shrink-0 snap-start");
   });
 
+  it("shows each group position and progress while marking the nearest card active", () => {
+    expect(display).toContain("activeIndex");
+    expect(display).toContain("copy.position");
+    expect(display).toContain("aria-live=\"polite\"");
+    expect(display).toContain("style={{ width: `${progress}%` }}");
+    expect(display).toContain('data-active={index === activeIndex ? "true" : "false"}');
+    expect(display).toContain("onPointerDown={() => setActiveIndex(index)}");
+    expect(display).toContain("requestAnimationFrame");
+    expect(display).toContain("lesoul-display-card");
+  });
+
   it("does not expose camera controls in the display catalog", () => {
     expect(display).not.toContain("getUserMedia");
     expect(display).not.toContain("runPreflight");
