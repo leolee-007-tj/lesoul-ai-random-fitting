@@ -1501,3 +1501,8 @@
 - [x] Add a current-product link copy/share button inside the Store Inquiry area of the product detail page.
 - [x] Use the standalone product URL and show localized copied or fallback guidance for mobile and embedded browsers.
 - [x] Add link-sharing regression coverage, mobile verification, type checks, production build, and checkpoint.
+
+## 2026-09-10 product share preview image
+- [x] Add product-specific Open Graph and Twitter metadata to shared catalog URLs using the product representative image and localized title/description.
+- [x] Connect the detail share URL to metadata-safe product image and fallback values without exposing prices to non-VIP users.
+- [x] Add crawler/browser/multilingual preview regression coverage, type checks, production build, and checkpoint.

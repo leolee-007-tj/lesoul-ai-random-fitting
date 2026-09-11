@@ -37,7 +37,7 @@ export default function StoreInquiryQr({ className = "", productId }: { classNam
       ? { label: "店铺咨询", missing: "请通过微信咨询价格", alt: "店铺咨询微信二维码", enlarge: "查看大二维码", close: "关闭二维码", save: "保存图片", saving: "保存中…", saved: "已保存", fallback: "当前浏览器限制自动保存，请长按二维码保存到相册。", guide: "请截图此二维码，或长按后在微信中识别", share: "分享商品链接", copied: "商品链接已复制", shared: "已打开分享窗口", linkFallback: "当前浏览器限制自动复制，请长按下方链接复制。" }
       : { label: "STORE INQUIRY", missing: "Please ask the store for the price on WeChat", alt: "WeChat QR code for store inquiry", enlarge: "View large QR", close: "Close QR", save: "Save image", saving: "Saving…", saved: "Saved", fallback: "Automatic saving is limited in this browser. Long-press the QR to save it to Photos.", guide: "Screenshot this QR or long-press it to scan in WeChat", share: "Share product link", copied: "Product link copied", shared: "Share sheet opened", linkFallback: "Automatic copying is limited. Long-press the link below to copy it." };
   const qrUrl = config.data?.adminTrialPaymentQrUrl ?? null;
-  const productUrl = productId ? `${window.location.origin}/catalog?product=${productId}&source=wechat_share` : null;
+  const productUrl = productId ? `${window.location.origin}/share/product/${productId}?lang=${locale}` : null;
   const handleSave = async () => {
     if (!qrUrl || saveState === "saving") return;
     setSaveState("saving");
