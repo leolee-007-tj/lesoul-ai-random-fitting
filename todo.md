@@ -1506,3 +1506,9 @@
 - [x] Add product-specific Open Graph and Twitter metadata to shared catalog URLs using the product representative image and localized title/description.
 - [x] Connect the detail share URL to metadata-safe product image and fallback values without exposing prices to non-VIP users.
 - [x] Add crawler/browser/multilingual preview regression coverage, type checks, production build, and checkpoint.
+
+## 2026-09-11 mobile and iPad scroll stabilization
+- [x] Make page-level vertical scrolling reliable on iPhone Safari, Android Chrome, and iPad Safari.
+- [x] Remove touch gesture blockers and prevent modal open/close from leaving body or root scrolling locked.
+- [x] Make Store Display horizontal product rows smoothly draggable with momentum and without overly strong snap behavior.
+- [x] Add mobile/iPad regression coverage, screenshots, type checks, production build, and checkpoint.
