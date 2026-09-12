@@ -162,9 +162,9 @@ export const adminRouter = router({
   extractPriceTag: ownerProcedure.input(priceTagOcrInput).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [
-        { role: "system", content: "You extract product price-tag text for an owner-only catalog form. Read the image carefully and return only the requested JSON schema. Never invent missing values. The expected printed order is Maker | Color | Clothing Name | Price, but handle line breaks, Korean, Chinese, English, ¥, 元, RMB, commas, and decimal separators." },
+        { role: "system", content: "You extract printed characters from a product price-tag image for an owner-only catalog form. This is OCR, not image copying: return text and numbers only, never the image, pixels, an image URL, or a visual description. Korean is the default reading language when the characters are Korean or unclear; if the visible characters are Chinese, English, or another language, preserve those exact source-language characters. Never translate or invent the original text during OCR. The expected printed order is Maker | Color | Clothing Name | Price, but handle line breaks, Korean, Chinese, English, ¥, 元, RMB, commas, and decimal separators." },
         { role: "user", content: [
-          { type: "text", text: "Extract the price tag. rawText must preserve the readable source text. Return null for a field that is not visible. price must be a positive number in the displayed currency, with separators removed." },
+          { type: "text", text: "Extract the price tag. rawText must contain only readable characters copied as text from the image. sourceLanguage must be ko for Korean, zh for Chinese, en for English, or other for another script. Return null for a field that is not visible. price must be a positive number in the displayed currency, with separators removed. Do not return image data." },
           { type: "image_url", image_url: { url: input.dataUrl, detail: "high" } },
         ] },
       ],
@@ -176,6 +176,7 @@ export const adminRouter = router({
           schema: {
             type: "object",
             properties: {
+              sourceLanguage: { type: "string", enum: ["ko", "zh", "en", "other"] },
               maker: { type: ["string", "null"] },
               color: { type: ["string", "null"] },
               clothingName: { type: ["string", "null"] },
@@ -183,7 +184,7 @@ export const adminRouter = router({
               rawText: { type: "string" },
               confidence: { type: "number", minimum: 0, maximum: 1 },
             },
-            required: ["maker", "color", "clothingName", "price", "rawText", "confidence"],
+            required: ["sourceLanguage", "maker", "color", "clothingName", "price", "rawText", "confidence"],
             additionalProperties: false,
           },
         },
@@ -193,7 +194,7 @@ export const adminRouter = router({
     const content = response.choices[0]?.message?.content;
     const text = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part) => part.type === "text").map((part) => part.text).join("\n") : "";
     if (!text) throw new Error("PRICE_TAG_OCR_EMPTY");
-    let parsed: { maker?: unknown; color?: unknown; clothingName?: unknown; price?: unknown; rawText?: unknown; confidence?: unknown };
+    let parsed: { sourceLanguage?: unknown; maker?: unknown; color?: unknown; clothingName?: unknown; price?: unknown; rawText?: unknown; confidence?: unknown };
     try { parsed = JSON.parse(text); } catch { throw new Error("PRICE_TAG_OCR_INVALID"); }
     return normalizePriceTagExtraction(parsed);
   }),

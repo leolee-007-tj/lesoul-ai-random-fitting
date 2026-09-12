@@ -1525,3 +1525,9 @@
 - [x] Show the original OCR text and editable parsed fields before applying them to the product form; never auto-save OCR output without owner confirmation.
 - [x] Normalize currency symbols and numeric price values, reject invalid prices, preserve multilingual text, and handle recognition failures with retry guidance.
 - [x] Add OCR adapter, parser, admin-boundary, and ProductManager regression tests, then run mobile capture verification, type checks, production build, and checkpoint.
+
+## 2026-09-12 OCR language and text-only handling
+- [x] Make Korean the default OCR instruction and preserve detected Chinese, English, or other source-language characters as text rather than copying or embedding the image.
+- [x] Return detected source language and keep the original OCR text separate from editable product fields.
+- [x] Connect non-Korean product-name OCR results to the existing automatic translation flow without overwriting the original-language text.
+- [x] Add tests proving OCR output is textual only, language-aware, owner-reviewed, and never automatically saved as an image or product record; rerun type checks, tests, build, and checkpoint.
