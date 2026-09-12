@@ -1518,3 +1518,10 @@
 - [x] Track the centered/nearest visible card independently for new-arrival and current-product groups.
 - [x] Add a subtle touch/selected-card scale and visual feedback animation that respects reduced-motion preferences.
 - [x] Add mobile/iPad regression coverage, accessibility checks, screenshots, type checks, production build, and checkpoint.
+
+## 2026-09-11 price-tag OCR product entry
+- [x] Add an owner-only price-tag photo capture/upload control to ProductManager with camera-friendly input settings.
+- [x] Extract the pipe-delimited Maker | Color | Clothing Name | Price format through the built-in image understanding adapter, with a clearly labeled sample/mock fallback only if the adapter is unavailable.
+- [x] Show the original OCR text and editable parsed fields before applying them to the product form; never auto-save OCR output without owner confirmation.
+- [x] Normalize currency symbols and numeric price values, reject invalid prices, preserve multilingual text, and handle recognition failures with retry guidance.
+- [x] Add OCR adapter, parser, admin-boundary, and ProductManager regression tests, then run mobile capture verification, type checks, production build, and checkpoint.

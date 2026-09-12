@@ -13,6 +13,7 @@ import { MEASUREMENT_FIELD_KEYS } from "../../shared/categoryMeasurementFields";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
 import { representativeSetCategory, SET_COMPONENT_CATEGORIES, sumSetComponentPrices, type SetProductComponent } from "../../shared/setProducts";
+import { normalizePriceTagExtraction } from "../../shared/priceTagOcr";
 
 const setComponentInput = z.object({
   componentId: z.string().trim().min(1).max(64),
@@ -26,6 +27,8 @@ const setComponentInput = z.object({
   garmentMeasurements: z.object({ shoulderCm: z.number().min(0).max(300).nullable().optional(), bustCm: z.number().min(0).max(300).nullable().optional(), waistCm: z.number().min(0).max(300).nullable().optional(), hipCm: z.number().min(0).max(300).nullable().optional(), sleeveCm: z.number().min(0).max(200).nullable().optional(), totalLengthCm: z.number().min(0).max(300).nullable().optional(), riseCm: z.number().min(0).max(100).nullable().optional(), thighCm: z.number().min(0).max(200).nullable().optional(), inseamCm: z.number().min(0).max(200).nullable().optional() }).nullable().optional(),
   stretchLevel: z.enum(["none", "low", "medium", "high"]).nullable().optional(),
 });
+
+const priceTagOcrInput = z.object({ dataUrl: z.string().regex(/^data:image\/(?:jpeg|png|webp);base64,/, "Only JPEG, PNG, or WebP images are supported.").max(12_000_000) });
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -156,6 +159,44 @@ function resolveSaleFields(input: SaleCandidate, existing?: SaleCandidate) {
 
 export const adminRouter = router({
   products: ownerProcedure.query(async () => (await getCatalog()).products),
+  extractPriceTag: ownerProcedure.input(priceTagOcrInput).mutation(async ({ input }) => {
+    const response = await invokeLLM({
+      messages: [
+        { role: "system", content: "You extract product price-tag text for an owner-only catalog form. Read the image carefully and return only the requested JSON schema. Never invent missing values. The expected printed order is Maker | Color | Clothing Name | Price, but handle line breaks, Korean, Chinese, English, ¥, 元, RMB, commas, and decimal separators." },
+        { role: "user", content: [
+          { type: "text", text: "Extract the price tag. rawText must preserve the readable source text. Return null for a field that is not visible. price must be a positive number in the displayed currency, with separators removed." },
+          { type: "image_url", image_url: { url: input.dataUrl, detail: "high" } },
+        ] },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "price_tag_extraction",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              maker: { type: ["string", "null"] },
+              color: { type: ["string", "null"] },
+              clothingName: { type: ["string", "null"] },
+              price: { type: ["number", "null"] },
+              rawText: { type: "string" },
+              confidence: { type: "number", minimum: 0, maximum: 1 },
+            },
+            required: ["maker", "color", "clothingName", "price", "rawText", "confidence"],
+            additionalProperties: false,
+          },
+        },
+      },
+      maxTokens: 1200,
+    });
+    const content = response.choices[0]?.message?.content;
+    const text = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part) => part.type === "text").map((part) => part.text).join("\n") : "";
+    if (!text) throw new Error("PRICE_TAG_OCR_EMPTY");
+    let parsed: { maker?: unknown; color?: unknown; clothingName?: unknown; price?: unknown; rawText?: unknown; confidence?: unknown };
+    try { parsed = JSON.parse(text); } catch { throw new Error("PRICE_TAG_OCR_INVALID"); }
+    return normalizePriceTagExtraction(parsed);
+  }),
   curatedOutfits: ownerProcedure.query(async () => listCuratedOutfits(true)),
   createCuratedOutfit: ownerProcedure.input(curatedOutfitInput).mutation(async ({ input }) => createCuratedOutfit(input)),
   updateCuratedOutfit: ownerProcedure.input(curatedOutfitInput.partial().extend({ id: z.number().int().positive(), items: curatedOutfitInput.shape.items.optional() })).mutation(async ({ input }) => {
