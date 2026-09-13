@@ -1541,3 +1541,8 @@
 - [x] Make the price-tag capture/upload card visibly render in the actual 상품추가 screen.
 - [x] Separate camera capture and photo selection actions while preserving the existing OCR review/apply flow.
 - [x] Add a visible UI regression test, mobile screenshot, type check, production build, and checkpoint.
+
+## 2026-09-13 display language switcher
+- [x] Add the same visible language switcher used by other screens to Store Display mode.
+- [x] Persist the selected locale and update display headings, filters, product labels, inquiry text, sold-out states, and progress indicators immediately.
+- [x] Add multilingual display regression coverage, mobile/iPad verification, type check, production build, and checkpoint.
