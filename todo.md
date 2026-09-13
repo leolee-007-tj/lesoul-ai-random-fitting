@@ -1536,3 +1536,8 @@
 - [x] Make the price-tag camera/upload action visibly available from the 상품추가 form, not only from an implicit OCR area. Verified: the visible “가격표 촬영·읽기” action uses the rear-camera capture setting.
 - [x] Verify the captured image is parsed into Maker, Color, Clothing Name, and Price text fields with original-text review before application. Verified: the ProductManager review panel supports editing and explicit “입력칸에 적용” before save.
 - [x] Verify mobile camera capture, owner-only access, multilingual source text, price validation, tests, build, and checkpoint. Existing OCR implementation and the latest language-aware checkpoint cover these requirements.
+
+## 2026-09-13 price-tag capture visibility fix
+- [x] Make the price-tag capture/upload card visibly render in the actual 상품추가 screen.
+- [x] Separate camera capture and photo selection actions while preserving the existing OCR review/apply flow.
+- [x] Add a visible UI regression test, mobile screenshot, type check, production build, and checkpoint.
