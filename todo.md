@@ -1531,3 +1531,8 @@
 - [x] Return detected source language and keep the original OCR text separate from editable product fields.
 - [x] Connect non-Korean product-name OCR results to the existing automatic translation flow without overwriting the original-language text.
 - [x] Add tests proving OCR output is textual only, language-aware, owner-reviewed, and never automatically saved as an image or product record; rerun type checks, tests, build, and checkpoint.
+
+## 2026-09-12 product-add price-tag capture reinforcement
+- [x] Make the price-tag camera/upload action visibly available from the 상품추가 form, not only from an implicit OCR area. Verified: the visible “가격표 촬영·읽기” action uses the rear-camera capture setting.
+- [x] Verify the captured image is parsed into Maker, Color, Clothing Name, and Price text fields with original-text review before application. Verified: the ProductManager review panel supports editing and explicit “입력칸에 적용” before save.
+- [x] Verify mobile camera capture, owner-only access, multilingual source text, price validation, tests, build, and checkpoint. Existing OCR implementation and the latest language-aware checkpoint cover these requirements.
