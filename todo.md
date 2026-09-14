@@ -1546,3 +1546,8 @@
 - [x] Add the same visible language switcher used by other screens to Store Display mode.
 - [x] Persist the selected locale and update display headings, filters, product labels, inquiry text, sold-out states, and progress indicators immediately.
 - [x] Add multilingual display regression coverage, mobile/iPad verification, type check, production build, and checkpoint.
+
+## 2026-09-13 iPad display vertical scrolling
+- [x] Make Store Display page-level vertical scrolling smooth on iPad without changing the working horizontal product rows.
+- [x] Prevent horizontal row touch handlers and controls from blocking predominantly vertical finger gestures.
+- [x] Add iPad/mobile scroll regression coverage, visual verification, type check, production build, and checkpoint.

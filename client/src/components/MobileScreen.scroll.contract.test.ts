@@ -13,9 +13,10 @@ describe("global touch scrolling contract", () => {
   });
 
   it("keeps display rows directly draggable horizontally", () => {
+    expect(css).toContain(".lesoul-display-page { touch-action: pan-y");
     expect(css).toContain(".lesoul-display-row");
     expect(css).toContain("overflow-x: auto");
-    expect(css).toContain("touch-action: pan-x");
+    expect(css).toContain("touch-action: pan-x pan-y");
     expect(css).toContain("scroll-snap-type: none !important");
     expect(css).toContain("overscroll-behavior-x: contain");
     expect(css).toContain("user-select: none");
