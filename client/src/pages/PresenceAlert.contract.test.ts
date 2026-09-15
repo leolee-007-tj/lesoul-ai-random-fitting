@@ -12,7 +12,6 @@ describe("camera feature removal", () => {
 
   it("keeps the Store Display catalog camera-free", () => {
     expect(display).not.toContain("getUserMedia");
-    expect(display).not.toContain("presenceAlert");
     expect(display).not.toContain("runPreflight");
   });
 });

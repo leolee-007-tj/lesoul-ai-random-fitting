@@ -1557,3 +1557,9 @@
 - [x] Make product-name search support partial input, brand, Korean/Chinese/English names, and normalized whitespace/case without prematurely showing a misleading empty state.
 - [x] Add a short input/debounced-search state or equivalent stable UX so results do not flicker while the user is typing. The search controls now remain visible and only the result panel changes.
 - [x] Add regression tests for partial matches, no-match messaging after committed input, and mobile search behavior; run type checks, production build, and checkpoint.
+
+## 2026-09-15 idle display slideshow
+- [x] After 60 seconds without touch, pointer, keyboard, or scroll activity in Store Display mode, enter an in-app showroom presentation view without requiring prohibited automatic browser fullscreen.
+- [x] Show the selected product large, cycle through products without mixing new-arrival and current-product groups, and exit presentation mode immediately on user interaction.
+- [x] Add a visible user-gesture “sound on” flow and support only administrator-provided or otherwise licensed audio; do not scrape or randomly play unknown copyrighted internet music. Random internet music was intentionally not added because source licensing and browser autoplay cannot be guaranteed.
+- [x] Add iPad/mobile idle, slideshow, accessibility, audio fallback, regression tests, visual verification, type checks, production build, and checkpoint.
