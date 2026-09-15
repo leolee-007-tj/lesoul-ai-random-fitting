@@ -1551,3 +1551,9 @@
 - [x] Make Store Display page-level vertical scrolling smooth on iPad without changing the working horizontal product rows.
 - [x] Prevent horizontal row touch handlers and controls from blocking predominantly vertical finger gestures.
 - [x] Add iPad/mobile scroll regression coverage, visual verification, type check, production build, and checkpoint.
+
+## 2026-09-14 product search while typing
+- [x] Inspect BrowseProducts and Store Display search inputs, filtering, loading, and empty-state rendering. Confirmed the reported disappearing-search behavior is in the admin ProductManagerV2 catalog; customer BrowseProducts has category navigation rather than a product-name search field.
+- [x] Make product-name search support partial input, brand, Korean/Chinese/English names, and normalized whitespace/case without prematurely showing a misleading empty state.
+- [x] Add a short input/debounced-search state or equivalent stable UX so results do not flicker while the user is typing. The search controls now remain visible and only the result panel changes.
+- [x] Add regression tests for partial matches, no-match messaging after committed input, and mobile search behavior; run type checks, production build, and checkpoint.
