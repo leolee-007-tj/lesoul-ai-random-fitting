@@ -1563,3 +1563,8 @@
 - [x] Show the selected product large, cycle through products without mixing new-arrival and current-product groups, and exit presentation mode immediately on user interaction.
 - [x] Add a visible user-gesture “sound on” flow and support only administrator-provided or otherwise licensed audio; do not scrape or randomly play unknown copyrighted internet music. Random internet music was intentionally not added because source licensing and browser autoplay cannot be guaranteed.
 - [x] Add iPad/mobile idle, slideshow, accessibility, audio fallback, regression tests, visual verification, type checks, production build, and checkpoint.
+
+## 2026-09-15 showroom image fit
+- [x] Keep every garment fully visible in the automatic showroom overlay using contain-based sizing and balanced safe margins.
+- [x] Resize the image region responsively so tall and wide product photos do not crop or overlap the product information area.
+- [x] Add iPad/mobile visual regression coverage, image-fit contract tests, type checks, production build, and checkpoint.
