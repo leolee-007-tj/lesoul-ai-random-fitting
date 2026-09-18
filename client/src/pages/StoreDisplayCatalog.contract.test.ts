@@ -30,9 +30,16 @@ describe("store display catalog redesign", () => {
     expect(display).toContain("aria-live=\"polite\"");
     expect(display).toContain("style={{ width: `${progress}%` }}");
     expect(display).toContain('data-active={index === activeIndex ? "true" : "false"}');
-    expect(display).toContain("onPointerDown={() => setActiveIndex(index)}");
+    expect(display).toContain("setActiveIndex(index); setSelectedIndex");
     expect(display).toContain("requestAnimationFrame");
     expect(display).toContain("lesoul-display-card");
+  });
+
+  it("enlarges the selected card and reveals its price after a tap", () => {
+    expect(display).toContain('data-selected={selectedIndex === index ? "true" : "false"}');
+    expect(display).toContain("scale-[1.025]");
+    expect(display).toContain("revealPrice={selectedIndex === index}");
+    expect(display).toContain("tapToReveal");
   });
 
   it("does not expose camera controls in the display catalog", () => {
