@@ -41,6 +41,13 @@ describe("store display catalog redesign", () => {
     expect(display).toContain("revealPrice={selectedIndex === index}");
     expect(display).toContain("tapToReveal");
   });
+  it("shows a pre-tap price hint with a gentle reduced-motion-aware animation", () => {
+    expect(display).toContain("tapBeforeReveal");
+    expect(display).toContain("터치하여 가격 확인");
+    expect(display).toContain("aria-live=\"polite\"");
+    expect(display).toContain("motion-safe:animate-[pulse_2.4s_ease-in-out_infinite]");
+    expect(display).toContain("transition-opacity duration-300");
+  });
 
   it("does not expose camera controls in the display catalog", () => {
     expect(display).not.toContain("getUserMedia");
