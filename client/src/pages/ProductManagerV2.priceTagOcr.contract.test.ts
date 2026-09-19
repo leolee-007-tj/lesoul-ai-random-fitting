@@ -29,9 +29,13 @@ describe("ProductManagerV2 price-tag capture", () => {
   });
   it("explains that OCR identifies fields by meaning instead of a fixed reading order", () => {
     expect(source).toContain("순서에 상관없이");
+    expect(source).toContain("기존에 저장한 상품명·색상 후보");
     const adminSource = fs.readFileSync(path.resolve(process.cwd(), "server/routers/admin.ts"), "utf8");
     expect(adminSource).toContain("may appear in any order");
     expect(adminSource).toContain("Infer each field by meaning");
     expect(adminSource).toContain("Never assume Maker | Color | Clothing Name | Price order");
+    expect(adminSource).toContain("referenceCandidates");
+    expect(adminSource).toContain("Owner reference candidates from previously saved products");
+    expect(adminSource).toContain("only use a candidate when visible text or meaning supports it");
   });
 });

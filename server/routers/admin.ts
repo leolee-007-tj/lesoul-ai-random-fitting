@@ -160,11 +160,21 @@ function resolveSaleFields(input: SaleCandidate, existing?: SaleCandidate) {
 export const adminRouter = router({
   products: ownerProcedure.query(async () => (await getCatalog()).products),
   extractPriceTag: ownerProcedure.input(priceTagOcrInput).mutation(async ({ input }) => {
+    const catalog = await getCatalog();
+    const referenceCandidates = catalog.products.slice(0, 500).map((product) => ({
+      maker: product.brand ?? null,
+      color: product.color ?? null,
+      names: [product.name, product.nameKo, product.nameZh, product.nameEn].filter((value): value is string => Boolean(value?.trim())),
+    }));
+    const referenceText = JSON.stringify(referenceCandidates);
     const response = await invokeLLM({
       messages: [
-        { role: "system", content: "You extract printed characters from a product price-tag image for an owner-only catalog form. This is OCR, not image copying: return text and numbers only, never the image, pixels, an image URL, or a visual description. Korean is the default reading language when the characters are Korean or unclear; if the visible characters are Chinese, English, or another language, preserve those exact source-language characters. Never translate or invent the original text during OCR. The printed fields may appear in any order, on separate lines, beside labels, or without labels. Infer each field by meaning and visual/text patterns rather than position: identify prices from currency symbols or numeric price patterns, colors from color words, garment names from clothing terms, and maker/brand from brand-like text or logos. Never assume Maker | Color | Clothing Name | Price order. Handle Korean, Chinese, English, ¥, 元, RMB, commas, and decimal separators." },
+        { role: "system", content: "You extract printed characters from a product price-tag image for an owner-only catalog form. This is OCR, not image copying: return text and numbers only, never the image, pixels, an image URL, or a visual description. Korean is the default reading language when the characters are Korean or unclear; if the visible characters are Chinese, English, or another language, preserve those exact source-language characters. Never translate or invent the original text during OCR. The printed fields may appear in any order, on separate lines, beside labels, or without labels. Infer each field by meaning and visual/text patterns rather than position: identify prices from currency symbols or numeric price patterns, colors from color words, garment names from clothing terms, and maker/brand from brand-like text or logos. Never assume Maker | Color | Clothing Name | Price order. Handle Korean, Chinese, English, ¥, 元, RMB, commas, and decimal separators. When a field is blurry or abbreviated, use the owner reference candidates in the user message to correct likely OCR errors or infer the closest existing product name, color, or maker; only use a candidate when visible text or meaning supports it, and return null when uncertain." },
         { role: "user", content: [
-          { type: "text", text: "Extract the price tag. rawText must contain only readable characters copied as text from the image. sourceLanguage must be ko for Korean, zh for Chinese, en for English, or other for another script. Return null for a field that is not visible. price must be a positive number in the displayed currency, with separators removed. Do not return image data." },
+          { type: "text", text: `Extract the price tag. rawText must contain only readable characters copied as text from the image. sourceLanguage must be ko for Korean, zh for Chinese, en for English, or other for another script. Return null for a field that is not visible. price must be a positive number in the displayed currency, with separators removed. Do not return image data.
+
+Owner reference candidates from previously saved products are below. They are hints for correcting OCR and resolving ambiguous product names, colors, and makers, not permission to invent text. Match them only when supported by visible characters or meaning:
+${referenceText}` },
           { type: "image_url", image_url: { url: input.dataUrl, detail: "high" } },
         ] },
       ],
