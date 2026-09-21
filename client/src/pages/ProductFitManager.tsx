@@ -212,10 +212,10 @@ export default function ProductFitManager() {
     }
   };
 
-  const fieldsFor = (category: CoreCategory) => categoryMeasurementFields({ baseCategory: fallbackBaseCategory(category) });
-  const renderFields = (measurements: GarmentMeasurements, category: CoreCategory, onChange: (key: keyof GarmentMeasurements, value: number | null) => void) => (
+  const fieldsFor = (category: CoreCategory, displayCategory?: ProductFitRow["displayCategory"]) => categoryMeasurementFields(displayCategory ?? { baseCategory: fallbackBaseCategory(category) });
+  const renderFields = (measurements: GarmentMeasurements, category: CoreCategory, onChange: (key: keyof GarmentMeasurements, value: number | null) => void, displayCategory?: ProductFitRow["displayCategory"]) => (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {fieldsFor(category).map((key) => (
+      {fieldsFor(category, displayCategory).map((key) => (
         <label key={key} className="text-xs font-semibold text-[#666]">
           {copy.fields[key]} (cm)
           <input
@@ -297,7 +297,7 @@ export default function ProductFitManager() {
           ) : selected ? (
             <section className="rounded-2xl border border-[#dedbd4] bg-white p-5">
               <div className="flex items-start gap-3"><span className="grid size-10 place-items-center rounded-full bg-[#eee9e1]"><Ruler size={18} /></span><div><p className="text-[10px] font-bold tracking-[.16em] text-[#777]">{copy.title}</p><h2 className="mt-1 font-serif text-2xl">{localizedProductName(selected, i18n.language)}</h2><p className="mt-1 text-xs font-semibold text-[#665d54]">{productListCategoryLabel(selected, i18n.language)}</p><p className="mt-1 text-xs text-[#777]">{copy.unknown}</p></div></div>
-              <div className="mt-5">{renderFields(draft, representativeCategory(selected), (key, value) => setDraft((current) => ({ ...current, [key]: value })))}</div>
+              <div className="mt-5">{renderFields(draft, representativeCategory(selected), (key, value) => setDraft((current) => ({ ...current, [key]: value })), selected.displayCategory)}</div>
               <p className="mt-5 text-xs font-semibold text-[#666]">{copy.stretch}</p>
               <div className="mt-2 grid grid-cols-4 gap-2">{(["none", "low", "medium", "high"] as StretchLevel[]).map((level) => <button key={level} type="button" onClick={() => setStretch(level)} className={`rounded-xl py-2 text-[11px] font-semibold ${stretch === level ? "bg-black text-white" : "border border-[#dedbd4]"}`}>{copy.stretchLabels[level]}</button>)}</div>
               <p className="mt-4 rounded-xl bg-[#f5f1eb] p-3 text-xs leading-5 text-[#665d54]">{copy.aid}</p>
