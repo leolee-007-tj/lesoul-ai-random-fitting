@@ -7,6 +7,8 @@ type NormalizedProductImageProps = {
   catalogDisplay?: (CatalogDisplaySettings & { effectiveScale?: number | null }) | null;
   className?: string;
   imageClassName?: string;
+  loading?: "lazy" | "eager";
+  fetchPriority?: "high" | "low" | "auto";
 };
 
 type AutoMarginNormalization = {
@@ -114,7 +116,7 @@ export function normalizeWhiteMarginBounds({ sampleWidth, sampleHeight, left, to
 }
 
 /** UI-only normalization: source pixels and aspect ratio always remain untouched. */
-export default function NormalizedProductImage({ src, alt, catalogDisplay, className = "", imageClassName = "" }: NormalizedProductImageProps) {
+export default function NormalizedProductImage({ src, alt, catalogDisplay, className = "", imageClassName = "", loading = "lazy", fetchPriority = "auto" }: NormalizedProductImageProps) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -129,7 +131,15 @@ export default function NormalizedProductImage({ src, alt, catalogDisplay, class
   const handleLoad = () => {
     setIsLoaded(true);
     const image = imageRef.current;
-    if (image) setNormalization(getWhiteMarginNormalization(image));
+    if (!image) return;
+    const analyze = () => {
+      if (imageRef.current === image) setNormalization(getWhiteMarginNormalization(image));
+    };
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      (window as Window & { requestIdleCallback: (callback: () => void, options?: { timeout: number }) => number }).requestIdleCallback(analyze, { timeout: 900 });
+    } else {
+      setTimeout(analyze, 0);
+    }
   };
 
   const manualScale = getContainedImageScale(catalogDisplay);
@@ -140,5 +150,5 @@ export default function NormalizedProductImage({ src, alt, catalogDisplay, class
   const originX = normalization.scale > 1 ? normalization.originX : x;
   const originY = normalization.scale > 1 ? normalization.originY : y;
 
-  return <div aria-busy={!isLoaded && !hasError} className={`relative overflow-hidden ${PRODUCT_IMAGE_SURFACE_CLASS} ${className}`}><img ref={imageRef} src={src} alt={alt} crossOrigin="anonymous" onLoad={handleLoad} onError={() => setHasError(true)} className={`relative h-full w-full object-contain p-1.5 transition-[opacity,transform] duration-300 motion-reduce:transition-none ${visibilityClass} ${imageClassName}`} style={{ objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${originX}% ${originY}%` }} /></div>;
+  return <div aria-busy={!isLoaded && !hasError} className={`relative overflow-hidden ${PRODUCT_IMAGE_SURFACE_CLASS} ${className}`}><img ref={imageRef} src={src} alt={alt} loading={loading} decoding="async" fetchPriority={fetchPriority} crossOrigin="anonymous" onLoad={handleLoad} onError={() => setHasError(true)} className={`relative h-full w-full object-contain p-1.5 transition-[opacity,transform] duration-300 motion-reduce:transition-none ${visibilityClass} ${imageClassName}`} style={{ objectPosition: `${x}% ${y}%`, transform: `scale(${scale})`, transformOrigin: `${originX}% ${originY}%` }} /></div>;
 }
