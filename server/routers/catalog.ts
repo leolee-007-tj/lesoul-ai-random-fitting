@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, listGenerationsForUser, recordProductEngagement, recordSiteVisit, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult, getDb } from "../db";
+import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, listGenerationsForUser, listProductCategories, recordProductEngagement, recordSiteVisit, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
@@ -27,6 +27,7 @@ export const catalogRouter = router({
     const settings = await getReleaseSettings();
     return { storeName: settings.storeName || "LESOUL LOOK", storeTaglineEn: settings.storeTaglineEn || "A quieter way to discover your next LOOK.", storeTaglineKo: settings.storeTaglineKo || "다음 LOOK을 더 조용하고 선명하게 발견하는 방법.", storeTaglineZh: settings.storeTaglineZh || "以更安静、更清晰的方式发现你的下一套 LOOK。" };
   }),
+  productCategories: publicProcedure.query(async () => listProductCategories(false)),
   presenceAlertConfig: storeDisplayProcedure.query(async ({ ctx }) => {
     const settings = await getReleaseSettings();
     const cameraEnabledForAccount = ctx.user.presenceCameraEnabled !== 0;

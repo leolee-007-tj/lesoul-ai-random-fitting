@@ -167,6 +167,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   pricingMode: mysqlEnum("pricingMode", ["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).default("BASE").notNull(),
   /** Owner option: seasonal/global sale discounts do not apply to products explicitly marked NEW. */
   excludeNewArrivalsFromSale: int("excludeNewArrivalsFromSale").default(0).notNull(),
+  /** Display-only option: show current inventory beside the revealed product price. */
+  showInventoryQuantity: int("showInventoryQuantity").default(0).notNull(),
   /** Customer devices process their own camera feed locally; the server stores only this owner-controlled alert configuration. */
   presenceAlertEnabled: int("presenceAlertEnabled").default(0).notNull(),
   presenceAlertSoundUrl: text("presenceAlertSoundUrl"),
@@ -233,6 +235,9 @@ export const trialStores = mysqlTable("trialStores", {
   storeName: varchar("storeName", { length: 80 }).default("MY TRIAL STORE").notNull(),
   paymentQrUrl: text("paymentQrUrl"),
   purchaseNotice: text("purchaseNotice"),
+  /** Each trial store controls its own sale policy without changing the owner catalog. */
+  pricingMode: mysqlEnum("pricingMode", ["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).default("BASE").notNull(),
+  excludeNewArrivalsFromSale: int("excludeNewArrivalsFromSale").default(0).notNull(),
   startedAt: timestamp("startedAt").notNull(),
   expiresAt: timestamp("expiresAt").notNull(),
   resetAt: timestamp("resetAt"),

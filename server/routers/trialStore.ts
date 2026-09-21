@@ -19,7 +19,7 @@ export const trialStoreRouter = router({
     const products = await db.select().from(trialStoreProducts).where(eq(trialStoreProducts.storeId, store.id)).orderBy(trialStoreProducts.createdAt);
     return { store, products };
   }),
-  updateStore: trialStoreProcedure.input(z.object({ storeName: z.string().trim().min(1).max(80), paymentQrUrl: z.string().min(1).nullable().optional(), purchaseNotice: z.string().trim().max(1200).nullable().optional() })).mutation(async ({ ctx, input }) => {
+  updateStore: trialStoreProcedure.input(z.object({ storeName: z.string().trim().min(1).max(80), paymentQrUrl: z.string().min(1).nullable().optional(), purchaseNotice: z.string().trim().max(1200).nullable().optional(), pricingMode: z.enum(["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).optional(), excludeNewArrivalsFromSale: z.number().int().min(0).max(1).optional() })).mutation(async ({ ctx, input }) => {
     const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
     const store = await requireActiveTrialStore(ctx.user.id);
     await db.update(trialStores).set(input).where(eq(trialStores.id, store.id));

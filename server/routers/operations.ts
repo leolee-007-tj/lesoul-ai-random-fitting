@@ -248,6 +248,13 @@ export const operationsRouter = router({
     await db.update(users).set({ isActive: input.isActive ? 1 : 0 }).where(eq(users.id, store.ownerUserId));
     return { success: true };
   }),
+  convertTrialStoreToPermanent: ownerOnlyProcedure.input(z.object({ storeId: z.number().int().positive() })).mutation(async ({ input }) => {
+    const db = await getDb(); if (!db) throw new Error("TRIAL_STORE_SERVICE_UNAVAILABLE");
+    const store = (await db.select({ ownerUserId: trialStores.ownerUserId }).from(trialStores).where(eq(trialStores.id, input.storeId)).limit(1))[0];
+    if (!store) throw new Error("TRIAL_STORE_NOT_FOUND");
+    await db.update(users).set({ role: "store_display", isActive: 1, loginMethod: "store_display_password" }).where(eq(users.id, store.ownerUserId));
+    return { success: true, storeId: input.storeId, role: "store_display" as const };
+  }),
   settings: ownerProcedure.query(async () => {
     const settings = await getCentralSettings();
     return { ...settings, estimatedCostsAreConfigOnly: true };

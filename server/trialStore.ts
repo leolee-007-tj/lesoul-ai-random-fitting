@@ -11,6 +11,8 @@ export type TrialStoreStatus = {
   storeName: string;
   paymentQrUrl: string | null;
   purchaseNotice: string | null;
+  pricingMode: "BASE" | "SEASON_FORMAT_1" | "SEASON_FORMAT_2" | "SEASON_FORMAT_3";
+  excludeNewArrivalsFromSale: number;
   startedAt: Date;
   expiresAt: Date;
   remainingMs: number;
@@ -18,7 +20,7 @@ export type TrialStoreStatus = {
 
 function serialize(store: typeof trialStores.$inferSelect): TrialStoreStatus {
   const remainingMs = Math.max(0, store.expiresAt.getTime() - Date.now());
-  return { id: store.id, status: store.status === "ACTIVE" && remainingMs > 0 ? "ACTIVE" : "EXPIRED", storeName: store.storeName, paymentQrUrl: store.paymentQrUrl, purchaseNotice: store.purchaseNotice, startedAt: store.startedAt, expiresAt: store.expiresAt, remainingMs };
+  return { id: store.id, status: store.status === "ACTIVE" && remainingMs > 0 ? "ACTIVE" : "EXPIRED", storeName: store.storeName, paymentQrUrl: store.paymentQrUrl, purchaseNotice: store.purchaseNotice, pricingMode: store.pricingMode, excludeNewArrivalsFromSale: store.excludeNewArrivalsFromSale, startedAt: store.startedAt, expiresAt: store.expiresAt, remainingMs };
 }
 
 export async function expireTrialStore(storeId: number) {

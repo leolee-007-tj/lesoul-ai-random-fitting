@@ -6,11 +6,12 @@ const display = readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.ur
 describe("store display catalog redesign", () => {
   it("keeps category filtering and adds brand search", () => {
     expect(display).toContain("trpc.catalog.storeDisplayProducts.useQuery()");
-    expect(display).toContain('type Category = "all" | "top" | "bottom" | "outer" | "dress" | "shoes" | "bag"');
-    expect(display).toContain("product.category === category");
+    expect(display).toContain("trpc.catalog.productCategories.useQuery");
+    expect(display).toContain("managedCategories.data");
+    expect(display).toContain("displayCategory?.id");
     expect(display).toContain("product.brand");
     expect(display).toContain("brandPlaceholder");
-    expect(display).toContain("aria-pressed={category === item}");
+    expect(display).toContain("aria-pressed={category === String(item.id)}");
   });
 
   it("uses horizontal swipe cards and shuffles the display order", () => {
