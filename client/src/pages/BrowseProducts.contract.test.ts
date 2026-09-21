@@ -33,6 +33,14 @@ describe("complete product image presentation", () => {
     expect(detail).toContain("excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale}");
   });
 
+  it("reveals additional product pages as the user approaches the bottom", () => {
+    expect(browse).toContain("IntersectionObserver");
+    expect(browse).toContain('rootMargin: "480px 0px"');
+    expect(browse).toContain("newArrivalPages.slice(0, visibleArrivalPageCount)");
+    expect(browse).toContain("regularProductPages.slice(0, visibleRegularPageCount)");
+    expect(browse).toContain("loadingMore");
+  });
+
   it("removes card-level purchase actions while retaining the detail purchase action", () => {
     expect(browse).not.toContain("PurchaseListAddButton");
     expect(browse).not.toContain('source="catalog"');
