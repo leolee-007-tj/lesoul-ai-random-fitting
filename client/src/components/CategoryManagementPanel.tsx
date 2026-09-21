@@ -23,8 +23,12 @@ export default function CategoryManagementPanel({ locale, categories, open, onOp
       ? { title: "商品分类 · 尺寸项目管理", add: "添加分类", name: "分类名称（韩文）", auto: "请用韩文输入分类名称。保存后会自动创建英文和中文名称，并按系统语言显示。", base: "基础分类", active: "启用", inactive: "停用", order: "排序", save: "保存并自动翻译", cancel: "取消", edit: "编辑", fields: "后续填写的实际服装尺寸", fieldsHelp: "只会在该分类商品的版型信息填写页显示下方勾选的项目。", dragHelp: "长按并拖动已选择的项目，即可调整填写顺序。", fieldsOpen: "尺寸项目", fieldsSave: "保存尺寸项目", used: "有 {{count}} 件商品使用此分类", inactiveNote: "已使用的分类不会删除，只能停用。", empty: "还没有分类。", required: "请输入韩文分类名称。", chooseOne: "请至少勾选一个尺寸项目。", saved: "已保存分类和尺寸项目。" }
       : { title: "CATEGORY & MEASUREMENT FIELDS", add: "ADD CATEGORY", name: "Category name (Korean)", auto: "Enter the category name in Korean. English and Chinese names are created on save and shown in the system language.", base: "Base category", active: "Active", inactive: "Inactive", order: "Sort order", save: "SAVE & TRANSLATE", cancel: "Cancel", edit: "Edit", fields: "Real-garment measurements to enter later", fieldsHelp: "Only the checked fields below appear in Fit Manager for products in this category.", dragHelp: "Drag a selected field to change its input order.", fieldsOpen: "MEASUREMENT FIELDS", fieldsSave: "SAVE MEASUREMENT FIELDS", used: "{{count}} product(s) use this category", inactiveNote: "Used categories are never deleted; they can be made inactive.", empty: "No categories have been added.", required: "Enter a Korean category name.", chooseOne: "Check at least one measurement field.", saved: "Category and measurement fields saved." };
   const utils = trpc.useUtils();
-  const create = trpc.admin.createProductCategory.useMutation({ onSuccess: () => utils.admin.productCategories.invalidate() });
-  const update = trpc.admin.updateProductCategory.useMutation({ onSuccess: () => utils.admin.productCategories.invalidate() });
+  const refreshCategoryConsumers = () => {
+    void utils.admin.productCategories.invalidate();
+    void utils.admin.products.invalidate();
+  };
+  const create = trpc.admin.createProductCategory.useMutation({ onSuccess: refreshCategoryConsumers });
+  const update = trpc.admin.updateProductCategory.useMutation({ onSuccess: refreshCategoryConsumers });
   const translate = trpc.admin.translateCustomerText.useMutation();
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);

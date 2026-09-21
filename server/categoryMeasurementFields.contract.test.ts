@@ -13,7 +13,9 @@ describe("category measurement field management contract", () => {
   });
 
   it("connects the dedicated category editor and Fit Manager to the same category field template", () => {
-    expect(source("../client/src/components/CategoryManagementPanel.tsx")).toContain("saveFields");
+    const categoryPanel = source("../client/src/components/CategoryManagementPanel.tsx");
+    expect(categoryPanel).toContain("saveFields");
+    expect(categoryPanel).toContain("utils.admin.products.invalidate");
     expect(source("../client/src/pages/ProductFitManager.tsx")).toContain("const fieldsFor = (category: CoreCategory, displayCategory?: ProductFitRow[\"displayCategory\"])");
     expect(source("../client/src/pages/ProductFitManager.tsx")).toContain("fieldsFor(category, displayCategory)");
     expect(source("../client/src/pages/ProductFitManager.tsx")).toContain("componentDrafts");
