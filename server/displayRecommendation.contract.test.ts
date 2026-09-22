@@ -11,6 +11,7 @@ describe("display customer profile recommendations", () => {
     expect(router).toContain("weight: z.number");
     expect(router).toContain("usualSize: z.string");
     expect(router).toContain("intentText: z.string");
+    expect(router).toContain("detailText: z.string");
   });
 
   it("interprets natural language into catalog filters", () => {
@@ -25,6 +26,7 @@ describe("display customer profile recommendations", () => {
     expect(router).toContain("skinTone");
     expect(router).toContain("Do not identify the person");
     expect(router).toContain("photoDataUrl");
+    expect(router).toContain("input.detailText");
   });
 
   it("uses stored garment measurements for optional size guidance", () => {

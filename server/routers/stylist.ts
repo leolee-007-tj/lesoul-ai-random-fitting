@@ -14,6 +14,7 @@ const displayRecommendationInput = z.object({
   visitorId: z.string().min(8).max(96),
   locale: z.enum(["en", "ko", "zh"]).default("en"),
   intentText: z.string().trim().max(500).default(""),
+  detailText: z.string().trim().max(500).default(""),
   height: z.number().min(80).max(240).nullable().optional(),
   weight: z.number().min(20).max(250).nullable().optional(),
   shoulderWidth: z.number().min(20).max(80).nullable().optional(),
@@ -48,7 +49,7 @@ async function understandDisplayIntent(text: string) {
   try {
     const response = await invokeLLM({
       messages: [
-        { role: "system", content: "You classify a customer's fashion request for a store catalog. Understand Korean, Chinese, and English. Do not diagnose body shape or invent products. Return only JSON: categoryFocus must be separates, dress, or all; wantsOuter is boolean; keywords is a short comma-separated list of concrete style, color, occasion, or fit terms useful for matching catalog text. Treat requests such as work, date, travel, casual, slimming, comfortable, warm, elegant as intent keywords." },
+        { role: "system", content: "You classify a customer's fashion request for a store catalog. Understand Korean, Chinese, and English. Do not diagnose body shape or invent products. Return only JSON: categoryFocus must be separates, dress, or all; wantsOuter is boolean; keywords is a short comma-separated list of concrete style, color, occasion, or fit terms useful for matching catalog text. Treat requests such as work, date, travel, casual, slimming, comfortable, warm, elegant, cover arms, avoid black, long wear, and fabric preferences as intent keywords." },
         { role: "user", content: text },
       ],
       response_format: { type: "json_schema", json_schema: { name: "display_fashion_intent", strict: true, schema: { type: "object", properties: { categoryFocus: { type: "string", enum: ["separates", "dress", "all"] }, wantsOuter: { type: "boolean" }, keywords: { type: "string", maxLength: 240 } }, required: ["categoryFocus", "wantsOuter", "keywords"], additionalProperties: false } } },
@@ -86,7 +87,7 @@ export const stylistRouter = router({
   }),
   displayRecommend: customerProcedure.input(displayRecommendationInput).query(async ({ input, ctx }) => {
     const settings = await getReleaseSettings();
-    const [intent, skinPalette] = await Promise.all([understandDisplayIntent(input.intentText), analyseDisplaySkinTone(input.photoDataUrl)]);
+    const [intent, skinPalette] = await Promise.all([understandDisplayIntent(`${input.intentText}\n${input.detailText}`.trim()), analyseDisplaySkinTone(input.photoDataUrl)]);
     const activeProducts = (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
     const keywords = [...intent.keywords.split(/[,、，\s]+/).map((value: string) => value.trim()).filter((value: string) => value.length >= 2), ...(input.usualSize ? [input.usualSize] : [])].slice(0, 12);
     const measurements: BodyMeasurements | null = input.height && input.shoulderWidth ? { height: input.height, shoulderWidth: input.shoulderWidth, chest: input.chest, waist: input.waist, hip: input.hip, gender: "other", unit: "cm" } : null;

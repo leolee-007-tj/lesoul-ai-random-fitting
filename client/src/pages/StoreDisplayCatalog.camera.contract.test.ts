@@ -4,9 +4,9 @@ import fs from "node:fs";
 const source = fs.readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.url), "utf8");
 
 describe("store display camera recommendations", () => {
-  it("keeps camera controls inside the store display page", () => {
+  it("keeps camera controls inside the store display page and uses the rear camera", () => {
     expect(source).toContain("navigator.mediaDevices?.getUserMedia");
-    expect(source).toContain("facingMode: { ideal: \"user\" }");
+    expect(source).toContain("facingMode: { ideal: \"environment\" }");
     expect(source).toContain("audio: false");
     expect(source).toContain("cameraStreamRef.current?.getTracks().forEach");
   });
@@ -21,5 +21,13 @@ describe("store display camera recommendations", () => {
     expect(source).toContain("trpc.stylist.published.useQuery({ locale })");
     expect(source).toContain("copy.recommendations");
     expect(source).toContain("outfit.products.map");
+  });
+
+  it("keeps the close action visible and captures detailed customer requests", () => {
+    expect(source).toContain("sticky top-0 z-20");
+    expect(source).toContain("title={copy.closeCamera}");
+    expect(source).toContain("detailText");
+    expect(source).toContain("detailRequirements");
+    expect(source).toContain("detailPlaceholder");
   });
 });
