@@ -232,14 +232,14 @@ export async function getProductCategory(id: number) {
   return (await db.select().from(productCategories).where(eq(productCategories.id, id)).limit(1))[0];
 }
 
-export async function createProductCategory(input: { nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; measurementFields?: MeasurementFieldKey[]; isActive?: number; sortOrder?: number }) {
+export async function createProductCategory(input: { nameEn: string; nameKo: string; nameZh: string; baseNameEn?: string | null; baseNameKo?: string | null; baseNameZh?: string | null; baseCategory: BaseCategory; measurementFields?: MeasurementFieldKey[]; isActive?: number; sortOrder?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Category management is temporarily unavailable.");
   const result = await db.insert(productCategories).values({ ...input, measurementFields: normalizeMeasurementFields(input.measurementFields, input.baseCategory), isActive: input.isActive ?? 1, sortOrder: input.sortOrder ?? 100 });
   return getProductCategory(Number(result[0].insertId));
 }
 
-export async function updateProductCategory(id: number, input: Partial<{ nameEn: string; nameKo: string; nameZh: string; baseCategory: BaseCategory; measurementFields: MeasurementFieldKey[]; isActive: number; sortOrder: number }>) {
+export async function updateProductCategory(id: number, input: Partial<{ nameEn: string; nameKo: string; nameZh: string; baseNameEn: string | null; baseNameKo: string | null; baseNameZh: string | null; baseCategory: BaseCategory; measurementFields: MeasurementFieldKey[]; isActive: number; sortOrder: number }>) {
   const db = await getDb();
   if (!db) throw new Error("Category management is temporarily unavailable.");
   const existing = await getProductCategory(id);

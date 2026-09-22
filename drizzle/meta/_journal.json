@@ -414,6 +414,13 @@
       "when": 1789919671863,
       "tag": "0058_silly_captain_america",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "5",
+      "when": 1789966677995,
+      "tag": "0059_woozy_vance_astro",
+      "breakpoints": true
     }
   ]
 }

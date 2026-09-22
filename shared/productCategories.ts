@@ -34,6 +34,22 @@ export const DEFAULT_MANAGED_CATEGORIES: Array<{ nameEn: string; nameKo: string;
   { nameEn: "Bag", nameKo: "가방", nameZh: "包袋", baseCategory: "BAG", sortOrder: 60 },
 ];
 
+export const DEFAULT_BASE_CATEGORY_NAMES: Record<BaseCategory, { en: string; ko: string; zh: string }> = {
+  TOP: { en: "Top", ko: "상의", zh: "上装" },
+  PANTS: { en: "Bottom", ko: "하의", zh: "下装" },
+  JACKET: { en: "Outer", ko: "아우터", zh: "外套" },
+  DRESS: { en: "Dress", ko: "원피스", zh: "连衣裙" },
+  SHOES: { en: "Shoes", ko: "신발", zh: "鞋履" },
+  BAG: { en: "Bag", ko: "가방", zh: "包袋" },
+};
+
+export function localizedBaseCategoryName(category: { baseCategory: BaseCategory; baseNameEn?: string | null; baseNameKo?: string | null; baseNameZh?: string | null } | null | undefined, language: string) {
+  const defaults = DEFAULT_BASE_CATEGORY_NAMES[category?.baseCategory ?? "TOP"];
+  if (language.startsWith("ko")) return category?.baseNameKo || defaults.ko;
+  if (language.startsWith("zh")) return category?.baseNameZh || defaults.zh;
+  return category?.baseNameEn || defaults.en;
+}
+
 export function localizedCategoryName(category: { nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; baseCategory?: BaseCategory | null } | null | undefined, language: string) {
   const locale = language.startsWith("ko") ? "ko" : language.startsWith("zh") ? "zh" : "en";
   const fallback = category?.baseCategory ? baseCategoryToCoreCategory(category.baseCategory) : "top";
