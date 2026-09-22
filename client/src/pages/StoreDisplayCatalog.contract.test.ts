@@ -50,8 +50,10 @@ describe("store display catalog redesign", () => {
     expect(display).toContain("transition-opacity duration-300");
   });
 
-  it("does not expose camera controls in the display catalog", () => {
-    expect(display).not.toContain("getUserMedia");
+  it("exposes session-only camera capture without the old visitor-detection controls", () => {
+    expect(display).toContain("getUserMedia");
+    expect(display).toContain("cameraStreamRef");
+    expect(display).toContain("setCapturedPhoto");
     expect(display).not.toContain("runPreflight");
     expect(display).not.toContain("START DETECTION");
   });
