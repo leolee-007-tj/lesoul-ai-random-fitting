@@ -4,9 +4,12 @@ import fs from "node:fs";
 const source = fs.readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.url), "utf8");
 
 describe("store display camera recommendations", () => {
-  it("keeps camera controls inside the store display page and uses the rear camera", () => {
+  it("keeps camera controls inside the store display page and supports both cameras", () => {
     expect(source).toContain("navigator.mediaDevices?.getUserMedia");
-    expect(source).toContain("facingMode: { ideal: \"environment\" }");
+    expect(source).toContain("facingMode: { ideal: requestedFacingMode }");
+    expect(source).toContain('useState<"environment" | "user">("environment")');
+    expect(source).toContain("switchCamera");
+    expect(source).toContain("SwitchCamera");
     expect(source).toContain("audio: false");
     expect(source).toContain("cameraStreamRef.current?.getTracks().forEach");
   });
