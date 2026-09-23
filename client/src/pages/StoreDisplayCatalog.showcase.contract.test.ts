@@ -19,6 +19,13 @@ describe("Store Display showroom mode", () => {
   it("provides an in-app presentation view and gesture-gated browser fullscreen action", () => {
     expect(source).toContain('role="dialog"');
     expect(source).toContain("requestBrowserFullscreen");
-    expect(source).toContain("onPointerDown={exitShowcase}");
+    expect(source).toContain("onPointerDown={handleShowcaseBackdropPointerDown}");
+  });
+
+  it("keeps manually started showroom controls available until explicit exit", () => {
+    expect(source).toContain("manualShowcaseRef");
+    expect(source).toContain("manualShowcaseRef.current = true");
+    expect(source).toContain("if (manualShowcaseRef.current) return");
+    expect(source).toContain("if (!manualShowcaseRef.current) exitShowcase()");
   });
 });
