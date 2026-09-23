@@ -103,6 +103,17 @@ export const customerProcedure = t.procedure.use(
   }),
 );
 
+/** Read-only customer catalog queries also serve store-display accounts. */
+export const customerReadProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    if (!ctx.user && !ctx.testAccess) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
+    }
+    return next({ ctx });
+  }),
+);
+
 export const adminProcedure = t.procedure.use(
   t.middleware(async opts => {
     const { ctx, next } = opts;

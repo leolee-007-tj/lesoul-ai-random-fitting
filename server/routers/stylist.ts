@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, getPublishedCuratedOutfits, saveStylistFeedback } from "../db";
 import { canViewVipEarlyAccess, getReleaseSettings } from "../access";
-import { customerProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
+import { customerProcedure, customerReadProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { recommendCuratedTopLooks, validateRecommendedProductIds } from "../stylistEngine";
 import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { invokeLLM } from "../_core/llm";
@@ -74,7 +74,7 @@ export const stylistRouter = router({
     const settings = await getReleaseSettings();
     return (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
   }),
-  published: customerProcedure.input(z.object({ locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
+  published: customerReadProcedure.input(z.object({ locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
     const settings = await getReleaseSettings();
     const outfits = await getPublishedCuratedOutfits({ includePreorder: Boolean(settings.stylistIncludePreorder), role: ctx.user?.role, limit: 3 });
     return outfits.map((outfit) => ({
@@ -85,7 +85,7 @@ export const stylistRouter = router({
       products: outfit.items.map((item) => item.product).filter(Boolean),
     }));
   }),
-  displayRecommend: customerProcedure.input(displayRecommendationInput).query(async ({ input, ctx }) => {
+  displayRecommend: customerReadProcedure.input(displayRecommendationInput).query(async ({ input, ctx }) => {
     const settings = await getReleaseSettings();
     const [intent, skinPalette] = await Promise.all([understandDisplayIntent(`${input.intentText}\n${input.detailText}`.trim()), analyseDisplaySkinTone(input.photoDataUrl)]);
     const activeProducts = (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
