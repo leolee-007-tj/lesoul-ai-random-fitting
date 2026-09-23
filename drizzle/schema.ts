@@ -430,6 +430,22 @@ export const generationLogs = mysqlTable("generationLogs", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Store-display-only AI lookbook images grouped by product and generation batch. */
+export const displayLookbookImages = mysqlTable("displayLookbookImages", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull().references(() => products.id),
+  batchId: varchar("batchId", { length: 96 }).notNull(),
+  shotIndex: int("shotIndex").notNull(),
+  sceneType: mysqlEnum("sceneType", ["studio_front", "studio_side", "studio_full", "store_work", "store_customer", "store_walk"]).notNull(),
+  sceneDescription: varchar("sceneDescription", { length: 300 }).notNull(),
+  imageUrl: text("imageUrl").notNull(),
+  storageKey: text("storageKey").notNull(),
+  isApproved: int("isApproved").default(0).notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type DisplayLookbookImage = typeof displayLookbookImages.$inferSelect;
 /**
  * A request-level audit trail created only when the server is about to call an AI provider
  * (or when the existing rule-only Stylist completes). This is the source of truth for

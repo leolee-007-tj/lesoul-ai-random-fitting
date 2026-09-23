@@ -11,8 +11,8 @@ describe("Store Display language switcher", () => {
   });
 
   it("derives display copy and localized product names from the active locale", () => {
-    expect(source).toContain('const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";');
-    expect(source).toContain("localizedProductName(product, language)");
+    expect(source).toContain('const locale: "ko" | "zh" | "en" = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";');
+    expect(source).toContain("localizedProductName(product, i18n.language)");
     expect(source).toContain("copy.brandPlaceholder");
     expect(source).toContain("copy.newArrivals");
   });

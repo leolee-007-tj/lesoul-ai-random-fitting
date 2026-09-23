@@ -11,7 +11,8 @@ describe("Store Display showroom mode", () => {
   });
 
   it("cycles new arrivals before current products without mixing groups", () => {
-    expect(source).toContain('showcaseGroup === "new" ? newArrivalProducts : currentProducts');
+    expect(source).toContain('showcaseGroup === "new" ? showcaseSlidesFor(newArrivalProducts) : showcaseSlidesFor(currentProducts)');
+    expect(source).toContain("showcaseSlidesFor");
     expect(source).toContain('showcaseGroup === "new" && currentProducts.length');
     expect(source).toContain("}, 8_000);");
   });

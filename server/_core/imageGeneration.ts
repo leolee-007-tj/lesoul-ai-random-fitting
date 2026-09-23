@@ -34,10 +34,13 @@ export type GenerateImageOptions = {
   model?: string;
   /** Generation quality, e.g. "medium" | "high". Defaults to "medium" for GPT Image 2. */
   quality?: string;
+  /** Optional feature-specific storage path. */
+  storageKey?: string;
 };
 
 export type GenerateImageResponse = {
   url?: string;
+  key?: string;
 };
 
 export async function generateImage(
@@ -96,13 +99,14 @@ export async function generateImage(
   const buffer = Buffer.from(base64Data, "base64");
 
   // Save to S3
-  const { url } = await storagePut(
-    `generated/${Date.now()}.png`,
+  const { key, url } = await storagePut(
+    options.storageKey ?? `generated/${Date.now()}.png`,
     buffer,
     result.image.mimeType
   );
   return {
     url,
+    key,
   };
 }
 

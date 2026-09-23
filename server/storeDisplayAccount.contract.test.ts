@@ -14,7 +14,7 @@ describe("store display account contract", () => {
     expect(trpc).toContain("STORE_DISPLAY_READ_ONLY");
   });
 
-  it("exposes only the camera-free display catalogue through the display procedure", () => {
+  it("exposes the display catalogue through the display procedure", () => {
     const catalog = read("server/routers/catalog.ts");
     expect(catalog).toContain("storeDisplayProducts: storeDisplayProcedure");
     expect(catalog).toContain("product.vipEarlyAccess !== 1");
@@ -29,7 +29,8 @@ describe("store display account contract", () => {
     expect(customerGate).toContain('user?.role === "store_display"');
     expect(displayCatalogue).toContain("catalog.storeDisplayProducts.useQuery");
     expect(displayCatalogue).toContain("overflow-x-auto");
-    expect(displayCatalogue).not.toContain("getUserMedia");
+    expect(displayCatalogue).toContain("getUserMedia");
+    expect(displayCatalogue).toContain("cameraFacingMode");
   });
 
   it("keeps customer-facing merchandising information without adding purchase actions", () => {

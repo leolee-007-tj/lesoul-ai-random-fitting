@@ -15,13 +15,14 @@ describe("non-generative operations contract", () => {
     expect(bodyModel).not.toContain("beginAiUsage");
   });
 
-  it("returns only administrator-curated outfits without provider calls or quota consumption", () => {
+  it("keeps administrator-curated outfits available while allowing AI display recommendations", () => {
     const stylist = source("./routers/stylist.ts");
     expect(stylist).toContain("getEligibleCuratedOutfits");
     expect(stylist).toContain("recommendCuratedTopLooks");
     expect(stylist).not.toContain("beginAiUsage");
     expect(stylist).not.toContain("finishAiUsage");
-    expect(stylist).not.toContain("invokeLLM");
+    expect(stylist).toContain("displayRecommend");
+    expect(stylist).toContain("invokeLLM");
   });
 
   it("keeps account and catalog operations available without image-provider controls", () => {

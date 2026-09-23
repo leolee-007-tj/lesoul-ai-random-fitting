@@ -48,7 +48,7 @@ describe("set-product manager contract", () => {
     expect(categories).toContain("name: \"상품 종류 이름 (한국어)\"");
     expect(categories).toContain('type="checkbox" checked={draft.measurementFields?.includes(field) ?? false}');
     expect(categories).toContain("A translation outage must not prevent a Korean owner from creating a usable type.");
-    expect(fitManager).toContain("const fieldsFor = (category: CoreCategory)");
+    expect(fitManager).toContain("const fieldsFor = (category: CoreCategory, displayCategory?");
     expect(fitManager).toContain("renderFields(measurements, category");
   });
 

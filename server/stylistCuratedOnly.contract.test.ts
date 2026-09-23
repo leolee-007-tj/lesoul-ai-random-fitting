@@ -6,7 +6,7 @@ const source = (path: string) => readFileSync(new URL(path, import.meta.url), "u
 describe("administrator-curated looks only contract", () => {
   it("exposes a customer procedure that reads published administrator looks", () => {
     const router = source("./routers/stylist.ts");
-    expect(router).toContain("published: customerProcedure");
+    expect(router).toContain("published: customerReadProcedure");
     expect(router).toContain("getPublishedCuratedOutfits");
     expect(router).toContain("limit: 3");
   });
