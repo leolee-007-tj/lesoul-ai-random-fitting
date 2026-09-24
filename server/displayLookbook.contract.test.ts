@@ -13,6 +13,10 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("display-lookbook/products/${productId}/${batchId}");
     expect(router).toContain("approvedAll: storeDisplayProcedure");
     expect(router).toContain("generateBatch: ownerProcedure");
+    expect(router).toContain("progress: ownerProcedure");
+    expect(router).toContain('status: "generating"');
+    expect(router).toContain("percent: Math.round");
+    expect(router).toContain("await generateImage");
   });
 
   it("keeps generated images pending until the owner approves them", () => {

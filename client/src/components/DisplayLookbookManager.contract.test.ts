@@ -10,6 +10,12 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("Generate 10");
     expect(manager).toContain("trpc.displayLookbook.approve.useMutation");
     expect(manager).toContain("trpc.displayLookbook.remove.useMutation");
+    expect(manager).toContain("trpc.displayLookbook.progress.useQuery");
+    expect(manager).toContain("progress?.percent");
+    expect(manager).toContain('"상의"');
+    expect(manager).toContain('"하의"');
+    expect(manager).toContain('"외투"');
+    expect(manager).toContain('"원피스"');
   });
 
   it("alternates the original product image with approved AI images in showroom mode", () => {
