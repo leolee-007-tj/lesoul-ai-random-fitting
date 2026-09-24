@@ -170,6 +170,12 @@ export default defineConfig({
   },
   server: {
     host: true,
+    // The Manus preview is reverse-proxied over HTTPS. Without an explicit
+    // client port Vite advertises localhost:5173, which the remote browser
+    // cannot reach and reports as a failed HMR WebSocket connection.
+    hmr: {
+      clientPort: 443,
+    },
     allowedHosts: [
       ".manuspre.computer",
       ".manus.computer",
