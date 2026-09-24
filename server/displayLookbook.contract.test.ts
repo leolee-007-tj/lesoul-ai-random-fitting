@@ -35,4 +35,15 @@ describe("store display AI lookbook", () => {
     expect(imageHelper).toContain("options.storageKey ?? `generated/${Date.now()}.png`");
     expect(imageHelper).toContain("key,");
   });
+
+  it("supports random outfit plans and preserves separate garment references", () => {
+    expect(schema).toContain('compositionProductIds: json("compositionProductIds")');
+    expect(schema).toContain('compositionLabel: varchar("compositionLabel"');
+    expect(router).toContain("randomOutfitPlan");
+    expect(router).toContain("generateOutfitBatch");
+    expect(router).toContain("makeOutfitPlan");
+    expect(router).toContain("originalImages: sources.map");
+    expect(router).toContain("Do not substitute, merge, redesign, recolor, or invent any garment.");
+    expect(router).toContain("display-lookbook/outfits/${batchId}");
+  });
 });

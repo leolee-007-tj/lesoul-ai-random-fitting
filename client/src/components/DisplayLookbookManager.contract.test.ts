@@ -9,14 +9,18 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
     expect(manager).toContain("count");
     expect(manager).toContain("generate.mutate({ productId, count })");
+    expect(manager).toContain("randomOutfitPlan");
+    expect(manager).toContain("generateOutfitBatch");
+    expect(manager).toContain("상의 + 하의 (+ 외투)");
+    expect(manager).toContain("원피스 (+ 외투)");
+    expect(manager).toContain("compositionLabel");
     expect(manager).toContain("trpc.displayLookbook.approve.useMutation");
     expect(manager).toContain("trpc.displayLookbook.remove.useMutation");
     expect(manager).toContain("trpc.displayLookbook.progress.useQuery");
     expect(manager).toContain("progress?.percent");
-    expect(manager).toContain('"상의"');
-    expect(manager).toContain('"하의"');
-    expect(manager).toContain('"외투"');
-    expect(manager).toContain('"원피스"');
+    expect(manager).toContain("상의 + 하의");
+    expect(manager).toContain("외투");
+    expect(manager).toContain("원피스");
   });
 
   it("alternates the original product image with approved AI images in showroom mode", () => {

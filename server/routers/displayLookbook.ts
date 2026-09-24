@@ -15,10 +15,13 @@ const sceneTypes = [
 ];
 const generateInput = z.object({ productId: z.number().int().positive() });
 const generateBatchInput = generateInput.extend({ count: z.number().int().min(1).max(10).default(10) });
+const generateOutfitInput = z.object({ productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3) });
+const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress"]).default("separates") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
 type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
 const progressByProduct = new Map<number, LookbookProgress>();
 
+type OutfitGroup = "top" | "bottom" | "outer" | "dress" | "other";
 function productImage(product: any) { return product.imageViews?.front?.studioCut || product.imageViews?.front?.original || product.imageUrl; }
 function publicOrigin(req: { headers: Record<string, string | string[] | undefined>; protocol?: string }) {
   const forwardedHost = req.headers["x-forwarded-host"];
@@ -33,9 +36,39 @@ function absoluteImageUrl(url: string, origin: string | null) {
   if (url.startsWith("/") && origin) return new URL(url, origin).toString();
   throw new Error("PRODUCT_IMAGE_URL_NOT_PUBLIC");
 }
+function outfitGroup(product: any): OutfitGroup {
+  const text = [product.category, product.productType, product.displayCategory?.name, product.displayCategory?.nameKo, product.displayCategory?.nameEn, product.name].filter(Boolean).join(" ").toLowerCase();
+  if (/dress|원피스|连衣裙/.test(text)) return "dress";
+  if (/outer|coat|jacket|cardigan|외투|아우터|코트|재킷|자켓|外套/.test(text)) return "outer";
+  if (/bottom|skirt|pants|하의|치마|바지|裙|裤/.test(text)) return "bottom";
+  if (/top|shirt|blouse|상의|나시|티셔츠|셔츠|上衣|衬衫/.test(text)) return "top";
+  return "other";
+}
+function randomItem<T>(items: T[]) { return items[Math.floor(Math.random() * items.length)]; }
+function makeOutfitPlan(products: any[], mode: "separates" | "dress") {
+  const groups = new Map<OutfitGroup, any[]>();
+  for (const product of products) {
+    const group = outfitGroup(product);
+    groups.set(group, [...(groups.get(group) ?? []), product]);
+  }
+  const dress = randomItem(groups.get("dress") ?? []);
+  if (mode === "dress" || (!groups.get("top")?.length || !groups.get("bottom")?.length)) {
+    if (!dress) throw new Error("OUTFIT_DRESS_REQUIRED");
+    const outer = groups.get("outer")?.length && Math.random() > 0.45 ? randomItem(groups.get("outer")!) : null;
+    return [dress, ...(outer ? [outer] : [])];
+  }
+  const pieces = [randomItem(groups.get("top")!), randomItem(groups.get("bottom")!)];
+  if (groups.get("outer")?.length && Math.random() > 0.45) pieces.push(randomItem(groups.get("outer")!));
+  return pieces;
+}
+function outfitLabel(products: any[]) { return products.map((product) => product.name || product.nameKo || product.nameEn || `#${product.id}`).join(" + "); }
 function buildPrompt(product: any, sceneDescription: string, index: number) {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
   return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
+}
+function buildOutfitPrompt(products: any[], sceneDescription: string, index: number) {
+  const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
 }
 
 async function generateBatch(productId: number, requestedCount: number, origin: string | null) {
@@ -77,7 +110,51 @@ async function generateBatch(productId: number, requestedCount: number, origin: 
   return { batchId, productId, generated: rows.length, requested: requestedCount, durationMs: Date.now() - startedAt, images: rows };
 }
 
+async function generateOutfitBatch(productIds: number[], requestedCount: number, origin: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("DATABASE_UNAVAILABLE");
+  const catalog = await getCatalog();
+  const products = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
+  if (products.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
+  const sources = products.map((product) => productImage(product)).filter(Boolean).map((url) => absoluteImageUrl(url, origin));
+  if (sources.length !== products.length) throw new Error("PRODUCT_IMAGE_REQUIRED");
+  const anchor = products[0];
+  const batchId = `LOOKBOOK_OUTFIT_${anchor.id}_${crypto.randomUUID()}`;
+  const label = outfitLabel(products);
+  progressByProduct.set(anchor.id, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
+  const rows: Array<{ productId: number; compositionProductIds: number[]; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
+  for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
+    const scene = sceneTypes[index % sceneTypes.length];
+    try {
+      const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
+      if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
+      rows.push({ productId: anchor.id, compositionProductIds: productIds, compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
+    } catch (error) {
+      const lastError = error instanceof Error ? error.message : String(error);
+      const current = progressByProduct.get(anchor.id)!;
+      console.error(`[display-lookbook] outfit shot ${index + 1} failed for ${label}: ${lastError}`);
+      progressByProduct.set(anchor.id, { ...current, lastError, failed: current.failed + 1, completed: current.completed + 1, percent: Math.round(((current.completed + 1) / current.total) * 100) });
+      continue;
+    }
+    const current = progressByProduct.get(anchor.id)!;
+    progressByProduct.set(anchor.id, { ...current, completed: current.completed + 1, percent: Math.round(((current.completed + 1) / current.total) * 100) });
+  }
+  if (rows.length) {
+    await db.insert(displayLookbookImages).values(rows);
+    await db.update(displayLookbookImages).set({ isActive: 0, isApproved: 0 }).where(and(eq(displayLookbookImages.productId, anchor.id), ne(displayLookbookImages.batchId, batchId)));
+  }
+  const current = progressByProduct.get(anchor.id)!;
+  progressByProduct.set(anchor.id, { ...current, status: rows.length ? "completed" : "failed", percent: 100 });
+  if (!rows.length) throw new Error(current.lastError || "ALL_LOOKBOOK_IMAGES_FAILED");
+  return { batchId, productId: anchor.id, productIds, generated: rows.length, requested: requestedCount, label, images: rows };
+}
+
 export const displayLookbookRouter = router({
+  randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {
+    const catalog = await getCatalog();
+    const selected = makeOutfitPlan(catalog.products, input.mode);
+    return { productIds: selected.map((product) => product.id), label: outfitLabel(selected), groups: selected.map((product) => outfitGroup(product)) };
+  }),
   approvedAll: storeDisplayProcedure.query(async () => {
     const db = await getDb();
     if (!db) return [];
@@ -95,9 +172,10 @@ export const displayLookbookRouter = router({
     return db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.productId, input.productId), eq(displayLookbookImages.isActive, 1))).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.shotIndex);
   }),
   generateBatch: ownerProcedure.input(generateBatchInput).mutation(async ({ ctx, input }) => generateBatch(input.productId, input.count, publicOrigin(ctx.req))),
+  generateOutfitBatch: ownerProcedure.input(generateOutfitInput).mutation(async ({ ctx, input }) => generateOutfitBatch(input.productIds, input.count, publicOrigin(ctx.req))),
   approve: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 1 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   revoke: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   remove: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isActive: 0, isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
 });
 
-export { buildPrompt };
+export { buildPrompt, buildOutfitPrompt, makeOutfitPlan, outfitGroup };

@@ -434,6 +434,8 @@ export const generationLogs = mysqlTable("generationLogs", {
 export const displayLookbookImages = mysqlTable("displayLookbookImages", {
   id: int("id").autoincrement().primaryKey(),
   productId: int("productId").notNull().references(() => products.id),
+  compositionProductIds: json("compositionProductIds").$type<number[] | null>(),
+  compositionLabel: varchar("compositionLabel", { length: 300 }),
   batchId: varchar("batchId", { length: 96 }).notNull(),
   shotIndex: int("shotIndex").notNull(),
   sceneType: mysqlEnum("sceneType", ["studio_front", "studio_side", "studio_full", "store_work", "store_customer", "store_walk"]).notNull(),

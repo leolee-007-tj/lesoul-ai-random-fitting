@@ -428,6 +428,13 @@
       "when": 1790129924828,
       "tag": "0060_groovy_grey_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "5",
+      "when": 1790265977778,
+      "tag": "0061_fixed_firestar",
+      "breakpoints": true
     }
   ]
 }
