@@ -9,7 +9,9 @@ describe("store display AI lookbook", () => {
   it("stores ten product-scoped shots in a feature folder and gates display reads", () => {
     expect(schema).toContain('displayLookbookImages = mysqlTable("displayLookbookImages"');
     expect(schema).toContain('sceneType: mysqlEnum("sceneType"');
-    expect(router).toContain("Array.from({ length: 10 }");
+    expect(router).toContain("generateBatchInput");
+    expect(router).toContain("max(10)");
+    expect(router).toContain("requestedCount");
     expect(router).toContain("display-lookbook/products/${productId}/${batchId}");
     expect(router).toContain("approvedAll: storeDisplayProcedure");
     expect(router).toContain("generateBatch: ownerProcedure");

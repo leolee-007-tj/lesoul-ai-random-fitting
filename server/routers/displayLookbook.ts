@@ -14,6 +14,7 @@ const sceneTypes = [
   { type: "store_walk" as const, description: "a natural Dongdaemun boutique employee walking through a small clothing store while wearing the garment" },
 ];
 const generateInput = z.object({ productId: z.number().int().positive() });
+const generateBatchInput = generateInput.extend({ count: z.number().int().min(1).max(10).default(10) });
 const imageIdInput = z.object({ id: z.number().int().positive() });
 type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
 const progressByProduct = new Map<number, LookbookProgress>();
@@ -24,7 +25,7 @@ function buildPrompt(product: any, sceneDescription: string, index: number) {
   return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
 
-async function generateBatch(productId: number) {
+async function generateBatch(productId: number, requestedCount: number) {
   const db = await getDb();
   if (!db) throw new Error("DATABASE_UNAVAILABLE");
   const catalog = await getCatalog();
@@ -34,9 +35,9 @@ async function generateBatch(productId: number) {
   if (!originalUrl) throw new Error("PRODUCT_IMAGE_REQUIRED");
   const batchId = `LOOKBOOK_${productId}_${crypto.randomUUID()}`;
   const startedAt = Date.now();
-  progressByProduct.set(productId, { status: "generating", completed: 0, failed: 0, total: 10, percent: 0, batchId });
+  progressByProduct.set(productId, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
   const rows: Array<{ productId: number; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
-  for (const index of Array.from({ length: 10 }, (_, value) => value)) {
+  for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
     const scene = sceneTypes[index % sceneTypes.length];
     try {
       const result = await generateImage({ prompt: buildPrompt(product, scene.description, index), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
@@ -59,7 +60,7 @@ async function generateBatch(productId: number) {
   const current = progressByProduct.get(productId)!;
   progressByProduct.set(productId, { ...current, status: rows.length ? "completed" : "failed", percent: 100 });
   if (!rows.length) throw new Error(current.lastError || "ALL_LOOKBOOK_IMAGES_FAILED");
-  return { batchId, productId, generated: rows.length, requested: 10, durationMs: Date.now() - startedAt, images: rows };
+  return { batchId, productId, generated: rows.length, requested: requestedCount, durationMs: Date.now() - startedAt, images: rows };
 }
 
 export const displayLookbookRouter = router({
@@ -79,7 +80,7 @@ export const displayLookbookRouter = router({
     if (!db) return [];
     return db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.productId, input.productId), eq(displayLookbookImages.isActive, 1))).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.shotIndex);
   }),
-  generateBatch: ownerProcedure.input(generateInput).mutation(async ({ input }) => generateBatch(input.productId)),
+  generateBatch: ownerProcedure.input(generateBatchInput).mutation(async ({ input }) => generateBatch(input.productId, input.count)),
   approve: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 1 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   revoke: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   remove: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isActive: 0, isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),

@@ -7,7 +7,8 @@ const display = readFileSync(new URL("../pages/StoreDisplayCatalog.tsx", import.
 describe("display AI lookbook UI", () => {
   it("exposes owner generation and approval controls", () => {
     expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
-    expect(manager).toContain("Generate 10");
+    expect(manager).toContain("count");
+    expect(manager).toContain("generate.mutate({ productId, count })");
     expect(manager).toContain("trpc.displayLookbook.approve.useMutation");
     expect(manager).toContain("trpc.displayLookbook.remove.useMutation");
     expect(manager).toContain("trpc.displayLookbook.progress.useQuery");
