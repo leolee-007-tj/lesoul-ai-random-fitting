@@ -17,6 +17,7 @@ describe("store display AI lookbook", () => {
     expect(router).toContain('status: "generating"');
     expect(router).toContain("percent: Math.round");
     expect(router).toContain("await generateImage");
+    expect(router).toContain("product.imageViews?.front?.studioCut");
   });
 
   it("keeps generated images pending until the owner approves them", () => {

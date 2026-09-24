@@ -15,10 +15,10 @@ const sceneTypes = [
 ];
 const generateInput = z.object({ productId: z.number().int().positive() });
 const imageIdInput = z.object({ id: z.number().int().positive() });
-type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string };
+type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
 const progressByProduct = new Map<number, LookbookProgress>();
 
-function productImage(product: any) { return product.imageViews?.front?.original || product.imageUrl; }
+function productImage(product: any) { return product.imageViews?.front?.studioCut || product.imageViews?.front?.original || product.imageUrl; }
 function buildPrompt(product: any, sceneDescription: string, index: number) {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
   return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
@@ -42,9 +42,11 @@ async function generateBatch(productId: number) {
       const result = await generateImage({ prompt: buildPrompt(product, scene.description, index), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
       rows.push({ productId, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
-    } catch {
+    } catch (error) {
+      const lastError = error instanceof Error ? error.message : String(error);
       const current = progressByProduct.get(productId)!;
-      progressByProduct.set(productId, { ...current, failed: current.failed + 1, completed: current.completed + 1, percent: Math.round(((current.completed + 1) / current.total) * 100) });
+      console.error(`[display-lookbook] shot ${index + 1} failed for product ${productId}: ${lastError}`);
+      progressByProduct.set(productId, { ...current, lastError, failed: current.failed + 1, completed: current.completed + 1, percent: Math.round(((current.completed + 1) / current.total) * 100) });
       continue;
     }
     const current = progressByProduct.get(productId)!;
@@ -56,6 +58,7 @@ async function generateBatch(productId: number) {
   }
   const current = progressByProduct.get(productId)!;
   progressByProduct.set(productId, { ...current, status: rows.length ? "completed" : "failed", percent: 100 });
+  if (!rows.length) throw new Error(current.lastError || "ALL_LOOKBOOK_IMAGES_FAILED");
   return { batchId, productId, generated: rows.length, requested: 10, durationMs: Date.now() - startedAt, images: rows };
 }
 
@@ -70,7 +73,7 @@ export const displayLookbookRouter = router({
     if (!db) return [];
     return db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.productId, input.productId), eq(displayLookbookImages.isApproved, 1), eq(displayLookbookImages.isActive, 1))).orderBy(displayLookbookImages.shotIndex);
   }),
-  progress: ownerProcedure.input(generateInput).query(({ input }) => progressByProduct.get(input.productId) ?? { status: "idle", completed: 0, failed: 0, total: 10, percent: 0 }),
+  progress: ownerProcedure.input(generateInput).query(({ input }) => progressByProduct.get(input.productId) ?? { status: "idle" as const, completed: 0, failed: 0, total: 10, percent: 0, lastError: undefined as string | undefined }),
   adminList: ownerProcedure.input(generateInput).query(async ({ input }) => {
     const db = await getDb();
     if (!db) return [];
