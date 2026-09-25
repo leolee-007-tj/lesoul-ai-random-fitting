@@ -8,7 +8,9 @@ describe("display AI lookbook UI", () => {
   it("exposes owner generation and approval controls", () => {
     expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
     expect(manager).toContain("count");
-    expect(manager).toContain("generate.mutate({ productId, count })");
+    expect(manager).toContain("generate.mutate({ productId, count, presentationStyle })");
+    expect(manager).toContain("korean_staff");
+    expect(manager).toContain("western_model");
     expect(manager).toContain("randomOutfitPlan");
     expect(manager).toContain("generateOutfitBatch");
     expect(manager).toContain("상의 + 하의 (+ 외투)");
@@ -28,5 +30,9 @@ describe("display AI lookbook UI", () => {
     expect(display).toContain("showcaseSlidesFor");
     expect(display).toContain("AI LOOKBOOK");
     expect(display).toContain("showcaseSlide?.isAi");
+    expect(display).toContain('type ShowcaseViewMode = "mixed" | "product" | "model"');
+    expect(display).toContain("copy.productMode");
+    expect(display).toContain("copy.modelMode");
+    expect(display).toContain("showcaseViewMode === \"product\"");
   });
 });
