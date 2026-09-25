@@ -36,6 +36,16 @@ describe("store display catalog redesign", () => {
     expect(display).toContain("lesoul-display-card");
   });
 
+  it("places approved AI model photos in a horizontal row above store products", () => {
+    expect(display).toContain("DisplayAiLookbookRow");
+    expect(display).toContain("visibleAiLookbook");
+    expect(display).toContain("aiLookbook");
+    expect(display).toContain("aiComposition");
+    expect(display).toContain("compositionLabel");
+    expect(display).toContain("lesoul-display-row");
+    expect(display).toContain("object-contain");
+  });
+
   it("enlarges the selected card and reveals its price after a tap", () => {
     expect(display).toContain('data-selected={selectedIndex === index ? "true" : "false"}');
     expect(display).toContain("scale-[1.025]");
