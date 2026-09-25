@@ -17,7 +17,7 @@ const presentationStyleInput = z.enum(["korean_staff", "western_model"]).default
 const generateInput = z.object({ productId: z.number().int().positive() });
 const generateBatchInput = generateInput.extend({ presentationStyle: presentationStyleInput, count: z.number().int().min(1).max(10).default(10) });
 const generateOutfitInput = z.object({ presentationStyle: presentationStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3) });
-const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress"]).default("separates") });
+const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
 type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
 const progressByProduct = new Map<number, LookbookProgress>();
@@ -46,20 +46,22 @@ function outfitGroup(product: any): OutfitGroup {
   return "other";
 }
 function randomItem<T>(items: T[]) { return items[Math.floor(Math.random() * items.length)]; }
-function makeOutfitPlan(products: any[], mode: "separates" | "dress") {
+function makeOutfitPlan(products: any[], mode: "separates" | "dress" | "top" | "bottom" | "outer" | "top_bottom" | "top_outer" | "bottom_outer" | "top_bottom_outer" | "dress_outer") {
   const groups = new Map<OutfitGroup, any[]>();
   for (const product of products) {
     const group = outfitGroup(product);
     groups.set(group, [...(groups.get(group) ?? []), product]);
   }
-  const dress = randomItem(groups.get("dress") ?? []);
-  if (mode === "dress" || (!groups.get("top")?.length || !groups.get("bottom")?.length)) {
+  const normalizedMode = mode === "separates" ? "top_bottom_outer" : mode;
+  if (normalizedMode === "dress" || normalizedMode === "dress_outer") {
+    const dress = randomItem(groups.get("dress") ?? []);
     if (!dress) throw new Error("OUTFIT_DRESS_REQUIRED");
-    const outer = groups.get("outer")?.length && Math.random() > 0.45 ? randomItem(groups.get("outer")!) : null;
+    const outer = normalizedMode === "dress_outer" ? randomItem(groups.get("outer") ?? []) : null;
+    if (normalizedMode === "dress_outer" && !outer) throw new Error("OUTFIT_OUTER_REQUIRED");
     return [dress, ...(outer ? [outer] : [])];
   }
-  const pieces = [randomItem(groups.get("top")!), randomItem(groups.get("bottom")!)];
-  if (groups.get("outer")?.length && Math.random() > 0.45) pieces.push(randomItem(groups.get("outer")!));
+  const required = normalizedMode.split("_");
+  const pieces = required.map((group) => { const items = groups.get(group as OutfitGroup) ?? []; if (!items.length) throw new Error(`OUTFIT_${group.toUpperCase()}_REQUIRED`); return randomItem(items); });
   return pieces;
 }
 function outfitLabel(products: any[]) { return products.map((product) => product.name || product.nameKo || product.nameEn || `#${product.id}`).join(" + "); }
@@ -169,6 +171,11 @@ export const displayLookbookRouter = router({
     return db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.productId, input.productId), eq(displayLookbookImages.isApproved, 1), eq(displayLookbookImages.isActive, 1))).orderBy(displayLookbookImages.shotIndex);
   }),
   progress: ownerProcedure.input(generateInput).query(({ input }) => progressByProduct.get(input.productId) ?? { status: "idle" as const, completed: 0, failed: 0, total: 10, percent: 0, lastError: undefined as string | undefined }),
+  adminListAll: ownerProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return db.select().from(displayLookbookImages).where(eq(displayLookbookImages.isActive, 1)).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.productId, displayLookbookImages.shotIndex);
+  }),
   adminList: ownerProcedure.input(generateInput).query(async ({ input }) => {
     const db = await getDb();
     if (!db) return [];

@@ -30,6 +30,20 @@ const setComponentInput = z.object({
 
 const priceTagOcrInput = z.object({ dataUrl: z.string().regex(/^data:image\/(?:jpeg|png|webp);base64,/, "Only JPEG, PNG, or WebP images are supported.").max(12_000_000) });
 
+async function translateProductFields(name: string, description: string) {
+  const response = await invokeLLM({
+    messages: [
+      { role: "system", content: "You are a professional fashion-commerce localization service. Detect the source language and translate the product name and description into natural English, Korean, and Simplified Chinese. Preserve brand names, garment terms, measurements, prices, and factual meaning. Do not invent claims. Return only JSON." },
+      { role: "user", content: JSON.stringify({ name, description }) },
+    ],
+    response_format: { type: "json_schema", json_schema: { name: "product_localization", strict: true, schema: { type: "object", properties: { nameEn: { type: "string" }, nameKo: { type: "string" }, nameZh: { type: "string" }, descriptionEn: { type: "string" }, descriptionKo: { type: "string" }, descriptionZh: { type: "string" } }, required: ["nameEn", "nameKo", "nameZh", "descriptionEn", "descriptionKo", "descriptionZh"], additionalProperties: false } } },
+  });
+  const content = response.choices?.[0]?.message?.content;
+  if (typeof content !== "string") throw new Error("Translation response was empty.");
+  const translated = JSON.parse(content) as Record<string, string>;
+  return Object.fromEntries(Object.entries(translated).map(([key, value]) => [key, value.trim()])) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
+}
+
 const productInput = z.object({
   name: z.string().min(1).max(160),
   nameEn: z.string().max(160).nullable().optional(),
@@ -252,21 +266,7 @@ ${referenceText}` },
     const translated = JSON.parse(content) as { sourceLanguage: "en" | "ko" | "zh"; titleEn: string; titleKo: string; titleZh: string; bodyEn: string; bodyKo: string; bodyZh: string };
     return { sourceLanguage: translated.sourceLanguage, titleEn: translated.titleEn.trim(), titleKo: translated.titleKo.trim(), titleZh: translated.titleZh.trim(), bodyEn: translated.bodyEn.trim(), bodyKo: translated.bodyKo.trim(), bodyZh: translated.bodyZh.trim() };
   }),
-  translateProduct: ownerProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => {
-    const response = await invokeLLM({
-      messages: [
-        { role: "system", content: "You are a professional fashion-commerce translator. Translate the supplied product name and description into English, Korean, and Simplified Chinese. Preserve brand names, material names, garment category, tone, and factual meaning. Return only the requested JSON object." },
-        { role: "user", content: JSON.stringify(input) },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "localized_product", strict: true, schema: { type: "object", properties: { nameEn: { type: "string" }, nameKo: { type: "string" }, nameZh: { type: "string" }, descriptionEn: { type: "string" }, descriptionKo: { type: "string" }, descriptionZh: { type: "string" } }, required: ["nameEn", "nameKo", "nameZh", "descriptionEn", "descriptionKo", "descriptionZh"], additionalProperties: false } },
-      },
-    });
-    const content = response.choices?.[0]?.message?.content;
-    if (typeof content !== "string") throw new Error("Translation response was empty.");
-    return JSON.parse(content) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
-  }),
+  translateProduct: ownerProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => translateProductFields(input.name, input.description)),
   translatePurchaseNotice: ownerProcedure.input(z.object({ noticeKo: z.string().trim().min(1).max(1200) })).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [
@@ -318,13 +318,29 @@ ${referenceText}` },
     const translated = JSON.parse(content) as { nameEn: string; nameZh: string };
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
   }),
+  backfillProductTranslations: ownerProcedure.input(z.object({ limit: z.number().int().min(1).max(50).optional() }).optional()).mutation(async ({ input }) => {
+    const products = (await getCatalog()).products.filter((product: any) => !product.nameEn || !product.nameKo || !product.nameZh || !product.descriptionEn || !product.descriptionKo || !product.descriptionZh).slice(0, input?.limit ?? 20);
+    let translated = 0;
+    let failed = 0;
+    for (const product of products) {
+      try {
+        const fields = await translateProductFields(product.name, product.description || product.name);
+        await updateAdminProduct(product.id, fields);
+        translated += 1;
+      } catch { failed += 1; }
+    }
+    return { translated, failed, processed: products.length, hasMore: products.length === (input?.limit ?? 20) };
+  }),
   createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
-    const availabilityStatus = normaliseAvailabilityStatus(input.availabilityStatus, input.status);
+    let translatedFields: Record<string, string> = {};
+    try { translatedFields = await translateProductFields(input.name, input.description); } catch { /* Keep the owner's source text if localization is temporarily unavailable. */ }
+    const inputWithTranslations = { ...input, ...translatedFields };
+    const availabilityStatus = normaliseAvailabilityStatus(inputWithTranslations.availabilityStatus, inputWithTranslations.status);
     const inventoryQuantity = availabilityStatus === "SOLD_OUT" ? 0 : input.inventoryQuantity ?? 1;
-    const { productType: _productType, setComponents: _setComponents, ...productInputFields } = input;
-    const setFields = resolveSetFields(input);
-    const representativeCategory = setFields.productType === "SET" ? representativeSetCategory(setFields.setComponents, input.category) : input.category;
-    const categoryLink = await resolveDisplayCategoryId(input.displayCategoryId, representativeCategory);
+    const { productType: _productType, setComponents: _setComponents, ...productInputFields } = inputWithTranslations;
+    const setFields = resolveSetFields(inputWithTranslations);
+    const representativeCategory = setFields.productType === "SET" ? representativeSetCategory(setFields.setComponents, inputWithTranslations.category) : inputWithTranslations.category;
+    const categoryLink = await resolveDisplayCategoryId(inputWithTranslations.displayCategoryId, representativeCategory);
     const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
     const sale = resolveSaleFields({ ...productInputFields, ...setFields });
     await createAdminProduct({ ...productInputFields, ...setFields, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), inventoryQuantity, isActive: input.isActive ?? 1, availabilityStatus, vipEarlyAccess: input.vipEarlyAccess ?? 0, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
@@ -340,7 +356,11 @@ ${referenceText}` },
     const availabilityStatus = shouldBeSoldOut ? "SOLD_OUT" as const : updates.availabilityStatus ? normaliseAvailabilityStatus(updates.availabilityStatus, updates.status) : undefined;
     const inventoryQuantity = shouldBeSoldOut ? 0 : hasInventoryUpdate ? requestedInventory : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
-    const { productType: _productType, setComponents: _setComponents, ...productUpdates } = updates;
+    let translationUpdates: Record<string, string> = {};
+    const needsTranslation = Boolean(updates.name || updates.description || !existing.nameEn || !existing.nameKo || !existing.nameZh || !existing.descriptionEn || !existing.descriptionKo || !existing.descriptionZh);
+    if (needsTranslation) { try { translationUpdates = await translateProductFields(updates.name ?? existing.name, updates.description ?? existing.description ?? existing.name); } catch { /* Keep existing localized content if localization is temporarily unavailable. */ } }
+    const { productType: _productType, setComponents: _setComponents, ...productUpdatesRaw } = updates;
+    const productUpdates = { ...productUpdatesRaw, ...translationUpdates };
     const setFields = resolveSetFields(updates, existing);
     const representativeCategory = setFields.productType === "SET" && setFields.setComponents ? representativeSetCategory(setFields.setComponents, updates.category ?? existing.category) : updates.category ?? existing.category;
     const refreshSetRepresentative = setFields.productType === "SET" && Boolean(setFields.setComponents);

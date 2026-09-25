@@ -61,7 +61,7 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html, body, #root { width: 100%; min-height: 100%; min-height: 100dvh; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; }
+  html, body, #root { touch-action: pan-y; width: 100%; min-height: 100%; min-height: 100dvh; margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; }
   #root { overflow: visible; }
   body { @apply bg-background text-foreground antialiased; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "PingFang TC", "Noto Sans CJK KR", "Noto Sans CJK SC", sans-serif; letter-spacing: -0.015em; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
   html[lang^="en"] body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
@@ -86,7 +86,7 @@
 @media (hover: none) and (pointer: coarse) { html, body { min-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; } }
 .lesoul-mobile-header { position: sticky; top: 0; z-index: 30; background: rgba(248,247,244,.92); backdrop-filter: blur(14px); padding-top: var(--safe-area-top); }
 .lesoul-mobile-header header { min-height: 56px; padding-top: .75rem; padding-bottom: .75rem; }
-.lesoul-mobile-content { width: 100%; min-height: 0; overflow: visible; overscroll-behavior: auto; padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
+.lesoul-mobile-content { touch-action: pan-y; width: 100%; min-height: 0; overflow: visible; overscroll-behavior: auto; padding-bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); }
 .lesoul-mobile-screen:has(.lesoul-action-dock) .lesoul-mobile-content { padding-bottom: calc(var(--mobile-nav-height) + var(--mobile-action-height) + var(--safe-area-bottom)); }
 .lesoul-action-dock { position: fixed; z-index: 30; right: var(--safe-area-right); bottom: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); left: var(--safe-area-left); min-height: var(--mobile-action-height); border-top: 1px solid #e5e0d8; background: rgba(255,255,255,.96); padding: .65rem 1rem; backdrop-filter: blur(14px); transition: bottom .18s ease-out; }
 .lesoul-bottom-nav { position: fixed; z-index: 40; right: 0; bottom: 0; left: 0; min-height: calc(var(--mobile-nav-height) + var(--safe-area-bottom)); border-top: 1px solid #e5e0d8; background: rgba(255,255,255,.96); padding-bottom: var(--safe-area-bottom); backdrop-filter: blur(14px); }
@@ -95,8 +95,8 @@
   .lesoul-safe-modal { position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; background: rgba(0,0,0,.32); padding: calc(var(--safe-area-top) + .75rem) calc(var(--safe-area-right) + .75rem) calc(var(--safe-area-bottom) + .75rem) calc(var(--safe-area-left) + .75rem); backdrop-filter: blur(14px); }
   .lesoul-safe-modal > * { margin-top: 0; margin-bottom: 0; touch-action: pan-y; }
   .lesoul-display-page { touch-action: pan-y; overscroll-behavior-y: auto; }
-  .lesoul-display-row { display: flex; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: none !important; scroll-behavior: auto !important; touch-action: pan-x pan-y; user-select: none; -webkit-user-select: none; scrollbar-width: thin; padding-bottom: .75rem; }
-  .lesoul-display-row > * { touch-action: pan-x pan-y; }
+  .lesoul-display-row { display: flex; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: none !important; scroll-behavior: auto !important; touch-action: pan-x; user-select: none; -webkit-user-select: none; scrollbar-width: thin; padding-bottom: .75rem; }
+  .lesoul-display-row > * { touch-action: pan-x; }
   .lesoul-display-row > * { scroll-snap-align: start; }
   @media (min-width: 744px) { .lesoul-display-row { scroll-padding-inline: .5rem; gap: 1rem; } .lesoul-display-row > * { min-width: min(36vw, 360px); } }
   @media (prefers-reduced-motion: reduce) { .lesoul-display-row { scroll-behavior: auto; } }
