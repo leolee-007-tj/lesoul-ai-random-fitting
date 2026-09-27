@@ -14,10 +14,12 @@ describe("display lookbook gallery and touch scroll", () => {
     expect(manager).toContain("visibleRows.map");
   });
 
-  it("uses direct vertical touch handling and horizontal-only product rows", () => {
+  it("keeps vertical page scrolling natural while allowing horizontal product rows", () => {
     expect(css).toContain("html, body, #root { touch-action: pan-y;");
     expect(css).toContain(".lesoul-mobile-content { touch-action: pan-y;");
     expect(css).toContain(".lesoul-display-row");
-    expect(css).toContain("touch-action: pan-x;");
+    expect(css).toContain("overflow-y: visible;");
+    expect(css).toContain("touch-action: auto;");
+    expect(css).toContain("scroll-snap-type: x proximity;");
   });
 });
