@@ -23,5 +23,8 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain("selectStandard");
     expect(admin).toContain("selectSafety");
     expect(admin).toContain("selectGrade");
+    expect(admin).toContain("editStructuredText");
+    expect(admin).not.toContain('["lining", "里料 / Lining"]');
+    expect(admin).not.toContain('["filling", "填充物 / Filling"]');
   });
 });
