@@ -123,6 +123,54 @@ export const products = mysqlTable("products", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Immutable-ID Care Labels catalog imported from the attached 384-product source. Raw values live in JSON so no Chinese text is reclassified or normalized. */
+export const careLabelProducts = mysqlTable("careLabelProducts", {
+  id: varchar("id", { length: 16 }).primaryKey(),
+  data: json("data").notNull().$type<import("../shared/careLabels").CareLabelData>(),
+  revision: int("revision").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Administrator-managed care symbol metadata; SVG, PNG, JPG, or WebP URLs are stored in object storage. */
+export const careLabelSymbols = mysqlTable("careLabelSymbols", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 64 }).notNull().unique(),
+  nameZh: varchar("nameZh", { length: 160 }).notNull(),
+  descriptionZh: text("descriptionZh").notNull(),
+  imageUrl: text("imageUrl"),
+  sortOrder: int("sortOrder").default(100).notNull(),
+  isActive: int("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Ordered symbol selection for each stable product ID. */
+export const careLabelProductSymbols = mysqlTable("careLabelProductSymbols", {
+  productId: varchar("productId", { length: 16 }).notNull().references(() => careLabelProducts.id),
+  symbolId: int("symbolId").notNull().references(() => careLabelSymbols.id),
+  sortOrder: int("sortOrder").default(1).notNull(),
+}, (table) => ({
+  primaryKey: uniqueIndex("careLabelProductSymbols_product_symbol_idx").on(table.productId, table.symbolId),
+}));
+
+/** One public WeChat QR setting for the Care Labels catalog. */
+export const careLabelSettings = mysqlTable("careLabelSettings", {
+  id: int("id").primaryKey(),
+  wechatQrUrl: text("wechatQrUrl"),
+  revision: int("revision").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Optional local-latest price work, isolated from every public Care Labels response. */
+export const careLabelPrivatePrices = mysqlTable("careLabelPrivatePrices", {
+  id: varchar("id", { length: 16 }).primaryKey(),
+  amount: varchar("amount", { length: 32 }).notNull().default(""),
+  currency: mysqlEnum("currency", ["CNY", "KRW"]).default("CNY").notNull(),
+  revision: int("revision").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const poses = mysqlTable("poses", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 80 }).notNull().unique(),

@@ -119,3 +119,53 @@ Manus WebDev 프로젝트에서는 변경 후 체크포인트를 저장하면 �
 [1]: https://cloud.tencent.com/product/domain "腾讯云域名产品页"
 [2]: https://buy.cloud.tencent.com/domain/ "腾讯云中国大陆域名注册页"
 [3]: https://www.tencentcloud.com/document/product/242/42861 "Tencent Cloud Registration Guide"
+
+---
+
+## 11. Care Labels 통합 추가 인계 (2026-09-28)
+
+### 통합 구조
+
+- `client/src/pages/CareLabelCatalog.tsx`: Care Labels 목록과 공개 상품 상세
+- `client/src/pages/CareLabelAdmin.tsx`: 기존 `/operations` 관리자 인증 안에서 실행되는 편집 화면
+- `client/src/pages/CareLabelPrint.tsx`: 384개 중국어 QR 카드 브라우저 인쇄 화면
+- `client/src/components/CareLabelProductQr.tsx`: 상품·관리자·인쇄 공용 최종 URL QR
+- `server/routers/careLabels.ts`: 공개 조회와 owner 전용 저장 API
+- `server/careLabelsDb.ts`: 384개 보존 시드, revision 충돌 방지, 가격·기호·설정 저장
+- `server/careLabelSeed.ts`: 첨부 `products.live.json`의 384개 값을 변경 없이 포함
+- `scripts/generate-care-label-qr.py`: 384개 PNG/SVG·XLSX·Typst PDF 소스 생성
+
+### 주요 경로
+
+- 공개 목록: `/care-labels`
+- 고정 상품 URL: `/product/LS-0001` ~ `/product/LS-0384`
+- 기존 관리자: `/operations`
+- Care Labels 관리자: `/care-labels/admin`
+- QR 인쇄: `/care-labels/print`
+
+### 저장 구조
+
+| 테이블 | 용도 |
+|---|---|
+| `careLabelProducts` | 고정 ID, 중국어 원본+편집 JSON, revision |
+| `careLabelPrivatePrices` | 관리자 전용 가격; 공개 응답에서 제외 |
+| `careLabelSymbols` | 기호별 중국어 이름·설명·이미지·순서 |
+| `careLabelProductSymbols` | 상품별 선택 기호와 표시 순서 |
+| `careLabelSettings` | 공개 상단 위챗 QR |
+
+첫 조회에서는 누락된 원본 ID만 추가하며 이미 편집된 DB 행을 덮어쓰지 않습니다. 업로드된 PNG/JPG/WebP 및 안전 검사된 SVG는 Manus 영구 스토리지에 저장하고 DB에는 `/manus-storage/` URL만 보관합니다. 관리자 가격은 public `catalog`와 `product` API에 포함하지 않습니다.
+
+### 최종 QR 정책
+
+- 최종 origin: `https://lesoulai-xabhv8qd.manus.space`
+- QR 값: `https://lesoulai-xabhv8qd.manus.space/product/{id}`
+- 상품 정보 수정 후에도 ID·URL·QR 유지
+- QR 카드의 안내 문구는 중국어만 사용
+- 활성 코드·화면·인쇄·다운로드 산출물에 `chatgpt.site`를 사용하지 않음
+- PNG 384개를 전수 역해독해 manifest URL과 384/384 일치 확인
+
+### 검증 및 남은 실기기 항목
+
+서버 DB 조회에서 `LS-0001`~`LS-0384` 384개를 확인했고 공개 응답에 가격이 없으며 관리자 API는 비인증 요청을 403으로 차단합니다. PNG QR 전수 역해독과 PDF 구조 검증을 통과했습니다. 중국 본토 실제 통신망, 실제 iPhone/iPad/WeChat QR 스캔, 실제 프린터 출력은 이 샌드박스에서 수행하지 못했으므로 물리 기기에서 추가 확인해야 합니다.
+
+이미 인쇄된 과거 QR은 자동으로 바뀌지 않습니다. 관리자 화면의 새 ZIP/PDF/XLSX 또는 `/care-labels/print`에서 반드시 재인쇄해야 합니다.

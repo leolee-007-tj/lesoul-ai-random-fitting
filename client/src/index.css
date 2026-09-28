@@ -206,3 +206,13 @@ html[data-keyboard-open="true"] .lesoul-safe-modal { padding-bottom: calc(var(--
   .lesoul-action-dock button { min-height: 44px; padding-top: .55rem; padding-bottom: .55rem; }
   .lesoul-mobile-content { padding-bottom: calc(var(--mobile-nav-height) + var(--mobile-action-height) + var(--safe-area-bottom) + .75rem); }
 }
+
+@media print {
+  @page { size: A4; margin: 8mm; }
+  .care-label-print-controls, .lesoul-mobile-header, .lesoul-bottom-nav { display: none !important; }
+  .care-label-print-page { max-width: none !important; padding: 0 !important; }
+  .care-label-qr-grid { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 3mm !important; margin: 0 !important; }
+  .care-label-qr-card { break-inside: avoid; page-break-inside: avoid; border: .25mm solid #cfc7bd !important; border-radius: 2mm !important; padding: 3mm !important; box-shadow: none !important; }
+  .care-label-qr-card svg { width: 28mm !important; height: 28mm !important; }
+  .care-label-qr-card button { display: none !important; }
+}

@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { clearExplicitLogout, getVisitorId, restoreVisitorId } from "@/lib/visitor";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, KeyRound, LockKeyhole, MonitorPlay, ShieldCheck, Store } from "lucide-react";
+import { ArrowRight, KeyRound, LockKeyhole, MonitorPlay, QrCode, ShieldCheck, Store, X } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 
-type LoginMode = "normal" | "vip" | "trial" | "display" | "admin";
+type LoginMode = "normal" | "vip" | "trial" | "display" | "admin" | "qr";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -21,6 +21,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [qrInfoOpen, setQrInfoOpen] = useState(false);
   const [visitorId] = useState(() => getVisitorId());
   const guestLogin = trpc.auth.guestLogin.useMutation();
   const vipLogin = trpc.auth.vipLogin.useMutation();
@@ -29,6 +30,7 @@ export default function Login() {
   const adminLogin = trpc.auth.adminLogin.useMutation();
   const next = new URLSearchParams(window.location.search).get("next") || "/";
   const displayCopy = i18n.language.startsWith("ko") ? { tab: "매장 디스플레이", body: "매장 화면 전용 계정입니다. 큰 상품 보기와 방문 알림만 사용할 수 있습니다.", submit: "디스플레이 시작", invalid: "디스플레이 ID 또는 비밀번호가 올바르지 않습니다.", inactive: "이 디스플레이 계정은 현재 비활성 상태입니다." } : i18n.language.startsWith("zh") ? { tab: "店铺展示", body: "这是店铺展示专用账户，仅可浏览大图商品和使用到店提醒。", submit: "进入展示模式", invalid: "展示 ID 或密码不正确。", inactive: "此展示账户当前已停用。" } : { tab: "STORE DISPLAY", body: "This store-display account can only browse large products and use the visitor alert.", submit: "START DISPLAY", invalid: "The display ID or password is incorrect.", inactive: "This display account is currently inactive." };
+  const qrCopy = i18n.language.startsWith("ko") ? { tab: "QR 스캔", title: "QR 스캔 안내", body: "현재 사이트를 벗어나지 않고 QR 스캔 방법을 확인할 수 있습니다.", steps: "휴대폰 카메라 또는 WeChat에서 QR을 비추면 상품 케어 라벨, 매장 문의, 고정 상품 링크를 열 수 있습니다. 이 안내 모드에서는 카메라 권한이나 사진을 서버에 저장하지 않습니다.", close: "닫기" } : i18n.language.startsWith("zh") ? { tab: "扫描二维码", title: "扫码说明", body: "无需离开当前网站即可查看扫码方式。", steps: "请使用手机相机或微信扫描二维码，即可打开商品洗标、店铺咨询和固定商品链接。本说明模式不会请求相机权限，也不会上传或保存照片。", close: "关闭" } : { tab: "QR SCAN", title: "QR scan guide", body: "View scanning guidance without leaving this site.", steps: "Use your phone camera or WeChat to scan a QR code and open a product care label, store inquiry, or stable product link. This guide does not request camera access or upload photos.", close: "Close" };
 
   const safeNext = next.startsWith("/") && !next.startsWith("//") && next !== "/login" && !next.startsWith("/login?") ? next : "/";
   const pending = guestLogin.isPending || vipLogin.isPending || trialStoreLogin.isPending || storeDisplayLogin.isPending || adminLogin.isPending;
@@ -91,7 +93,7 @@ export default function Login() {
   }
 
   const setLoginMode = (nextMode: LoginMode) => { setMode(nextMode); setMessage(""); };
-  const credentialMode = mode !== "normal";
+  const credentialMode = mode !== "normal" && mode !== "qr";
   const credentialIcon = mode === "vip" ? <KeyRound size={16} className="text-[#413b34]" /> : mode === "trial" ? <Store size={16} className="text-[#413b34]" /> : mode === "display" ? <MonitorPlay size={16} className="text-[#413b34]" /> : <ShieldCheck size={16} className="text-[#413b34]" />;
   const credentialBody = mode === "vip" ? t("auth.vipBody") : mode === "trial" ? t("auth.trialBody") : mode === "display" ? displayCopy.body : t("auth.adminBody");
   const credentialSubmit = mode === "vip" ? t("auth.vipSubmit") : mode === "trial" ? t("auth.trialSubmit") : mode === "display" ? displayCopy.submit : t("auth.adminSubmit");
@@ -104,8 +106,9 @@ export default function Login() {
         <h1 className="mt-2 font-serif text-4xl text-[#201c18]">{t("auth.title")}</h1>
         <p className="mt-3 text-sm leading-6 text-[#71685f]">{t("auth.body")}</p>
 
-        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-[#f1ede6] p-1 sm:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-[#f1ede6] p-1 sm:grid-cols-6">
           {(["normal", "vip", "trial", "display", "admin"] as const).map((item) => <button key={item} type="button" onClick={() => setLoginMode(item)} className={`h-10 rounded-lg text-[11px] font-bold ${mode === item ? "bg-white shadow-sm" : "text-[#74695e]"}`}>{item === "display" ? displayCopy.tab : t(`auth.${item === "normal" ? "normalTab" : item === "vip" ? "vipTab" : item === "trial" ? "trialTab" : "adminTab"}`)}</button>)}
+          <button type="button" onClick={() => { setLoginMode("qr"); setQrInfoOpen(true); }} className={`inline-flex h-10 items-center justify-center gap-1 rounded-lg text-[11px] font-bold ${mode === "qr" ? "bg-white shadow-sm" : "text-[#74695e]"}`}><QrCode size={13} />{qrCopy.tab}</button>
         </div>
 
         {!credentialMode ? <div className="mt-5">
@@ -126,6 +129,7 @@ export default function Login() {
         </>}
         {mode === "normal" && message && <p role="alert" className="mt-4 rounded-xl bg-[#f9eee8] px-3 py-2 text-xs text-[#8b3d25]">{message}</p>}
       </section>
+      {qrInfoOpen && <div role="dialog" aria-modal="true" aria-labelledby="qr-scan-title" className="lesoul-safe-modal z-[80]" onClick={() => { setQrInfoOpen(false); setMode("normal"); }}><section className="relative mx-auto w-full max-w-sm rounded-[1.7rem] bg-white p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}><button type="button" aria-label={qrCopy.close} onClick={() => { setQrInfoOpen(false); setMode("normal"); }} className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-[#f3eee7] text-[#4d4238]"><X size={17} /></button><span className="grid size-11 place-items-center rounded-full bg-[#1d1a17] text-white"><QrCode size={19} /></span><h2 id="qr-scan-title" className="mt-5 font-serif text-3xl text-[#201c18]">{qrCopy.title}</h2><p className="mt-3 text-sm leading-6 text-[#71685f]">{qrCopy.body}</p><p className="mt-4 rounded-2xl bg-[#f8f5f0] p-4 text-xs leading-5 text-[#62574e]">{qrCopy.steps}</p><button type="button" onClick={() => { setQrInfoOpen(false); setMode("normal"); }} className="mt-5 w-full rounded-xl bg-[#1d1a17] px-4 py-3 text-xs font-bold text-white">{qrCopy.close}</button></section></div>}
     </main>
   </MobileScreen>;
 }

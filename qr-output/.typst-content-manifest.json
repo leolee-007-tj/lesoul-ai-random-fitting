@@ -1,0 +1,13 @@
+{
+  "task_kind": "new-document",
+  "output": "pdf",
+  "signals": [],
+  "hard_constraints": ["Chinese-only QR cards", "384 products", "A4 printable card grid", "stable final Manus URLs"],
+  "content_features": {
+    "code_blocks": 0,
+    "defined_terms": 0,
+    "portrait_images": 384,
+    "tables": 0,
+    "dense_reference_sheet": true
+  }
+}

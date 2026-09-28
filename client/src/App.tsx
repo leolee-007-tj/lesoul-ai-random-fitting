@@ -27,12 +27,17 @@ import SaleSettings from "./pages/SaleSettings";
 import VipEarlyAccess from "./pages/VipEarlyAccess";
 import StoreDisplayGate from "./components/StoreDisplayGate";
 import StoreDisplayCatalog from "./pages/StoreDisplayCatalog";
+import CareLabelCatalog, { CareLabelProduct } from "./pages/CareLabelCatalog";
+import CareLabelAdmin from "./pages/CareLabelAdmin";
+import CareLabelPrint from "./pages/CareLabelPrint";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/login"} component={Login} />
+      <Route path={"/care-labels"} component={CareLabelCatalog} />
+      <Route path={"/product/:id"} component={CareLabelProduct} />
       <Route path={"/about"} component={PublicIntroduction} />
       <Route path={"/trial-store"} component={TrialStoreConsole} />
       <Route path={"/store-display"} component={() => <StoreDisplayGate><StoreDisplayCatalog /></StoreDisplayGate>} />
@@ -51,6 +56,8 @@ function Router() {
       <Route path={"/release-control"} component={() => <AdminGate><ReleaseControl /></AdminGate>} />
       <Route path={"/purchase-notices"} component={() => <AdminGate><PurchaseNoticeManager /></AdminGate>} />
       <Route path={"/operations"} component={() => <AdminGate><OperationsDashboard /></AdminGate>} />
+      <Route path={"/care-labels/admin"} component={() => <AdminGate><CareLabelAdmin /></AdminGate>} />
+      <Route path={"/care-labels/print"} component={() => <AdminGate><CareLabelPrint /></AdminGate>} />
       <Route path={"/account-management"} component={() => <AdminGate><AccountManagement /></AdminGate>} />
       <Route path={"/sale-settings"} component={() => <AdminGate><SaleSettings /></AdminGate>} />
       <Route path={"/outfit-management"} component={() => <AdminGate><OutfitManager /></AdminGate>} />
