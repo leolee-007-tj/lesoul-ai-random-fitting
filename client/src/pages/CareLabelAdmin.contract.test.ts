@@ -20,5 +20,8 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain("toggleMaterial");
     expect(admin).toContain("CARE_LABEL_PUBLIC_FIELD_OPTIONS");
     expect(admin).toContain("상품명·分类·材质");
+    expect(admin).toContain("selectStandard");
+    expect(admin).toContain("selectSafety");
+    expect(admin).toContain("selectGrade");
   });
 });

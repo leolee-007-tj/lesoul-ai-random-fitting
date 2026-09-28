@@ -64,8 +64,10 @@ export const CARE_LABEL_SAFETY_CATEGORIES = [
 ] as const;
 
 export const CARE_LABEL_GRADES = [
+  { key: "excellent", nameZh: "优等品" },
   { key: "qualified", nameZh: "合格品" },
   { key: "first", nameZh: "一等品" },
+  { key: "pending", nameZh: "待确认" },
 ] as const;
 
 export const CARE_LABEL_MATERIALS: CareLabelMaterial[] = [
