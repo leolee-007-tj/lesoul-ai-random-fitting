@@ -27,7 +27,7 @@ describe("Care Labels Chinese apparel standard controls", () => {
 
   it("defaults old products to a useful checked public subset and honors explicit choices", () => {
     const oldProduct = { id: "LS-0001", name: "商品" } as any;
-    expect(defaultPublicFields(oldProduct)).toContain("standard");
+    expect(defaultPublicFields(oldProduct)).toEqual(expect.arrayContaining(["brand", "name", "origin", "dealer", "address", "phone", "standard"]));
     expect(CARE_LABEL_PUBLIC_FIELD_OPTIONS.length).toBeGreaterThan(10);
     expect(defaultPublicFields({ ...oldProduct, publicFields: ["name", "composition"] } as any)).toEqual(["name", "composition"]);
   });

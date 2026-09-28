@@ -10,6 +10,11 @@ describe("Care Labels and login QR contracts", () => {
     expect(source).not.toContain("privatePrices");
     expect(source).toContain("StoreQr");
     expect(source).toContain("CareLabelProductQr");
+    expect(source).toContain('publicItem("origin"');
+    expect(source).toContain('publicItem("dealer"');
+    expect(source).toContain('publicItem("address"');
+    expect(source).toContain('publicItem("phone"');
+    expect(source).toContain("sm:grid-cols-3");
   });
 
   it("renders every product QR from the fixed final Manus origin with Chinese card copy", () => {
