@@ -34,6 +34,12 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain('dealer: ""');
     expect(admin).toContain('size: ""');
     expect(admin).toContain("添加新商品");
+    expect(admin).toContain("materialCompositionText");
+    expect(admin).toContain('composition: materialCompositionText(next)');
+    expect(admin).toContain('composition: draft.composition || materialCompositionText(materials)');
+    expect(admin).toContain('standard: draft.standard || standard?.nameZh || ""');
+    expect(admin).toContain('safety: draft.safety || safety?.nameZh || ""');
+    expect(admin).toContain('grade: draft.grade || grade?.nameZh || ""');
     expect(admin).not.toContain('["lining", "里料 / Lining"]');
     expect(admin).not.toContain('["filling", "填充物 / Filling"]');
   });
