@@ -15,6 +15,11 @@ describe("Care Labels and login QR contracts", () => {
     expect(source).toContain('publicItem("address"');
     expect(source).toContain('publicItem("phone"');
     expect(source).toContain("sm:grid-cols-3");
+    expect(source).toContain("进口商品须有中文标识");
+    expect(source).toContain("原产地");
+    expect(source).toContain("进口商或经销商名称");
+    expect(source).toContain("成分或材质");
+    expect(source).toContain("五、配合检查与自查");
   });
 
   it("renders every product QR from the fixed final Manus origin with Chinese card copy", () => {
