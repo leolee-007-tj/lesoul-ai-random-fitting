@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, ownerProcedure, router } from "../_core/trpc";
-import { createCareLabelProduct, getCareLabelAdminData, getCareLabelProduct, getCareLabelPublicSettings, listCareLabelProducts, setCareLabelProductSymbols, updateCareLabelPrivatePrice, updateCareLabelProduct, updateCareLabelSettings, updateCareLabelSymbol } from "../careLabelsDb";
+import { createCareLabelProduct, deleteCareLabelProducts, getCareLabelAdminData, getCareLabelProduct, getCareLabelPublicSettings, listCareLabelProducts, setCareLabelProductSymbols, updateCareLabelPrivatePrice, updateCareLabelProduct, updateCareLabelSettings, updateCareLabelSymbol } from "../careLabelsDb";
 import { normalizeCareLabelData } from "../../shared/careLabels";
 
 const productId = z.string().regex(/^LS-\d{4}$/);
@@ -31,6 +31,9 @@ export const careLabelsRouter = router({
   }),
   createProduct: ownerProcedure.input(z.object({ id: productId, data: careData })).mutation(async ({ input }) => {
     try { return createCareLabelProduct({ id: input.id, data: normalizeCareLabelData(input.data) }); } catch (error) { return mapError(error); }
+  }),
+  deleteProducts: ownerProcedure.input(z.object({ ids: z.array(productId).min(1).max(384) })).mutation(async ({ input }) => {
+    try { return deleteCareLabelProducts(input.ids); } catch (error) { return mapError(error); }
   }),
   updateSettings: ownerProcedure.input(z.object({ revision: z.number().int().min(0), wechatQrUrl: imageUrl.nullable(), standards: z.array(z.object({ key: z.string().trim().min(1).max(64), nameZh: z.string().trim().min(1).max(160), appliesTo: z.array(z.string().trim().min(1).max(80)).max(20) })).max(100).optional() })).mutation(async ({ input }) => {
     try { return updateCareLabelSettings(input); } catch (error) { return mapError(error); }

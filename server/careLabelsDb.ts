@@ -102,6 +102,18 @@ export async function createCareLabelProduct(input: { id: string; data: CareLabe
   return getCareLabelProduct(input.id);
 }
 
+export async function deleteCareLabelProducts(ids: string[]) {
+  await ensureCareLabelCatalog();
+  const db = await getDb();
+  if (!db) throw new Error("CARE_LABEL_DATABASE_UNAVAILABLE");
+  if (!ids.length) return { deleted: 0 };
+  await db.delete(careLabelProductSymbols).where(inArray(careLabelProductSymbols.productId, ids));
+  await db.delete(careLabelPrivatePrices).where(inArray(careLabelPrivatePrices.id, ids));
+  const result = await db.delete(careLabelProducts).where(inArray(careLabelProducts.id, ids));
+  const deleted = Number((result as any)[0]?.affectedRows ?? (result as any).affectedRows ?? ids.length);
+  return { deleted };
+}
+
 export async function updateCareLabelSettings(input: { revision: number; wechatQrUrl: string | null; standards?: Array<{ key: string; nameZh: string; appliesTo: string[] }> }) {
   await ensureCareLabelCatalog();
   const db = await getDb();
