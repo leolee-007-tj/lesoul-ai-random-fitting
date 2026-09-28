@@ -58,7 +58,8 @@ export const CARE_LABEL_STANDARDS = [
   { key: "QB_T_1618_2018", nameZh: "QB/T 1618-2018（皮腰带）", appliesTo: ["腰带", "벨트", "belt"] },
   { key: "QB_T_1002_2015", nameZh: "QB/T 1002-2015（皮鞋）", appliesTo: ["皮鞋", "구두", "신발", "shoes"] },
   { key: "QB_T_1333_2018", nameZh: "QB/T 1333-2018（箱包）", appliesTo: ["箱包", "가방", "bag"] },
-  { key: "FZ_T_TEXTILE_ACCESSORIES", nameZh: "FZ/T 纺织品及纺织制品标准（需按品类确认）", appliesTo: ["帆布", "면", "캔버스", "纺织", "textile"] },
+  { key: "FZ_T_63005_2019", nameZh: "FZ/T 63005-2019（机织腰带）", appliesTo: ["机织腰带", "직조 벨트", "woven belt", "织带腰带"] },
+  { key: "ACCESSORY_MATERIAL_CONFIRM", nameZh: "配饰执行标准（需按材质确认）", appliesTo: ["腰带", "벨트", "belt", "箱包", "가방", "bag"] },
 ] as const;
 
 export const CARE_LABEL_SAFETY_CATEGORIES = [
@@ -84,7 +85,10 @@ export const CARE_LABEL_PUBLIC_FIELD_OPTIONS = [
 
 export function recommendedCareLabelSettings(data: Pick<CareLabelData, "name" | "category" | "composition" | "filling">) {
   const text = [data.name, data.category, data.composition, data.filling].filter(Boolean).join(" ").toLowerCase();
-  const accessoryKey = text.includes("腰带") || text.includes("벨트") || text.includes("belt") ? "QB_T_1618_2018" : text.includes("皮鞋") || text.includes("구두") || text.includes("신발") || text.includes("shoes") ? "QB_T_1002_2015" : text.includes("箱包") || text.includes("가방") || text.includes("bag") ? "QB_T_1333_2018" : undefined;
+  const isBelt = text.includes("腰带") || text.includes("벨트") || text.includes("belt");
+  const isLeather = /皮革|真皮|pu|人造革|合成革|leather|가죽|인조가죽|합성가죽/.test(text);
+  const isWoven = /机织|织带|帆布|棉|纺织|textile|woven|면|캔버스/.test(text);
+  const accessoryKey = isBelt ? (isLeather ? "QB_T_1618_2018" : isWoven ? "FZ_T_63005_2019" : "ACCESSORY_MATERIAL_CONFIRM") : text.includes("皮鞋") || text.includes("구두") || text.includes("신발") || text.includes("shoes") ? "QB_T_1002_2015" : text.includes("箱包") || text.includes("가방") || text.includes("bag") ? "QB_T_1333_2018" : undefined;
   const standard = CARE_LABEL_STANDARDS.find((item) => item.key === accessoryKey) ?? CARE_LABEL_STANDARDS.find((item) => item.appliesTo.some((term) => text.includes(term.toLowerCase()))) ?? CARE_LABEL_STANDARDS[2];
   const safety = /羽绒|down|패딩|코트|大衣|皮革|가죽|外套/.test(text) ? CARE_LABEL_SAFETY_CATEGORIES[1] : CARE_LABEL_SAFETY_CATEGORIES[0];
   return { executionStandardKey: standard.key, standard: standard.nameZh, safetyCategoryKey: safety.key, safety: safety.nameZh, productGradeKey: "qualified", grade: "合格品" };
