@@ -27,8 +27,65 @@ export type CareLabelData = {
   revision: number;
   updatedAt?: string;
   careImage?: string;
+  /** Structured administrator selections; original imported text fields remain untouched. */
+  executionStandardKey?: string;
+  safetyCategoryKey?: string;
+  productGradeKey?: string;
+  materialComposition?: Array<{ key: string; nameZh: string; nameKo: string; percentage: number }>;
+  publicFields?: string[];
   [key: string]: unknown;
 };
+
+export type CareLabelMaterial = { key: string; nameZh: string; nameKo: string; nameEn: string };
+
+export const CARE_LABEL_STANDARDS = [
+  { key: "GB_T_22849_2014", nameZh: "GB/T 22849-2014（针织T恤衫）", appliesTo: ["T恤", "티셔츠", "맨투맨", "卫衣", "上衣"] },
+  { key: "GB_T_2660_2017", nameZh: "GB/T 2660-2017（衬衫）", appliesTo: ["衬衫", "셔츠", "블라우스"] },
+  { key: "FZ_T_81007_2022", nameZh: "FZ/T 81007-2022（单、夹服装）", appliesTo: ["夹克", "자켓", "外套", "风衣", "上衣"] },
+  { key: "GB_T_2666_2017", nameZh: "GB/T 2666-2017（裤子）", appliesTo: ["裤", "바지", "팬츠", "슬랙스"] },
+  { key: "GB_T_22700_2016", nameZh: "GB/T 22700-2016（牛仔服装）", appliesTo: ["牛仔", "데님", "청바지"] },
+  { key: "GB_T_22853_2019", nameZh: "GB/T 22853-2019（针织裙装）", appliesTo: ["针织裙", "니트 원피스", "니트스커트"] },
+  { key: "FZ_T_81004_2020", nameZh: "FZ/T 81004-2020（连衣裙、裙子）", appliesTo: ["裙", "원피스", "스커트"] },
+  { key: "FZ_T_73020_2019", nameZh: "FZ/T 73020-2019（针织休闲服装）", appliesTo: ["레깅스", "니트 바지", "针织裤", "트레이닝"] },
+  { key: "GB_T_14272_2021", nameZh: "GB/T 14272-2021（羽绒服装）", appliesTo: ["羽绒", "다운", "패딩"] },
+  { key: "GB_T_2664_2017", nameZh: "GB/T 2664-2017（男西服、大衣）", appliesTo: ["코트", "大衣", "모직 외투"] },
+  { key: "QB_T_1615_2018", nameZh: "QB/T 1615-2018（皮革服装）", appliesTo: ["皮革", "가죽", "무스탕"] },
+  { key: "FZ_T_73018_2021", nameZh: "FZ/T 73018-2021（针织衫）", appliesTo: ["针织衫", "스웨터", "가디건", "니트"] },
+  { key: "FZ_T_73009_2021", nameZh: "FZ/T 73009-2021（羊绒针织品）", appliesTo: ["羊绒", "캐시미어"] },
+  { key: "GB_T_8878_2023", nameZh: "GB/T 8878-2023（针织内衣）", appliesTo: ["内衣", "속옷", "나시"] },
+  { key: "FZ_T_73017_2014", nameZh: "FZ/T 73017-2014（针织家居服）", appliesTo: ["家居服", "잠옷", "홈웨어"] },
+  { key: "FZ_T_73022_2019", nameZh: "FZ/T 73022-2019（针织保暖内衣）", appliesTo: ["保暖内衣", "보온내의"] },
+] as const;
+
+export const CARE_LABEL_SAFETY_CATEGORIES = [
+  { key: "B", nameZh: "GB 18401-2010 B类", noteZh: "可直接接触皮肤的纺织产品" },
+  { key: "C", nameZh: "GB 18401-2010 C类", noteZh: "非直接接触皮肤的纺织产品" },
+  { key: "A", nameZh: "GB 18401-2010 A类", noteZh: "婴幼儿纺织产品（成人商品通常不适用）" },
+] as const;
+
+export const CARE_LABEL_GRADES = [
+  { key: "qualified", nameZh: "合格品" },
+  { key: "first", nameZh: "一等品" },
+] as const;
+
+export const CARE_LABEL_MATERIALS: CareLabelMaterial[] = [
+  ["cotton", "棉", "면", "Cotton"], ["polyester", "聚酯纤维", "폴리에스터", "Polyester"], ["nylon", "锦纶", "나일론", "Nylon"], ["viscose", "粘纤", "레이온/비스코스", "Viscose"], ["modal", "莫代尔", "모달", "Modal"], ["spandex", "氨纶", "스판덱스", "Spandex"], ["acrylic", "腈纶", "아크릴", "Acrylic"], ["wool", "羊毛", "울", "Wool"], ["cashmere", "羊绒", "캐시미어", "Cashmere"], ["linen", "亚麻", "린넨", "Linen"], ["silk", "桑蚕丝", "실크", "Silk"], ["hemp", "大麻纤维", "헴프", "Hemp"], ["tencel", "莱赛尔", "텐셀", "Lyocell/Tencel"], ["acetate", "醋纤", "아세테이트", "Acetate"], ["polyamide", "聚酰胺纤维", "폴리아미드", "Polyamide"], ["leather", "天然皮革", "천연가죽", "Leather"], ["pu", "聚氨酯纤维/人造革", "PU/인조가죽", "PU"], ["down", "羽绒", "다운", "Down"], ["feather", "羽毛", "깃털", "Feather"], ["other", "其他纤维", "기타 섬유", "Other"],
+].map(([key, nameZh, nameKo, nameEn]) => ({ key, nameZh, nameKo, nameEn }));
+
+export const CARE_LABEL_PUBLIC_FIELD_OPTIONS = [
+  ["name", "产品名称"], ["brand", "品牌"], ["category", "类别"], ["size", "号型"], ["specification", "规格"], ["composition", "成分"], ["lining", "里料"], ["filling", "填充物"], ["standard", "执行标准"], ["safety", "安全技术类别"], ["grade", "产品等级"], ["care", "护理说明"], ["wash", "水洗"], ["bleach", "漂白"], ["dry", "干燥"], ["iron", "熨烫"], ["professional", "专业维护"], ["notes", "注意事项"],
+] as const;
+
+export function recommendedCareLabelSettings(data: Pick<CareLabelData, "name" | "category" | "composition" | "filling">) {
+  const text = [data.name, data.category, data.composition, data.filling].filter(Boolean).join(" ").toLowerCase();
+  const standard = CARE_LABEL_STANDARDS.find((item) => item.appliesTo.some((term) => text.includes(term.toLowerCase()))) ?? CARE_LABEL_STANDARDS[2];
+  const safety = /羽绒|down|패딩|코트|大衣|皮革|가죽|外套/.test(text) ? CARE_LABEL_SAFETY_CATEGORIES[1] : CARE_LABEL_SAFETY_CATEGORIES[0];
+  return { executionStandardKey: standard.key, standard: standard.nameZh, safetyCategoryKey: safety.key, safety: safety.nameZh, productGradeKey: "qualified", grade: "合格品" };
+}
+
+export function defaultPublicFields(data: CareLabelData) {
+  return data.publicFields !== undefined ? data.publicFields : ["name", "brand", "category", "size", "composition", "standard", "safety", "grade", "care", "wash", "bleach", "dry", "iron", "professional"];
+}
 
 export type CareLabelSymbol = {
   id: number;

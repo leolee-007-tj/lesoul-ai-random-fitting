@@ -15,5 +15,10 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain("LESOUL_QR_CARDS_CHINESE_c0bb0b21.pdf");
     expect(admin).toContain("QR_MATCHING_b8c78314.xlsx");
     expect(admin).toContain('href="/care-labels/print"');
+    expect(admin).toContain("CARE_LABEL_STANDARDS");
+    expect(admin).toContain("CARE_LABEL_MATERIALS");
+    expect(admin).toContain("toggleMaterial");
+    expect(admin).toContain("CARE_LABEL_PUBLIC_FIELD_OPTIONS");
+    expect(admin).toContain("상품명·分类·材质");
   });
 });
