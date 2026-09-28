@@ -91,6 +91,17 @@ export async function updateCareLabelProduct(input: { id: string; revision: numb
   return getCareLabelProduct(input.id);
 }
 
+export async function createCareLabelProduct(input: { id: string; data: CareLabelData }) {
+  await ensureCareLabelCatalog();
+  const db = await getDb();
+  if (!db) throw new Error("CARE_LABEL_DATABASE_UNAVAILABLE");
+  const existing = await db.select({ id: careLabelProducts.id }).from(careLabelProducts).where(eq(careLabelProducts.id, input.id)).limit(1);
+  if (existing.length) throw new Error("CARE_LABEL_PRODUCT_EXISTS");
+  const data = { ...input.data, id: input.id, revision: 0, updatedAt: new Date().toISOString() };
+  await db.insert(careLabelProducts).values({ id: input.id, data, revision: 0 });
+  return getCareLabelProduct(input.id);
+}
+
 export async function updateCareLabelSettings(input: { revision: number; wechatQrUrl: string | null }) {
   await ensureCareLabelCatalog();
   const db = await getDb();

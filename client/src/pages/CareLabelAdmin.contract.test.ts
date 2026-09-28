@@ -28,6 +28,12 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain("normalize(\"NFKC\")");
     expect(admin).toContain("row.data.origin");
     expect(admin).toContain("row.data.dealer");
+    expect(admin).toContain("createProduct");
+    expect(admin).toContain("addProductFromTemplate");
+    expect(admin).toContain('name: ""');
+    expect(admin).toContain('dealer: ""');
+    expect(admin).toContain('size: ""');
+    expect(admin).toContain("添加新商品");
     expect(admin).not.toContain('["lining", "里料 / Lining"]');
     expect(admin).not.toContain('["filling", "填充物 / Filling"]');
   });
