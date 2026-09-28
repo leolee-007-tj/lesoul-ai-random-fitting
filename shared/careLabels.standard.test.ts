@@ -14,6 +14,7 @@ describe("Care Labels Chinese apparel standard controls", () => {
     expect(CARE_LABEL_STANDARDS.some((item) => item.key === "GB_T_22849_2014")).toBe(true);
     expect(CARE_LABEL_STANDARDS.some((item) => item.key === "GB_T_14272_2021")).toBe(true);
     expect(CARE_LABEL_STANDARDS.map((item) => item.key)).toEqual(expect.arrayContaining(["QB_T_1618_2018", "QB_T_1002_2015", "QB_T_1333_2018", "FZ_T_63005_2019", "ACCESSORY_MATERIAL_CONFIRM"]));
+    expect(CARE_LABEL_STANDARDS.some((item) => item.key === "GB_T_2665_2017")).toBe(true);
     expect(CARE_LABEL_SAFETY_CATEGORIES.map((item) => item.key)).toEqual(expect.arrayContaining(["A", "B", "C"]));
     expect(CARE_LABEL_GRADES.map((item) => item.nameZh)).toEqual(expect.arrayContaining(["优等品", "合格品", "一等品", "待确认"]));
     expect(CARE_LABEL_MATERIALS.map((item) => item.key)).toEqual(expect.arrayContaining(["cotton", "cotton_canvas", "polyester", "wool", "cashmere", "leather", "pu", "synthetic_leather", "down", "spandex"]));
@@ -30,6 +31,10 @@ describe("Care Labels Chinese apparel standard controls", () => {
     expect(recommendedCareLabelSettings({ name: "棉织腰带", category: "腰带", composition: "棉", filling: "" }).executionStandardKey).toBe("FZ_T_63005_2019");
     expect(recommendedCareLabelSettings({ name: "腰带", category: "腰带", composition: "", filling: "" }).executionStandardKey).toBe("ACCESSORY_MATERIAL_CONFIRM");
     expect(recommendedCareLabelSettings({ name: "帆布包", category: "箱包", composition: "棉帆布", filling: "" }).executionStandardKey).toBe("QB_T_1333_2018");
+  });
+  it("recognizes women's formal jackets and trousers", () => {
+    expect(recommendedCareLabelSettings({ name: "여성 정장자켓", category: "자켓", composition: "폴리에스터", filling: "" }).executionStandardKey).toBe("GB_T_2665_2017");
+    expect(recommendedCareLabelSettings({ name: "정장바지", category: "바지", composition: "폴리에스터", filling: "" }).executionStandardKey).toBe("GB_T_2666_2017");
   });
 
   it("defaults old products to a useful checked public subset and honors explicit choices", () => {

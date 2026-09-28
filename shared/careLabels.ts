@@ -42,7 +42,8 @@ export const CARE_LABEL_STANDARDS = [
   { key: "GB_T_22849_2014", nameZh: "GB/T 22849-2014（针织T恤衫）", appliesTo: ["T恤", "티셔츠", "맨투맨", "卫衣", "上衣"] },
   { key: "GB_T_2660_2017", nameZh: "GB/T 2660-2017（衬衫）", appliesTo: ["衬衫", "셔츠", "블라우스"] },
   { key: "FZ_T_81007_2022", nameZh: "FZ/T 81007-2022（单、夹服装）", appliesTo: ["夹克", "자켓", "外套", "风衣", "上衣"] },
-  { key: "GB_T_2666_2017", nameZh: "GB/T 2666-2017（裤子）", appliesTo: ["裤", "바지", "팬츠", "슬랙스"] },
+  { key: "GB_T_2665_2017", nameZh: "GB/T 2665-2017（女西服、大衣）", appliesTo: ["女西服", "女式西服", "여성 정장", "정장자켓", "정장 자켓", "여성자켓", "여성 수트", "西装外套", "西服外套"] },
+  { key: "GB_T_2666_2017", nameZh: "GB/T 2666-2017（西裤）", appliesTo: ["西裤", "정장바지", "정장 바지", "정장 팬츠", "裤", "바지", "팬츠", "슬랙스"] },
   { key: "GB_T_22700_2016", nameZh: "GB/T 22700-2016（牛仔服装）", appliesTo: ["牛仔", "데님", "청바지"] },
   { key: "GB_T_22853_2019", nameZh: "GB/T 22853-2019（针织裙装）", appliesTo: ["针织裙", "니트 원피스", "니트스커트"] },
   { key: "FZ_T_81004_2020", nameZh: "FZ/T 81004-2020（连衣裙、裙子）", appliesTo: ["裙", "원피스", "스커트"] },
@@ -89,7 +90,8 @@ export function recommendedCareLabelSettings(data: Pick<CareLabelData, "name" | 
   const isLeather = /皮革|真皮|pu|人造革|合成革|leather|가죽|인조가죽|합성가죽/.test(text);
   const isWoven = /机织|织带|帆布|棉|纺织|textile|woven|면|캔버스/.test(text);
   const accessoryKey = isBelt ? (isLeather ? "QB_T_1618_2018" : isWoven ? "FZ_T_63005_2019" : "ACCESSORY_MATERIAL_CONFIRM") : text.includes("皮鞋") || text.includes("구두") || text.includes("신발") || text.includes("shoes") ? "QB_T_1002_2015" : text.includes("箱包") || text.includes("가방") || text.includes("bag") ? "QB_T_1333_2018" : undefined;
-  const standard = CARE_LABEL_STANDARDS.find((item) => item.key === accessoryKey) ?? CARE_LABEL_STANDARDS.find((item) => item.appliesTo.some((term) => text.includes(term.toLowerCase()))) ?? CARE_LABEL_STANDARDS[2];
+  const formalKey = text.includes("정장자켓") || text.includes("정장 자켓") || text.includes("여성 정장") || text.includes("女西服") || text.includes("女式西服") ? "GB_T_2665_2017" : text.includes("정장바지") || text.includes("정장 바지") || text.includes("정장 팬츠") || text.includes("西裤") ? "GB_T_2666_2017" : undefined;
+  const standard = CARE_LABEL_STANDARDS.find((item) => item.key === accessoryKey) ?? CARE_LABEL_STANDARDS.find((item) => item.key === formalKey) ?? CARE_LABEL_STANDARDS.find((item) => item.appliesTo.some((term) => text.includes(term.toLowerCase()))) ?? CARE_LABEL_STANDARDS[2];
   const safety = /羽绒|down|패딩|코트|大衣|皮革|가죽|外套/.test(text) ? CARE_LABEL_SAFETY_CATEGORIES[1] : CARE_LABEL_SAFETY_CATEGORIES[0];
   return { executionStandardKey: standard.key, standard: standard.nameZh, safetyCategoryKey: safety.key, safety: safety.nameZh, productGradeKey: "qualified", grade: "合格品" };
 }
