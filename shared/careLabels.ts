@@ -55,6 +55,10 @@ export const CARE_LABEL_STANDARDS = [
   { key: "GB_T_8878_2023", nameZh: "GB/T 8878-2023（针织内衣）", appliesTo: ["内衣", "속옷", "나시"] },
   { key: "FZ_T_73017_2014", nameZh: "FZ/T 73017-2014（针织家居服）", appliesTo: ["家居服", "잠옷", "홈웨어"] },
   { key: "FZ_T_73022_2019", nameZh: "FZ/T 73022-2019（针织保暖内衣）", appliesTo: ["保暖内衣", "보온내의"] },
+  { key: "QB_T_1618_2018", nameZh: "QB/T 1618-2018（皮腰带）", appliesTo: ["腰带", "벨트", "belt"] },
+  { key: "QB_T_1002_2015", nameZh: "QB/T 1002-2015（皮鞋）", appliesTo: ["皮鞋", "구두", "신발", "shoes"] },
+  { key: "QB_T_1333_2018", nameZh: "QB/T 1333-2018（箱包）", appliesTo: ["箱包", "가방", "bag"] },
+  { key: "FZ_T_TEXTILE_ACCESSORIES", nameZh: "FZ/T 纺织品及纺织制品标准（需按品类确认）", appliesTo: ["帆布", "면", "캔버스", "纺织", "textile"] },
 ] as const;
 
 export const CARE_LABEL_SAFETY_CATEGORIES = [
@@ -71,7 +75,7 @@ export const CARE_LABEL_GRADES = [
 ] as const;
 
 export const CARE_LABEL_MATERIALS: CareLabelMaterial[] = [
-  ["cotton", "棉", "면", "Cotton"], ["polyester", "聚酯纤维", "폴리에스터", "Polyester"], ["nylon", "锦纶", "나일론", "Nylon"], ["viscose", "粘纤", "레이온/비스코스", "Viscose"], ["modal", "莫代尔", "모달", "Modal"], ["spandex", "氨纶", "스판덱스", "Spandex"], ["acrylic", "腈纶", "아크릴", "Acrylic"], ["wool", "羊毛", "울", "Wool"], ["cashmere", "羊绒", "캐시미어", "Cashmere"], ["linen", "亚麻", "린넨", "Linen"], ["silk", "桑蚕丝", "실크", "Silk"], ["hemp", "大麻纤维", "헴프", "Hemp"], ["tencel", "莱赛尔", "텐셀", "Lyocell/Tencel"], ["acetate", "醋纤", "아세테이트", "Acetate"], ["polyamide", "聚酰胺纤维", "폴리아미드", "Polyamide"], ["leather", "天然皮革", "천연가죽", "Leather"], ["pu", "聚氨酯纤维/人造革", "PU/인조가죽", "PU"], ["down", "羽绒", "다운", "Down"], ["feather", "羽毛", "깃털", "Feather"], ["other", "其他纤维", "기타 섬유", "Other"],
+  ["cotton", "棉", "면", "Cotton"], ["cotton_canvas", "棉帆布", "면 캔버스", "Cotton canvas"], ["polyester", "聚酯纤维", "폴리에스터", "Polyester"], ["nylon", "锦纶", "나일론", "Nylon"], ["viscose", "粘纤", "레이온/비스코스", "Viscose"], ["modal", "莫代尔", "모달", "Modal"], ["spandex", "氨纶", "스판덱스", "Spandex"], ["acrylic", "腈纶", "아크릴", "Acrylic"], ["wool", "羊毛", "울", "Wool"], ["cashmere", "羊绒", "캐시미어", "Cashmere"], ["linen", "亚麻", "린넨", "Linen"], ["silk", "桑蚕丝", "실크", "Silk"], ["hemp", "大麻纤维", "헴프", "Hemp"], ["tencel", "莱赛尔", "텐셀", "Lyocell/Tencel"], ["acetate", "醋纤", "아세테이트", "Acetate"], ["polyamide", "聚酰胺纤维", "폴리아미드", "Polyamide"], ["leather", "天然皮革", "천연가죽", "Leather"], ["pu", "聚氨酯纤维/人造革", "PU/인조가죽", "PU"], ["synthetic_leather", "合成革（人造革）", "합성가죽/인조가죽", "Synthetic leather"], ["down", "羽绒", "다운", "Down"], ["feather", "羽毛", "깃털", "Feather"], ["other", "其他纤维", "기타 섬유", "Other"],
 ].map(([key, nameZh, nameKo, nameEn]) => ({ key, nameZh, nameKo, nameEn }));
 
 export const CARE_LABEL_PUBLIC_FIELD_OPTIONS = [
@@ -80,7 +84,8 @@ export const CARE_LABEL_PUBLIC_FIELD_OPTIONS = [
 
 export function recommendedCareLabelSettings(data: Pick<CareLabelData, "name" | "category" | "composition" | "filling">) {
   const text = [data.name, data.category, data.composition, data.filling].filter(Boolean).join(" ").toLowerCase();
-  const standard = CARE_LABEL_STANDARDS.find((item) => item.appliesTo.some((term) => text.includes(term.toLowerCase()))) ?? CARE_LABEL_STANDARDS[2];
+  const accessoryKey = text.includes("腰带") || text.includes("벨트") || text.includes("belt") ? "QB_T_1618_2018" : text.includes("皮鞋") || text.includes("구두") || text.includes("신발") || text.includes("shoes") ? "QB_T_1002_2015" : text.includes("箱包") || text.includes("가방") || text.includes("bag") ? "QB_T_1333_2018" : undefined;
+  const standard = CARE_LABEL_STANDARDS.find((item) => item.key === accessoryKey) ?? CARE_LABEL_STANDARDS.find((item) => item.appliesTo.some((term) => text.includes(term.toLowerCase()))) ?? CARE_LABEL_STANDARDS[2];
   const safety = /羽绒|down|패딩|코트|大衣|皮革|가죽|外套/.test(text) ? CARE_LABEL_SAFETY_CATEGORIES[1] : CARE_LABEL_SAFETY_CATEGORIES[0];
   return { executionStandardKey: standard.key, standard: standard.nameZh, safetyCategoryKey: safety.key, safety: safety.nameZh, productGradeKey: "qualified", grade: "合格品" };
 }
