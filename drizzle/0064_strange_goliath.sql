@@ -1,0 +1,1 @@
+ALTER TABLE `careLabelSettings` ADD `standards` json;

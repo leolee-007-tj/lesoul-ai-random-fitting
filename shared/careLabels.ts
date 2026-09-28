@@ -37,19 +37,19 @@ export type CareLabelData = {
 };
 
 export type CareLabelMaterial = { key: string; nameZh: string; nameKo: string; nameEn: string };
+export type CareLabelStandard = { key: string; nameZh: string; appliesTo: readonly string[] };
 
 export const CARE_LABEL_STANDARDS = [
   { key: "GB_T_22849_2014", nameZh: "GB/T 22849-2014（针织T恤衫）", appliesTo: ["T恤", "티셔츠", "맨투맨", "卫衣", "上衣"] },
   { key: "GB_T_2660_2017", nameZh: "GB/T 2660-2017（衬衫）", appliesTo: ["衬衫", "셔츠", "블라우스"] },
   { key: "FZ_T_81007_2022", nameZh: "FZ/T 81007-2022（单、夹服装）", appliesTo: ["夹克", "자켓", "外套", "风衣", "上衣"] },
   { key: "GB_T_2665_2017", nameZh: "GB/T 2665-2017（女西服、大衣）", appliesTo: ["女西服", "女式西服", "여성 정장", "정장자켓", "정장 자켓", "여성자켓", "여성 수트", "西装外套", "西服外套"] },
-  { key: "GB_T_2666_2017", nameZh: "GB/T 2666-2017（西裤）", appliesTo: ["西裤", "정장바지", "정장 바지", "정장 팬츠", "裤", "바지", "팬츠", "슬랙스"] },
+  { key: "GB_T_2666_2017", nameZh: "GB/T 2666-2017（裤子/西裤）", appliesTo: ["裤子", "西裤", "정장바지", "정장 바지", "정장 팬츠", "裤", "바지", "팬츠", "슬랙스"] },
   { key: "GB_T_22700_2016", nameZh: "GB/T 22700-2016（牛仔服装）", appliesTo: ["牛仔", "데님", "청바지"] },
   { key: "GB_T_22853_2019", nameZh: "GB/T 22853-2019（针织裙装）", appliesTo: ["针织裙", "니트 원피스", "니트스커트"] },
   { key: "FZ_T_81004_2020", nameZh: "FZ/T 81004-2020（连衣裙、裙子）", appliesTo: ["裙", "원피스", "스커트"] },
   { key: "FZ_T_73020_2019", nameZh: "FZ/T 73020-2019（针织休闲服装）", appliesTo: ["레깅스", "니트 바지", "针织裤", "트레이닝"] },
   { key: "GB_T_14272_2021", nameZh: "GB/T 14272-2021（羽绒服装）", appliesTo: ["羽绒", "다운", "패딩"] },
-  { key: "GB_T_2664_2017", nameZh: "GB/T 2664-2017（男西服、大衣）", appliesTo: ["코트", "大衣", "모직 외투"] },
   { key: "QB_T_1615_2018", nameZh: "QB/T 1615-2018（皮革服装）", appliesTo: ["皮革", "가죽", "무스탕"] },
   { key: "FZ_T_73018_2021", nameZh: "FZ/T 73018-2021（针织衫）", appliesTo: ["针织衫", "스웨터", "가디건", "니트"] },
   { key: "FZ_T_73009_2021", nameZh: "FZ/T 73009-2021（羊绒针织品）", appliesTo: ["羊绒", "캐시미어"] },

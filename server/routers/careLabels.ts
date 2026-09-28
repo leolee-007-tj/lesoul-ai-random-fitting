@@ -32,7 +32,7 @@ export const careLabelsRouter = router({
   createProduct: ownerProcedure.input(z.object({ id: productId, data: careData })).mutation(async ({ input }) => {
     try { return createCareLabelProduct({ id: input.id, data: normalizeCareLabelData(input.data) }); } catch (error) { return mapError(error); }
   }),
-  updateSettings: ownerProcedure.input(z.object({ revision: z.number().int().min(0), wechatQrUrl: imageUrl.nullable() })).mutation(async ({ input }) => {
+  updateSettings: ownerProcedure.input(z.object({ revision: z.number().int().min(0), wechatQrUrl: imageUrl.nullable(), standards: z.array(z.object({ key: z.string().trim().min(1).max(64), nameZh: z.string().trim().min(1).max(160), appliesTo: z.array(z.string().trim().min(1).max(80)).max(20) })).max(100).optional() })).mutation(async ({ input }) => {
     try { return updateCareLabelSettings(input); } catch (error) { return mapError(error); }
   }),
   updatePrivatePrice: ownerProcedure.input(z.object({ id: productId, revision: z.number().int().min(0), amount: z.string().regex(/^$|^\d{1,9}(\.\d{1,2})?$/), currency: z.enum(["CNY", "KRW"]) })).mutation(async ({ input }) => {

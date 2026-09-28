@@ -158,6 +158,7 @@ export const careLabelProductSymbols = mysqlTable("careLabelProductSymbols", {
 export const careLabelSettings = mysqlTable("careLabelSettings", {
   id: int("id").primaryKey(),
   wechatQrUrl: text("wechatQrUrl"),
+  standards: json("standards").$type<Array<{ key: string; nameZh: string; appliesTo: string[] }>>(),
   revision: int("revision").default(0).notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

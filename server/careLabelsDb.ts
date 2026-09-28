@@ -76,7 +76,7 @@ export async function getCareLabelAdminData() {
     db.select().from(careLabelProductSymbols),
     db.select().from(careLabelPrivatePrices),
   ]);
-  return { products, symbols, settings: settings[0] ?? { id: 1, wechatQrUrl: null, revision: 0 }, assignments, prices };
+  return { products, symbols, settings: settings[0] ?? { id: 1, wechatQrUrl: null, standards: null, revision: 0 }, assignments, prices };
 }
 
 export async function updateCareLabelProduct(input: { id: string; revision: number; data: CareLabelData }) {
@@ -102,15 +102,15 @@ export async function createCareLabelProduct(input: { id: string; data: CareLabe
   return getCareLabelProduct(input.id);
 }
 
-export async function updateCareLabelSettings(input: { revision: number; wechatQrUrl: string | null }) {
+export async function updateCareLabelSettings(input: { revision: number; wechatQrUrl: string | null; standards?: Array<{ key: string; nameZh: string; appliesTo: string[] }> }) {
   await ensureCareLabelCatalog();
   const db = await getDb();
   if (!db) throw new Error("CARE_LABEL_DATABASE_UNAVAILABLE");
   const nextRevision = input.revision + 1;
-  const result = await db.update(careLabelSettings).set({ wechatQrUrl: input.wechatQrUrl, revision: nextRevision }).where(and(eq(careLabelSettings.id, 1), eq(careLabelSettings.revision, input.revision)));
+  const result = await db.update(careLabelSettings).set({ wechatQrUrl: input.wechatQrUrl, ...(input.standards ? { standards: input.standards } : {}), revision: nextRevision }).where(and(eq(careLabelSettings.id, 1), eq(careLabelSettings.revision, input.revision)));
   const affectedRows = Number((result as any)[0]?.affectedRows ?? (result as any).affectedRows ?? 0);
   if (!affectedRows) throw new Error("CARE_LABEL_SETTINGS_REVISION_CONFLICT");
-  return { wechatQrUrl: input.wechatQrUrl, revision: nextRevision };
+  return { wechatQrUrl: input.wechatQrUrl, standards: input.standards ?? null, revision: nextRevision };
 }
 
 export async function updateCareLabelPrivatePrice(input: { id: string; revision: number; amount: string; currency: "CNY" | "KRW" }) {
