@@ -40,6 +40,9 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain('standard: draft.standard || standard?.nameZh || ""');
     expect(admin).toContain('safety: draft.safety || safety?.nameZh || ""');
     expect(admin).toContain('grade: draft.grade || grade?.nameZh || ""');
+    expect(admin).toContain("进口商或经销商名称 / Importer or Distributor");
+    expect(admin).toContain("QR 공개 화면에서는 이 값이 进口商或经销商名称으로 표시됩니다.");
+    expect(admin).toContain('placeholder={key === "dealer" ? "进口商或经销商名称" : undefined}');
     expect(admin).not.toContain('["lining", "里料 / Lining"]');
     expect(admin).not.toContain('["filling", "填充物 / Filling"]');
   });

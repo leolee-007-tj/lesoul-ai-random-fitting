@@ -80,7 +80,7 @@ export const CARE_LABEL_MATERIALS: CareLabelMaterial[] = [
 ].map(([key, nameZh, nameKo, nameEn]) => ({ key, nameZh, nameKo, nameEn }));
 
 export const CARE_LABEL_PUBLIC_FIELD_OPTIONS = [
-  ["name", "产品名称"], ["brand", "品牌"], ["category", "类别"], ["size", "号型"], ["specification", "规格"], ["composition", "成分"], ["origin", "产地"], ["dealer", "销售者/商号"], ["address", "地址"], ["phone", "联系电话"], ["standard", "执行标准"], ["safety", "安全技术类别"], ["grade", "产品等级"], ["care", "护理说明"], ["wash", "水洗"], ["bleach", "漂白"], ["dry", "干燥"], ["iron", "熨烫"], ["professional", "专业维护"], ["notes", "注意事项"],
+  ["name", "产品名称"], ["brand", "品牌"], ["category", "类别"], ["size", "号型"], ["specification", "规格"], ["composition", "成分"], ["origin", "原产地"], ["dealer", "进口商或经销商名称"], ["address", "地址"], ["phone", "联系电话"], ["standard", "执行标准"], ["safety", "安全技术类别"], ["grade", "产品等级"], ["care", "护理说明"], ["wash", "水洗"], ["bleach", "漂白"], ["dry", "干燥"], ["iron", "熨烫"], ["professional", "专业维护"], ["notes", "注意事项"],
 ] as const;
 
 export function recommendedCareLabelSettings(data: Pick<CareLabelData, "name" | "category" | "composition" | "filling">) {
