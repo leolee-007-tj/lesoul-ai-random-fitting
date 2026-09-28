@@ -48,6 +48,9 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain('addCustomStandard');
     expect(admin).toContain('removeCustomStandard');
     expect(admin).toContain('standards: customStandards.map');
+    expect(admin).toContain("CARE_LABEL_MATERIALS.map((option)");
+    expect(admin).toContain('min="0" max="100"');
+    expect(admin).toContain("재질 함량 합계는 반드시 100%여야 합니다.");
     expect(admin).not.toContain('["lining", "里料 / Lining"]');
     expect(admin).not.toContain('["filling", "填充物 / Filling"]');
   });
