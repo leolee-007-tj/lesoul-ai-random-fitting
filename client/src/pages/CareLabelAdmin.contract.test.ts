@@ -31,7 +31,7 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain("createProduct");
     expect(admin).toContain("addProductFromTemplate");
     expect(admin).toContain('name: ""');
-    expect(admin).toContain('dealer: ""');
+    expect(admin).toContain('dealer: "市南区乐搜商行"');
     expect(admin).toContain('size: ""');
     expect(admin).toContain("添加新商品");
     expect(admin).toContain("materialCompositionText");
@@ -41,6 +41,7 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain('safety: draft.safety || safety?.nameZh || ""');
     expect(admin).toContain('grade: draft.grade || grade?.nameZh || ""');
     expect(admin).toContain("进口商或经销商名称 / Importer or Distributor");
+    expect(admin).toContain('dealer: "市南区乐搜商行"');
     expect(admin).toContain("QR 공개 화면에서는 이 값이 进口商或经销商名称으로 표시됩니다.");
     expect(admin).toContain('placeholder={key === "dealer" ? "进口商或经销商名称" : undefined}');
     expect(admin).toContain('useEffect(() => { if (!draft) return; const standard = CARE_LABEL_STANDARDS.find');

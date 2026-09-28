@@ -61,7 +61,7 @@ export default function CareLabelAdmin() {
     const nextNumber = rows.reduce((max, row) => Math.max(max, Number(row.id.replace("LS-", "")) || 0), 0) + 1;
     if (nextNumber > 9999) { setNotice("상품 ID 한도(LS-9999)에 도달했습니다."); return; }
     const id = `LS-${String(nextNumber).padStart(4, "0")}`;
-    const data = { ...template, id, name: "", dealer: "", size: "", revision: 0, updatedAt: undefined, publicFields: defaultPublicFields(template), materialComposition: [] } as CareLabelData;
+    const data = { ...template, id, name: "", dealer: "市南区乐搜商行", size: "", revision: 0, updatedAt: undefined, publicFields: defaultPublicFields(template), materialComposition: [] } as CareLabelData;
     setNotice("기존 고정 정보를 자동 입력해 새 상품을 만드는 중입니다…");
     try { await createProduct.mutateAsync({ id, data: data as Record<string, unknown> }); setIsDirty(false); setSearch(""); setSelectedId(id); setNotice("새 상품이 추가되었습니다. 제품명·상호·사이즈와 가격을 먼저 입력한 뒤 저장하세요."); }
     catch (error) { setNotice(error instanceof Error ? error.message : "새 상품 추가에 실패했습니다."); }
