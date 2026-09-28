@@ -57,7 +57,13 @@ describe("Care Labels admin contracts", () => {
     expect(admin).toContain('text-[#ffd84d]">¥</span>');
     expect(admin).toContain("CHINESE_QR_FULL_PDF");
     expect(admin).toContain("CHINESE_QR_INDIVIDUAL_PDF_ZIP");
-    expect(admin).toContain("상품별 PDF ZIP");
+    expect(admin).toContain("中文 QR PDF 선택");
+    expect(admin).toContain("상품별 나눠서 ZIP");
+    expect(admin).toContain("전체 제품 하나의 PDF");
+    expect(admin).toContain("qrProductId");
+    const print = fs.readFileSync(path.join(root, "client/src/pages/CareLabelPrint.tsx"), "utf8");
+    expect(print).toContain('get("product")');
+    expect(print).toContain("printableProducts");
     expect(admin).toContain("CARE_LABEL_MATERIALS.map((option)");
     expect(admin).toContain('min="0" max="100"');
     expect(admin).toContain("재질 함량 합계는 반드시 100%여야 합니다.");
