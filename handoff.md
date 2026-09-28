@@ -44,7 +44,7 @@ drizzle.config.ts           Drizzle Kit 설정
 .gitignore                  비밀·의존성·빌드·로그 제외 규칙
 ```
 
-`.git`, `node_modules`, `dist`, `.manus-logs`, `.env*`, 인증서·키 파일은 안전한 ZIP에서 제외합니다. `.project-config.json`은 구조와 변수 이름만 남긴 비밀 제거 사본으로 포함합니다.
+`.git`, `node_modules`, `dist`, `.manus-logs`, `.env*`, 인증서·키 파일과 실제 `.project-config.json`은 안전한 ZIP에서 제외합니다. 대신 구조와 변수 이름만 남긴 `.project-config.example.json`을 포함합니다.
 
 ## 3. 실행 방법
 
