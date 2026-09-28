@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import shutil
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -35,11 +36,11 @@ def main() -> None:
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     products = json.loads(args.data.read_text(encoding="utf-8"))
-    if len(products) != 384:
-        raise SystemExit(f"Expected 384 products, got {len(products)}")
+    if not products:
+        raise SystemExit("At least one product is required")
     ids = [item["id"] for item in products]
-    if ids != [f"LS-{index:04d}" for index in range(1, 385)]:
-        raise SystemExit("Product IDs are incomplete or out of order")
+    if len(ids) != len(set(ids)) or any(not str(product_id).strip() for product_id in ids):
+        raise SystemExit("Product IDs must be present and unique")
 
     out = args.output.resolve()
     png_dir, svg_dir = out / "PNG", out / "SVG"
@@ -98,7 +99,25 @@ def main() -> None:
             typ.append(f'  card("{pid}", "{esc_typst(name)}", "{url}", "SVG/{pid}.svg"),')
         typ.append(')')
         if page_start + 20 < len(products): typ.append('#pagebreak()')
-    (out / "LESOUL_QR_CARDS_CHINESE.typ").write_text("\n".join(typ) + "\n", encoding="utf-8")
+    full_typ = "\n".join(typ) + "\n"
+    full_typ_path = out / "LESOUL_QR_CARDS_CHINESE.typ"
+    full_typ_path.write_text(full_typ, encoding="utf-8")
+    subprocess.run(["typst", "compile", str(full_typ_path), str(out / "LESOUL_QR_CARDS_CHINESE.pdf")], cwd=out, check=True)
+
+    # Also create one Chinese-only A4 PDF per product. Each card keeps the
+    # requested order: 商品名称 and 商品编号 above the QR code.
+    individual_typ_dir = out / "individual-typ"
+    individual_pdf_dir = out / "individual-pdf"
+    individual_typ_dir.mkdir()
+    individual_pdf_dir.mkdir()
+    card_definition = "\n".join(typ[:17])
+    for item in products:
+        pid, name = item["id"], str(item.get("name") or "")
+        single_typ = card_definition + f'\n#align(center + horizon)[card("{pid}", "{esc_typst(name)}", "{product_url(pid)}", "../SVG/{pid}.svg")]\n'
+        typ_path = individual_typ_dir / f"{pid}.typ"
+        pdf_path = individual_pdf_dir / f"{pid}.pdf"
+        typ_path.write_text(single_typ, encoding="utf-8")
+        subprocess.run(["typst", "compile", str(typ_path), str(pdf_path)], cwd=out, check=True)
 
     zip_path = out / "LESOUL_QR_PNG_SVG_FINAL.zip"
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -106,6 +125,12 @@ def main() -> None:
             archive.write(path, path.relative_to(out))
         for name in ["QR_URL_MANIFEST.json", "QR_URL_MANIFEST.csv", "QR_MATCHING.xlsx"]:
             archive.write(out / name, name)
+    individual_zip = out / "LESOUL_QR_INDIVIDUAL_PDFS_CHINESE.zip"
+    with zipfile.ZipFile(individual_zip, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(individual_pdf_dir.glob("*.pdf")):
+            archive.write(path, path.relative_to(out))
+        archive.write(out / "QR_URL_MANIFEST.csv", "QR_URL_MANIFEST.csv")
+    shutil.rmtree(individual_typ_dir)
     print(json.dumps({"products": len(products), "origin": FINAL_ORIGIN, "output": str(out)}, ensure_ascii=False))
 
 if __name__ == "__main__":
