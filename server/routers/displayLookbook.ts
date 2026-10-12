@@ -120,9 +120,32 @@ function makeOutfitPlan(products: any[], mode: "separates" | "dress" | "top" | "
   return pieces;
 }
 function outfitLabel(products: any[]) { return products.map((product) => product.name || product.nameKo || product.nameEn || `#${product.id}`).join(" + "); }
-function buildPrompt(product: any, sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile) {
+function colorTone(value: unknown): "light" | "dark" | "mid" {
+  const text = String(value ?? "").toLowerCase();
+  if (/white|ivory|cream|beige|ecru|oat|butter|yellow|pink|sky|light|white|흰|아이보리|크림|베이지|연|밝|白|米|浅|奶油|浅色/.test(text)) return "light";
+  if (/black|charcoal|navy|brown|chocolate|burgundy|wine|olive|khaki|dark|black|검정|블랙|차콜|네이비|브라운|버건디|와인|카키|어두|黑|藏青|棕|深色/.test(text)) return "dark";
+  return "mid";
+}
+function missingGarmentColorDirection(product: any, catalogProducts: any[] = []) {
+  const tone = colorTone(product.color);
+  const category = String(product.category ?? product.productType ?? "").toLowerCase();
+  const isTop = /top|상의|나시|shirt|blouse|上衣|衬衫/.test(category);
+  const isBottom = /bottom|하의|바지|치마|pants|skirt|下装|裤|裙/.test(category);
+  const isOuter = /outer|아우터|자켓|재킷|코트|jacket|coat|外套/.test(category);
+  const candidates = catalogProducts.filter((item) => item.id !== product.id && item.color && ((isTop && /bottom|하의|바지|치마|pants|skirt|下装|裤|裙/.test(String(item.category ?? "").toLowerCase())) || (isBottom && /top|상의|나시|shirt|blouse|上衣|衬衫/.test(String(item.category ?? "").toLowerCase())) || (isOuter && /top|상의|bottom|하의|上衣|下装/.test(String(item.category ?? "").toLowerCase())))).slice(0, 4).map((item) => `${item.name || "registered item"} (${item.color})`);
+  let direction = "Use balanced neutral and denim styling for the missing garments, with a wearable social-fashion look rather than random colors.";
+  if (isTop && tone === "light") direction = "The supplied top is light-toned: style the missing bottom in a clearly darker color such as charcoal, black, deep navy, chocolate brown, or medium/deep blue denim; avoid a washed-out all-light outfit.";
+  else if (isTop && tone === "dark") direction = "The supplied top is dark-toned: style the missing bottom in a comparatively lighter color such as light-wash blue denim, ecru, stone, light gray, or cream; avoid an unnecessarily heavy all-black outfit.";
+  else if (isBottom && tone === "light") direction = "The supplied bottom is light-toned: style the missing top in a darker color such as black, charcoal, navy, chocolate, or rich denim for clear contrast.";
+  else if (isBottom && tone === "dark") direction = "The supplied bottom is dark-toned: style the missing top in a comparatively lighter color such as white, cream, oatmeal, light gray, butter yellow, or light-wash denim.";
+  else if (isOuter && tone === "light") direction = "The supplied outerwear is light-toned: use a darker inner top and balanced dark or medium denim bottoms so the silhouette remains defined.";
+  else if (isOuter && tone === "dark") direction = "The supplied outerwear is dark-toned: use a lighter inner top and light-to-medium denim or stone bottoms to create a clean layered contrast.";
+  const catalogCue = candidates.length ? `Registered complementary color cues available in this catalog: ${candidates.join(", ")}. Prefer a harmonious cue when it fits the silhouette, but do not replace or alter the supplied garment.` : "If a complementary registered garment is not available, create a simple neutral or denim companion garment.";
+  return `COLOR COORDINATION FOR SINGLE-GARMENT STYLING: ${direction} Use current wearable SNS fashion styling principles such as clean neutrals, denim contrast, chocolate/burgundy accents, and one clear focal color. ${catalogCue}`;
+}
+function buildPrompt(product: any, sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile, catalogProducts: any[] = []) {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "For store scenes use a believable Korean Dongdaemun wholesale boutique with natural daylight and candid activity; for editorial scenes use a pure white seamless studio with high-key magazine lighting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "For store scenes use a believable Korean Dongdaemun wholesale boutique with natural daylight and candid activity; for editorial scenes use a pure white seamless studio with high-key magazine lighting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
 function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
@@ -145,7 +168,7 @@ async function generateBatch(productId: number, requestedCount: number, presenta
   for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
     const { scene, style: shotStyle } = selectLookbookScene(presentationStyle);
     try {
-      const result = await generateImage({ prompt: buildPrompt(product, scene.description, index, shotStyle, modelProfile), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
+      const result = await generateImage({ prompt: buildPrompt(product, scene.description, index, shotStyle, modelProfile, catalog.products), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
       rows.push({ productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
@@ -223,7 +246,7 @@ export const displayLookbookRouter = router({
     const scene = editorial ? randomItem(editorialScenePrompts) : randomItem(dongdaemunScenePrompts);
     const modelLine = editorial ? "Show one adult Western fashion magazine model wearing the exact supplied garment reference." : `Show one adult East Asian Korean woman, fixed height 165 cm, ${hair}, with a natural body shape suited to the supplied garment, wearing the exact supplied garment reference in a Dongdaemun boutique.`;
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
-    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
+    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
     if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
     await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
     return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null, savedPublicly: true };

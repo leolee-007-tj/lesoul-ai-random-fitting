@@ -54,6 +54,16 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("display-lookbook/outfits/${batchId}");
   });
 
+  it("coordinates missing garments by light or dark color and catalog cues", () => {
+    expect(router).toContain("function colorTone");
+    expect(router).toContain("missingGarmentColorDirection");
+    expect(router).toContain("The supplied top is light-toned");
+    expect(router).toContain("The supplied top is dark-toned");
+    expect(router).toContain("light-wash blue denim");
+    expect(router).toContain("COLOR COORDINATION FOR SINGLE-GARMENT STYLING");
+    expect(router).toContain("Registered complementary color cues available in this catalog");
+    expect(router).toContain("catalog.products)");
+  });
   it("uses the shared Dongdaemun employee profile and a 100-situation prompt library", () => {
     expect(router).toContain("dongdaemunActions");
     expect(router).toContain("dongdaemunSettings");
