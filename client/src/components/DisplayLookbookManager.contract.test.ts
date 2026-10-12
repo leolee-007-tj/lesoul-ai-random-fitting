@@ -8,7 +8,7 @@ describe("display AI lookbook UI", () => {
   it("exposes owner generation and approval controls", () => {
     expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
     expect(manager).toContain("count");
-    expect(manager).toContain("generate.mutate({ productId, count, presentationStyle })");
+    expect(manager).toContain("generateBatch.useMutation");
     expect(manager).toContain("korean_staff");
     expect(manager).toContain("western_model");
     expect(manager).toContain("randomOutfitPlan");

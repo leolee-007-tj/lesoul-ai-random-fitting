@@ -59,7 +59,10 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("fixed height 165 cm");
     expect(router).toContain("black hair");
     expect(router).toContain("a natural body shape and proportions that suit the supplied clothing");
-    expect(router).toContain("randomItem(selectedScenes)");
+    expect(router).toContain("selectLookbookScene");
+    expect(router).toContain("editorialScenePrompts");
+    expect(router).toContain("pure white seamless studio background");
+    expect(router).toContain("Western fashion magazine model");
     expect(router).toContain("modelProfile: modelProfileInput");
   });
 });

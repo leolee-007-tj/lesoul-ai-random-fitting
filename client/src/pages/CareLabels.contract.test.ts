@@ -31,7 +31,7 @@ describe("Care Labels and login QR contracts", () => {
     expect(qr).toContain("LESOUL 商品二维码");
     expect(qr).toContain("微信或手机相机扫码查看商品洗标资料");
     expect(print).toContain("商品二维码打印册");
-    expect(print).toContain("products.map");
+    expect(print).toContain("printableProducts.map");
   });
 
   it("contains no legacy chatgpt.site URL in active Care Labels code", () => {

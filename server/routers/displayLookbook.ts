@@ -47,6 +47,18 @@ const dongdaemunScenePrompts = dongdaemunActions.map((action, index) => ({
   type: index % 4 === 1 ? "store_customer" as const : index % 4 === 2 ? "studio_front" as const : index % 3 === 0 ? "store_work" as const : "store_walk" as const,
   description: `${action}, ${dongdaemunSettings[index % dongdaemunSettings.length]}; natural candid Dongdaemun wholesale fashion-store moment, action ${index + 1} of 100`,
 }));
+const editorialScenePrompts = [
+  { type: "studio_front" as const, editorial: true, description: "a pure white seamless studio background, soft high-key lighting, full-body Western fashion magazine model composition, centered editorial pose" },
+  { type: "studio_side" as const, editorial: true, description: "a clean white cyclorama background, bright softbox lighting, three-quarter side pose by an adult Western fashion magazine model" },
+  { type: "studio_full" as const, editorial: true, description: "a minimal white fashion magazine set, crisp high-key light, elegant full-body Western runway editorial composition" },
+];
+function selectLookbookScene(presentationStyle: "korean_staff" | "western_model") {
+  if (presentationStyle === "korean_staff" && Math.random() < 0.35) {
+    return { scene: randomItem(editorialScenePrompts), style: "western_model" as const };
+  }
+  const pool = presentationStyle === "korean_staff" ? dongdaemunScenePrompts : sceneTypes;
+  return { scene: randomItem(pool), style: presentationStyle };
+}
 const hairLengthInput = z.enum(["short", "medium", "long"]).default("medium");
 const modelProfileInput = z.object({ hairLength: hairLengthInput }).default({ hairLength: "medium" });
 type ModelProfile = { hairLength: "short" | "medium" | "long" };
@@ -110,11 +122,11 @@ function makeOutfitPlan(products: any[], mode: "separates" | "dress" | "top" | "
 function outfitLabel(products: any[]) { return products.map((product) => product.name || product.nameKo || product.nameEn || `#${product.id}`).join(" + "); }
 function buildPrompt(product: any, sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile) {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "For store scenes use a believable Korean Dongdaemun wholesale boutique with natural daylight and candid activity; for editorial scenes use a pure white seamless studio with high-key magazine lighting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
 function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "For store scenes use a believable Korean Dongdaemun wholesale boutique with natural daylight and candid activity; for editorial scenes use a pure white seamless studio with high-key magazine lighting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
 }
 
 async function generateBatch(productId: number, requestedCount: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile, origin: string | null) {
@@ -129,12 +141,11 @@ async function generateBatch(productId: number, requestedCount: number, presenta
   const batchId = `LOOKBOOK_${productId}_${crypto.randomUUID()}`;
   const startedAt = Date.now();
   progressByProduct.set(productId, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
-  const selectedScenes = presentationStyle === "korean_staff" ? dongdaemunScenePrompts : sceneTypes;
   const rows: Array<{ productId: number; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
   for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
-    const scene = presentationStyle === "korean_staff" ? randomItem(selectedScenes) : selectedScenes[index % selectedScenes.length];
+    const { scene, style: shotStyle } = selectLookbookScene(presentationStyle);
     try {
-      const result = await generateImage({ prompt: buildPrompt(product, scene.description, index, presentationStyle, modelProfile), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
+      const result = await generateImage({ prompt: buildPrompt(product, scene.description, index, shotStyle, modelProfile), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
       rows.push({ productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
@@ -169,12 +180,11 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const batchId = `LOOKBOOK_OUTFIT_${anchor.id}_${crypto.randomUUID()}`;
   const label = outfitLabel(products);
   progressByProduct.set(anchor.id, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
-  const selectedScenes = presentationStyle === "korean_staff" ? dongdaemunScenePrompts : sceneTypes;
   const rows: Array<{ productId: number; compositionProductIds: number[]; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
   for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
-    const scene = presentationStyle === "korean_staff" ? randomItem(selectedScenes) : selectedScenes[index % selectedScenes.length];
+    const { scene, style: shotStyle } = selectLookbookScene(presentationStyle);
     try {
-      const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index, presentationStyle, modelProfile), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
+      const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index, shotStyle, modelProfile), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
       rows.push({ productId: anchor.id, compositionProductIds: productIds, compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
@@ -207,7 +217,10 @@ export const displayLookbookRouter = router({
     const originalUrl = absoluteImageUrl(originalPath, publicOrigin(ctx.req));
     const hair = input.hairLength === "short" ? "short black hair" : input.hairLength === "long" ? "long black hair" : "medium-length black hair";
     const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", `Show one adult East Asian Korean woman, fixed height 165 cm, ${hair}, with a natural body shape suited to the supplied garment, wearing the exact supplied garment reference in a Dongdaemun boutique.`, `Garment information: ${garment || "registered fashion garment"}.`, "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${crypto.randomUUID()}.png` });
+    const editorial = Math.random() < 0.5;
+    const scene = editorial ? randomItem(editorialScenePrompts) : randomItem(dongdaemunScenePrompts);
+    const modelLine = editorial ? "Show one adult Western fashion magazine model wearing the exact supplied garment reference." : `Show one adult East Asian Korean woman, fixed height 165 cm, ${hair}, with a natural body shape suited to the supplied garment, wearing the exact supplied garment reference in a Dongdaemun boutique.`;
+    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${crypto.randomUUID()}.png` });
     return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null };
   }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {
