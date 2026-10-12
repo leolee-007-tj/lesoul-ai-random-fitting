@@ -46,4 +46,16 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("Do not substitute, merge, redesign, recolor, or invent any garment.");
     expect(router).toContain("display-lookbook/outfits/${batchId}");
   });
+
+  it("uses the shared Dongdaemun employee profile and a 100-situation prompt library", () => {
+    expect(router).toContain("dongdaemunActions");
+    expect(router).toContain("dongdaemunSettings");
+    expect(router).toContain("actionIndex * 10 + settingIndex + 1");
+    expect(router).toContain('z.enum(["short", "medium", "long"])');
+    expect(router).toContain("fixed height 165 cm");
+    expect(router).toContain("black hair");
+    expect(router).toContain("a natural body shape and proportions that suit the supplied clothing");
+    expect(router).toContain("randomItem(selectedScenes)");
+    expect(router).toContain("modelProfile: modelProfileInput");
+  });
 });
