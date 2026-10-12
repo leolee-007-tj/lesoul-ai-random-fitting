@@ -14,6 +14,15 @@ describe("display lookbook gallery and touch scroll", () => {
     expect(manager).toContain("visibleRows.map");
   });
 
+  it("uses independent button controls for cart and random hair length", () => {
+    expect(manager).toContain("setCartHairLength(length)");
+    expect(manager).toContain("setRandomHairLength(length)");
+    expect(manager).toContain("단발머리");
+    expect(manager).toContain("중간 길이");
+    expect(manager).toContain("긴 머리");
+    expect(manager).not.toContain("동양인 여성 · 키 165cm · 검정 머리");
+  });
+
   it("keeps vertical page scrolling natural while allowing horizontal product rows", () => {
     expect(css).toContain("html, body, #root { touch-action: pan-y;");
     expect(css).toContain(".lesoul-mobile-content { touch-action: pan-y;");
