@@ -3,7 +3,7 @@ import { z } from "zod";
 import { displayLookbookImages } from "../../drizzle/schema";
 import { getCatalog, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
-import { customerProcedure, ownerProcedure, router, storeDisplayProcedure } from "../_core/trpc";
+import { customerProcedure, ownerProcedure, publicProcedure, router, storeDisplayProcedure } from "../_core/trpc";
 
 const sceneTypes = [
   { type: "studio_front" as const, description: "clean studio front full-body fashion look" },
@@ -209,6 +209,8 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
 
 export const displayLookbookRouter = router({
   guestPreview: customerProcedure.input(guestPreviewInput).mutation(async ({ ctx, input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("DATABASE_UNAVAILABLE");
     const catalog = await getCatalog();
     const product = catalog.products.find((item) => item.id === input.productId);
     if (!product) throw new Error("PRODUCT_NOT_FOUND");
@@ -220,13 +222,21 @@ export const displayLookbookRouter = router({
     const editorial = Math.random() < 0.5;
     const scene = editorial ? randomItem(editorialScenePrompts) : randomItem(dongdaemunScenePrompts);
     const modelLine = editorial ? "Show one adult Western fashion magazine model wearing the exact supplied garment reference." : `Show one adult East Asian Korean woman, fixed height 165 cm, ${hair}, with a natural body shape suited to the supplied garment, wearing the exact supplied garment reference in a Dongdaemun boutique.`;
-    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${crypto.randomUUID()}.png` });
-    return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null };
+    const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
+    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
+    if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
+    await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
+    return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null, savedPublicly: true };
   }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {
     const catalog = await getCatalog();
     const selected = makeOutfitPlan(catalog.products, input.mode);
     return { productIds: selected.map((product) => product.id), label: outfitLabel(selected), groups: selected.map((product) => outfitGroup(product)) };
+  }),
+  publicForProduct: publicProcedure.input(generateInput).query(async ({ input }) => {
+    const db = await getDb();
+    if (!db) return [];
+    return db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.productId, input.productId), eq(displayLookbookImages.isApproved, 1), eq(displayLookbookImages.isActive, 1))).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.shotIndex);
   }),
   approvedAll: storeDisplayProcedure.query(async () => {
     const db = await getDb();

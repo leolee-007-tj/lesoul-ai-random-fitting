@@ -8,5 +8,9 @@ describe("product detail notice placement", () => {
     const noticeSource = readFileSync(new URL("./BlackColorVerificationNotice.tsx", import.meta.url), "utf8");
     expect(noticeSource).toContain('data-detail-modal-color-notice="true"');
     expect(source).not.toContain('<BlackColorVerificationNotice color={product.color} className="mt-2" />');
+    expect(source).toContain('trpc.displayLookbook.publicForProduct.useQuery');
+    expect(source).toContain('생성된 룩북은 자동 저장되어 다른 방문자도 볼 수 있습니다.');
+    expect(source).toContain('공개 AI 룩북');
+    expect(source).toContain('publicImageExpanded');
   });
 });

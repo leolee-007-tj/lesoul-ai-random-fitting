@@ -22,7 +22,14 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("product.imageViews?.front?.studioCut");
   });
 
-  it("keeps generated images pending until the owner approves them", () => {
+  it("automatically saves guest previews as public lookbooks without a second approval", () => {
+    expect(router).toContain('guestPreview: customerProcedure');
+    expect(router).toContain('GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}');
+    expect(router).toContain('isApproved: 1, isActive: 1');
+    expect(router).toContain('savedPublicly: true');
+    expect(router).toContain('publicForProduct: publicProcedure');
+  });
+  it("keeps administrator-generated images pending until the owner approves them", () => {
     expect(router).toContain("isApproved: 0");
     expect(router).toContain("approve: ownerProcedure");
     expect(router).toContain("revoke: ownerProcedure");
