@@ -50,7 +50,11 @@ describe("store display AI lookbook", () => {
   it("uses the shared Dongdaemun employee profile and a 100-situation prompt library", () => {
     expect(router).toContain("dongdaemunActions");
     expect(router).toContain("dongdaemunSettings");
-    expect(router).toContain("actionIndex * 10 + settingIndex + 1");
+    expect(router).toContain("const dongdaemunActions = [");
+    expect(router).toContain("action ${index + 1} of 100");
+    expect(router).toContain("crouching to organize a low shelf");
+    expect(router).toContain("squatting to sort folded clothes");
+    expect(router).toContain("a few customers browsing");
     expect(router).toContain('z.enum(["short", "medium", "long"])');
     expect(router).toContain("fixed height 165 cm");
     expect(router).toContain("black hair");

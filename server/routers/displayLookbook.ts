@@ -15,15 +15,38 @@ const sceneTypes = [
 ];
 
 const dongdaemunActions = [
-  "hanging the garment neatly on a rack", "counting cash at the store counter", "checking a mobile calculator beside the counter", "welcoming a customer with a small bow", "helping a customer compare two garments", "taking a fitting photo in front of the customer with a confident pose", "checking the garment hem and sleeve in a mirror", "carrying a small stack of folded clothes", "steaming or smoothing the garment before display", "walking between tightly packed clothing racks",
+  // Rack and display
+  "hanging the selected garment on a rack", "removing the garment from a rack", "re-spacing hangers by color", "straightening a crooked hanger", "checking the shoulder shape on a hanger", "moving a garment to the front display", "matching a garment to nearby colors", "adjusting a rack height", "counting hangers on a rail", "brushing lint from a hanging garment",
+  // Checkout and stock
+  "counting cash at the checkout counter", "checking a mobile calculator at checkout", "writing a small stock note", "checking a customer order on a phone", "folding a receipt beside the register", "placing a paper shopping bag on the counter", "checking a barcode tag", "organizing change in the cash tray", "speaking with a nearby supplier", "marking a sold item on a clipboard",
+  // Customer service
+  "welcoming a customer with a small bow", "showing a customer the garment color", "helping a customer compare two garments", "pointing out the sleeve detail", "holding a garment up for a customer", "answering a customer question", "walking beside a customer through the aisle", "offering a different size", "checking the garment label with a customer", "smiling while listening to a customer",
+  // Fitting and posing
+  "taking a fitting photo in front of a customer", "holding a phone while the customer poses", "checking a fitting photo on the phone", "standing in front of a mirror with a confident pose", "turning slightly to show the side silhouette", "showing the back fit in a mirror", "adjusting the camera angle for a fitting photo", "giving a small styling pose to the customer", "reviewing a full-body outfit photo", "posing naturally beside the fitting mirror",
+  // Garment inspection
+  "checking the garment hem in a mirror", "checking the sleeve length", "checking the neckline construction", "smoothing the front panel with both hands", "checking the fabric texture closely", "looking for a loose thread", "checking the inside label", "measuring a garment with a tape measure", "comparing garment lengths on a rail", "folding the garment after inspection",
+  // Crouching and organizing
+  "crouching to organize a low shelf", "squatting to sort folded clothes", "sitting briefly on a low stool while folding clothes", "kneeling beside a garment box", "reaching into a low storage bin", "sorting clothes on the floor beside a rack", "tying a bundle of garments while crouching", "lifting a folded stack from a low shelf", "organizing shoe-level stock near the wall", "resting in a low crouch while checking a tag",
+  // Walking and carrying
+  "walking between tightly packed clothing racks", "carrying a small stack of folded clothes", "rolling a compact garment rack", "walking toward the checkout counter", "carrying a garment to the fitting mirror", "returning a hanger to the back rail", "walking past a customer with a clothing bundle", "opening a stockroom curtain with one hand", "bringing a new box from the back", "walking through the entrance while holding a garment",
+  // Steaming and preparation
+  "steaming the garment before display", "using a small lint roller", "preparing a garment on a tabletop", "folding tissue paper around a garment", "removing a protective cover", "checking a garment under warm lights", "placing a garment in a clear protective bag", "preparing a new arrival tag", "arranging a display mannequin nearby", "polishing a small mirror beside the display",
+  // Team and store moments
+  "talking quietly with another store worker", "handing a hanger to a coworker", "checking a shared inventory list", "opening the store entrance curtain", "turning on a display light", "refreshing the front rack after a customer visit", "sharing a styling idea with a coworker", "organizing a delivery pile with a coworker", "greeting a customer arriving at the entrance", "checking the aisle before the next customer",
+  // Natural candid details
+  "tucking loose hair behind one ear while working", "looking up from a garment as a customer arrives", "smiling naturally while holding the outfit", "pausing to check the store aisle", "stretching one arm after organizing stock", "taking a short water break beside the counter", "looking through a rack for a matching piece", "holding a garment against the body to check proportions", "standing with one hand on a rack between tasks", "finishing a task and looking toward the camera",
 ];
 const dongdaemunSettings = [
-  "near the entrance in soft morning light", "beside a wall of neutral clothing racks", "at a compact checkout counter", "in a narrow Dongdaemun wholesale aisle", "near a full-length fitting mirror", "beside a neatly arranged color rack", "in a realistic afternoon store rush", "in a quiet moment before opening", "under warm boutique ceiling lights", "with subtle boxes and garment rails in the background",
+  "inside a slightly spacious Dongdaemun wholesale fashion store with a few customers browsing, realistic afternoon activity",
+  "near broad clothing aisles with several customers softly blurred in the background",
+  "at a busy but believable store counter with a few shoppers waiting naturally",
+  "under warm shop lights in a moderately large Dongdaemun store with garment racks and customer movement",
+  "in a candid moment with a few customers browsing without blocking the full outfit",
 ];
-const dongdaemunScenePrompts = dongdaemunActions.flatMap((action, actionIndex) => dongdaemunSettings.map((setting, settingIndex) => ({
-  type: actionIndex === 1 || actionIndex === 2 ? "store_customer" as const : actionIndex === 5 ? "studio_front" as const : actionIndex % 3 === 0 ? "store_work" as const : "store_walk" as const,
-  description: `${action}, ${setting}; natural candid Dongdaemun wholesale fashion-store moment, variation ${actionIndex * 10 + settingIndex + 1}`,
-})));
+const dongdaemunScenePrompts = dongdaemunActions.map((action, index) => ({
+  type: index % 4 === 1 ? "store_customer" as const : index % 4 === 2 ? "studio_front" as const : index % 3 === 0 ? "store_work" as const : "store_walk" as const,
+  description: `${action}, ${dongdaemunSettings[index % dongdaemunSettings.length]}; natural candid Dongdaemun wholesale fashion-store moment, action ${index + 1} of 100`,
+}));
 const hairLengthInput = z.enum(["short", "medium", "long"]).default("medium");
 const modelProfileInput = z.object({ hairLength: hairLengthInput }).default({ hairLength: "medium" });
 type ModelProfile = { hairLength: "short" | "medium" | "long" };
