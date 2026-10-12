@@ -3,7 +3,7 @@ import { z } from "zod";
 import { displayLookbookImages } from "../../drizzle/schema";
 import { getCatalog, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
-import { ownerProcedure, router, storeDisplayProcedure } from "../_core/trpc";
+import { customerProcedure, ownerProcedure, router, storeDisplayProcedure } from "../_core/trpc";
 
 const sceneTypes = [
   { type: "studio_front" as const, description: "clean studio front full-body fashion look" },
@@ -59,6 +59,7 @@ const presentationStyleInput = z.enum(["korean_staff", "western_model"]).default
 const generateInput = z.object({ productId: z.number().int().positive() });
 const generateBatchInput = generateInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, count: z.number().int().min(1).max(10).default(10) });
 const generateOutfitInput = z.object({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3) });
+const guestPreviewInput = z.object({ productId: z.number().int().positive(), hairLength: hairLengthInput });
 const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
 type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
@@ -113,7 +114,7 @@ function buildPrompt(product: any, sceneDescription: string, index: number, pres
 }
 function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.",, garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use a believable small Korean Dongdaemun wholesale boutique for store scenes, with natural daylight, realistic proportions, and an unstaged candid feeling.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
 }
 
 async function generateBatch(productId: number, requestedCount: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile, origin: string | null) {
@@ -197,6 +198,18 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
 }
 
 export const displayLookbookRouter = router({
+  guestPreview: customerProcedure.input(guestPreviewInput).mutation(async ({ ctx, input }) => {
+    const catalog = await getCatalog();
+    const product = catalog.products.find((item) => item.id === input.productId);
+    if (!product) throw new Error("PRODUCT_NOT_FOUND");
+    const originalPath = productImage(product);
+    if (!originalPath) throw new Error("PRODUCT_IMAGE_REQUIRED");
+    const originalUrl = absoluteImageUrl(originalPath, publicOrigin(ctx.req));
+    const hair = input.hairLength === "short" ? "short black hair" : input.hairLength === "long" ? "long black hair" : "medium-length black hair";
+    const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
+    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", `Show one adult East Asian Korean woman, fixed height 165 cm, ${hair}, with a natural body shape suited to the supplied garment, wearing the exact supplied garment reference in a Dongdaemun boutique.`, `Garment information: ${garment || "registered fashion garment"}.`, "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${crypto.randomUUID()}.png` });
+    return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null };
+  }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {
     const catalog = await getCatalog();
     const selected = makeOutfitPlan(catalog.products, input.mode);

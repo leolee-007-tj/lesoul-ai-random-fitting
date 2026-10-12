@@ -43,7 +43,7 @@ export default function Login() {
 
   useEffect(() => {
     if (auth.loading || pending || !auth.isAuthenticated || window.location.pathname !== "/login") return;
-    const destination = auth.user?.role === "admin" ? "/operations" : auth.user?.role === "store_trial" ? "/trial-store" : auth.user?.role === "store_display" ? "/store-display" : safeNext;
+    const destination = auth.user?.role === "admin" ? "/operations" : auth.user?.role === "store_trial" ? "/trial-store" : auth.user?.role === "store_display" ? "/store-display" : safeNext === "/" ? "/catalog" : safeNext;
     navigate(destination);
   }, [auth.isAuthenticated, auth.loading, auth.user?.role, navigate, pending, safeNext]);
 
@@ -53,7 +53,7 @@ export default function Login() {
       const result = await guestLogin.mutateAsync({ visitorId });
       clearExplicitLogout();
       restoreVisitorId(result.visitorId);
-      finishNormal(safeNext, result.visitorId);
+      finishNormal(safeNext === "/" ? "/catalog" : safeNext, result.visitorId);
     } catch {
       setMessage(t("auth.unavailable"));
     }
