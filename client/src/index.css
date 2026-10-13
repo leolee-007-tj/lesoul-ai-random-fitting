@@ -95,8 +95,8 @@
   .lesoul-safe-modal { position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; background: rgba(0,0,0,.32); padding: calc(var(--safe-area-top) + .75rem) calc(var(--safe-area-right) + .75rem) calc(var(--safe-area-bottom) + .75rem) calc(var(--safe-area-left) + .75rem); backdrop-filter: blur(14px); }
   .lesoul-safe-modal > * { margin-top: 0; margin-bottom: 0; touch-action: pan-y; }
   .lesoul-display-page { min-height: 100dvh; overflow: visible; touch-action: pan-y; overscroll-behavior-y: auto; -webkit-overflow-scrolling: touch; }
-  .lesoul-display-row { display: flex; overflow-x: auto; overflow-y: visible; overscroll-behavior: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scroll-behavior: auto; touch-action: auto; user-select: none; -webkit-user-select: none; scrollbar-width: thin; padding-bottom: .75rem; }
-  .lesoul-display-row > * { touch-action: auto; }
+  .lesoul-display-row { display: flex; overflow-x: auto; overflow-y: visible; overscroll-behavior: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; scroll-behavior: auto; touch-action: pan-y; user-select: none; -webkit-user-select: none; scrollbar-width: thin; padding-bottom: .75rem; }
+  .lesoul-display-row > * { touch-action: pan-y; }
   .lesoul-display-row > * { scroll-snap-align: start; }
   @media (min-width: 744px) { .lesoul-display-row { scroll-padding-inline: .5rem; gap: 1rem; } .lesoul-display-row > * { min-width: min(36vw, 360px); } }
   @media (prefers-reduced-motion: reduce) { .lesoul-display-row { scroll-behavior: auto; } }
