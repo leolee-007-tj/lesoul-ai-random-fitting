@@ -6,15 +6,16 @@ import DisplayLookbookManager from "@/components/DisplayLookbookManager";
 import { BarChart3, CircleDollarSign, Ruler, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { localizedProductName } from "@shared/productCommerce";
 
 export default function OperationsDashboard() {
+  const [location] = useLocation();
   const { i18n } = useTranslation();
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = locale === "ko" ? { eyebrow: "OWNER OPERATIONS", title: "운영 대시보드", subtitle: "상품, 계정, 매장 운영 정보와 디스플레이 전용 AI 룩북을 관리합니다.", categories: "종류 · 치수 관리", users: "계정 현황", vip: "VIP", normal: "일반", none: "등록된 계정이 없습니다.", analytics: "방문 분석", visitors: "고유 방문자(중복 제외)", noAnalytics: "아직 방문 기록이 없습니다.", conversion: "상품별 방문 전환율", conversionHelp: "상품 상세를 본 고유 방문자 중 구매목록에 추가한 방문자의 비율입니다.", detailVisitors: "상세 고유 방문", convertedVisitors: "전환 방문", rate: "전환율", shares: "위챗 유입", noConversion: "아직 상품 전환 데이터가 없습니다." } : locale === "zh" ? { eyebrow: "OWNER OPERATIONS", title: "运营仪表盘", subtitle: "管理商品、账户、店铺运营信息和门店专用 AI Lookbook。", categories: "分类 · 尺寸管理", users: "账户概览", vip: "VIP", normal: "普通用户", none: "暂无已注册账户。", analytics: "访问分析", visitors: "独立访客（去重）", noAnalytics: "暂无访问记录。", conversion: "商品访问转化率", conversionHelp: "转化率是查看商品详情的独立访客中加入购买清单的访客比例。", detailVisitors: "详情独立访客", convertedVisitors: "转化访客", rate: "转化率", shares: "微信导流", noConversion: "暂无商品转化数据。" } : { eyebrow: "OWNER OPERATIONS", title: "OPERATIONS DASHBOARD", subtitle: "Manage products, accounts, store operations, and the store-display-only AI lookbook.", categories: "CATEGORIES & FIT FIELDS", users: "ACCOUNT OVERVIEW", vip: "VIP", normal: "NORMAL", none: "No registered accounts yet.", analytics: "VISIT ANALYTICS", visitors: "UNIQUE VISITORS (DEDUPLICATED)", noAnalytics: "No visit records yet.", conversion: "PRODUCT VISIT CONVERSION", conversionHelp: "Conversion is the share of unique detail visitors who added the product to the purchase list.", detailVisitors: "DETAIL VISITORS", convertedVisitors: "CONVERTED", rate: "RATE", shares: "WECHAT REFERRALS", noConversion: "No product conversion data yet." };
   const [categoryPanelOpen, setCategoryPanelOpen] = useState(false);
-  const lookbookMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("lookbook") === "1";
+  const lookbookMode = new URLSearchParams(location.split("?")[1] ?? "").get("lookbook") === "1";
   const people = trpc.operations.users.useQuery({ locale }, { retry: 2, refetchOnMount: "always", refetchOnWindowFocus: true });
   const managedCategories = trpc.admin.productCategories.useQuery();
   const vipAccounts = (people.data?.accounts ?? []).filter((account) => account.user.role === "vip");
