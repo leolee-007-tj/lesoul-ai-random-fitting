@@ -83,6 +83,8 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("black hair");
     expect(router).toContain("natural body shape and proportions that suit the supplied clothing");
     expect(router).toContain("selectLookbookScene");
+    expect(router).toContain("scene ?? editorialScenePrompts[0]");
+    expect(router).toContain("LOOKBOOK_SCENE_UNAVAILABLE");
     expect(router).toContain("editorialScenePrompts");
     expect(router).toContain("modelProfile: modelProfileInput");
   });

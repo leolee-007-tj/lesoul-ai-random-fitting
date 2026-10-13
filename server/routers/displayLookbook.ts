@@ -121,13 +121,15 @@ const editorialScenePrompts = editorialPosePrompts.map((pose, index) => ({
 }));
 const backgroundStyleInput = z.enum(["editorial_studio", "fitting_room_mirror"]).default("editorial_studio");
 type BackgroundStyle = "editorial_studio" | "fitting_room_mirror";
-function applyBackground(scene: (typeof editorialScenePrompts)[number], backgroundStyle: BackgroundStyle) {
-  if (backgroundStyle === "editorial_studio") return scene;
-  const pose = scene.description.split(", ")[0];
-  return { ...scene, description: `${pose}, taking a natural phone photo of the outfit reflected in a full-length mirror inside a clean modern fitting room, realistic mirror reflection, phone visible in one hand, soft fitting-room lighting, no store floor or shoppers` };
+function applyBackground(scene: (typeof editorialScenePrompts)[number] | undefined, backgroundStyle: BackgroundStyle) {
+  const safeScene = scene ?? editorialScenePrompts[0];
+  if (!safeScene) throw new Error("LOOKBOOK_SCENE_UNAVAILABLE");
+  if (backgroundStyle === "editorial_studio") return safeScene;
+  const pose = safeScene.description.split(", ")[0];
+  return { ...safeScene, description: `${pose}, taking a natural phone photo of the outfit reflected in a full-length mirror inside a clean modern fitting room, realistic mirror reflection, phone visible in one hand, soft fitting-room lighting, no store floor or shoppers` };
 }
 function selectLookbookScene(_presentationStyle: "korean_staff" | "western_model", backgroundStyle: BackgroundStyle = "editorial_studio") {
-  const scene = randomItem(editorialScenePrompts);
+  const scene = randomItem(editorialScenePrompts) ?? editorialScenePrompts[0];
   return { scene: applyBackground(scene, backgroundStyle), style: "western_model" as const };
 }
 const sceneTypes = editorialScenePrompts;
@@ -314,7 +316,7 @@ export const displayLookbookRouter = router({
     const originalUrl = absoluteImageUrl(originalPath, publicOrigin(ctx.req));
     const hair = input.hairLength === "short" ? "short black hair" : input.hairLength === "long" ? "long black hair" : "medium-length black hair";
     const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-    const scene = applyBackground(randomItem(editorialScenePrompts), input.backgroundStyle);
+    const scene = applyBackground(randomItem(editorialScenePrompts) ?? editorialScenePrompts[0], input.backgroundStyle);
     const modelLine = `Show one adult Western fashion magazine model with ${hair} wearing the exact supplied garment reference.`;
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
     const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });

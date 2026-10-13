@@ -10,5 +10,7 @@ describe("error boundary recovery UI", () => {
     expect(page).toContain("window.location.reload()");
     expect(page).toContain("window.history.back()");
     expect(page).toContain("오류 세부 정보");
+    expect(page).toContain("navigator.clipboard?.writeText");
+    expect(page).toContain("에러 내용 복사");
   });
 });
