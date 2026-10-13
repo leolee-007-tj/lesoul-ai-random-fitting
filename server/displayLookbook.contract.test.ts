@@ -57,6 +57,9 @@ describe("store display AI lookbook", () => {
   it("coordinates missing garments by light or dark color and catalog cues", () => {
     expect(router).toContain("function colorTone");
     expect(router).toContain("missingGarmentColorDirection");
+    expect(router).toContain("completeOutfitWithCatalog");
+    expect(router).toContain("COMPLETE THE PARTIAL OUTFIT");
+    expect(router).toContain("Never alter, recolor, replace, or remove any user-selected garment");
     expect(router).toContain("The supplied top is light-toned");
     expect(router).toContain("The supplied top is dark-toned");
     expect(router).toContain("light-wash blue denim");

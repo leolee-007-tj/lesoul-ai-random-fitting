@@ -195,6 +195,25 @@ function makeOutfitPlan(products: any[], mode: "separates" | "dress" | "top" | "
   return pieces;
 }
 function outfitLabel(products: any[]) { return products.map((product) => product.name || product.nameKo || product.nameEn || `#${product.id}`).join(" + "); }
+function completeOutfitWithCatalog(selectedProducts: any[], catalogProducts: any[]) {
+  const selectedGroups = new Set(selectedProducts.map(outfitGroup));
+  const missingGroup: OutfitGroup | null = selectedGroups.has("outer") && selectedGroups.has("bottom") && !selectedGroups.has("top") ? "top" : selectedGroups.has("outer") && selectedGroups.has("top") && !selectedGroups.has("bottom") ? "bottom" : selectedGroups.has("top") && selectedGroups.has("bottom") && !selectedGroups.has("outer") ? "outer" : null;
+  if (!missingGroup) return { products: selectedProducts, addedGroup: null as OutfitGroup | null, addedFromCatalog: false };
+  const candidates = catalogProducts.filter((product) => outfitGroup(product) === missingGroup && !selectedProducts.some((selected) => selected.id === product.id) && productImage(product));
+  const addition = candidates.length ? randomItem(candidates) : null;
+  return addition ? { products: [...selectedProducts, addition], addedGroup: missingGroup, addedFromCatalog: true } : { products: selectedProducts, addedGroup: missingGroup, addedFromCatalog: false };
+}
+function missingOutfitDirection(products: any[], addedGroup: OutfitGroup | null, addedFromCatalog: boolean) {
+  if (!addedGroup) return "The selected pieces already form a complete outfit; do not add another garment.";
+  const outer = products.find((product) => outfitGroup(product) === "outer");
+  const top = products.find((product) => outfitGroup(product) === "top");
+  const bottom = products.find((product) => outfitGroup(product) === "bottom");
+  const anchor = outer || top || bottom;
+  const tone = colorTone(anchor?.color);
+  const color = tone === "dark" ? "a lighter neutral, cream, white, light gray, or light-wash denim" : tone === "light" ? "a darker neutral, charcoal, navy, black, chocolate, or deep denim" : "a balanced neutral or medium denim";
+  const source = addedFromCatalog ? "Use the added registered store garment reference exactly as supplied." : "If no registered store garment reference is available, create only a simple unbranded companion garment";
+  return `COMPLETE THE PARTIAL OUTFIT: add the missing ${addedGroup} layer so the look is a complete womenswear outfit. ${source} Choose ${color} for clear contrast with the selected pieces, following clean SNS fashion styling. Never alter, recolor, replace, or remove any user-selected garment.`;
+}
 function colorTone(value: unknown): "light" | "dark" | "mid" {
   const text = String(value ?? "").toLowerCase();
   if (/white|ivory|cream|beige|ecru|oat|butter|yellow|pink|sky|light|white|흰|아이보리|크림|베이지|연|밝|白|米|浅|奶油|浅色/.test(text)) return "light";
@@ -222,9 +241,9 @@ function buildPrompt(product: any, sceneDescription: string, index: number, pres
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
   return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
-function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle = "editorial_studio") {
+function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle = "editorial_studio", addedGroup: OutfitGroup | null = null, addedFromCatalog = false) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western woman wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western woman wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, missingOutfitDirection(products, addedGroup, addedFromCatalog), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
 }
 
 async function generateBatch(productId: number, requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null) {
@@ -270,11 +289,13 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const db = await getDb();
   if (!db) throw new Error("DATABASE_UNAVAILABLE");
   const catalog = await getCatalog();
-  const products = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
-  if (products.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
+  const selectedProducts = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
+  if (selectedProducts.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
+  const completed = completeOutfitWithCatalog(selectedProducts, catalog.products);
+  const products = completed.products;
   const sources = products.map((product) => productImage(product)).filter(Boolean).map((url) => absoluteImageUrl(url, origin));
   if (sources.length !== products.length) throw new Error("PRODUCT_IMAGE_REQUIRED");
-  const anchor = products[0];
+  const anchor = selectedProducts[0];
   const batchId = `LOOKBOOK_OUTFIT_${anchor.id}_${crypto.randomUUID()}`;
   const label = outfitLabel(products);
   progressByProduct.set(anchor.id, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
@@ -282,9 +303,9 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
     const { scene, style: shotStyle } = selectLookbookScene(presentationStyle, backgroundStyle);
     try {
-      const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index, shotStyle, modelProfile, backgroundStyle), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
+      const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index, shotStyle, modelProfile, backgroundStyle, completed.addedGroup, completed.addedFromCatalog), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
-      rows.push({ productId: anchor.id, compositionProductIds: productIds, compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
+      rows.push({ productId: anchor.id, compositionProductIds: products.map((product) => product.id), compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
       const lastError = error instanceof Error ? error.message : String(error);
       const current = progressByProduct.get(anchor.id)!;
@@ -302,7 +323,7 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const current = progressByProduct.get(anchor.id)!;
   progressByProduct.set(anchor.id, { ...current, status: rows.length ? "completed" : "failed", percent: 100 });
   if (!rows.length) throw new Error(current.lastError || "ALL_LOOKBOOK_IMAGES_FAILED");
-  return { batchId, productId: anchor.id, productIds, generated: rows.length, requested: requestedCount, label, images: rows };
+  return { batchId, productId: anchor.id, productIds: products.map((product) => product.id), generated: rows.length, requested: requestedCount, label, images: rows };
 }
 
 export const displayLookbookRouter = router({
