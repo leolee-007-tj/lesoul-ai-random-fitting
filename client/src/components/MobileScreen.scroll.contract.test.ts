@@ -17,7 +17,7 @@ describe("global touch scrolling contract", () => {
     expect(css).toContain("touch-action: pan-y");
     expect(css).toContain(".lesoul-display-row");
     expect(css).toContain("overflow-x: auto");
-    expect(css).toContain("touch-action: auto");
+    expect(css).toContain("touch-action: pan-y");
     expect(css).toContain("scroll-snap-type: x proximity");
     expect(css).toContain("overscroll-behavior: auto");
     expect(css).toContain("user-select: none");

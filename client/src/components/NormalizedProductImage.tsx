@@ -61,7 +61,9 @@ export function getWhiteMarginNormalization(image: HTMLImageElement): AutoMargin
     const height = image.naturalHeight;
     if (!width || !height) return DEFAULT_NORMALIZATION;
 
-    const sampleWidth = Math.min(160, width);
+    // Keep the white-margin correction, but cap the analysis workload for iPad-class devices.
+    // The source image is never resized or modified; only this UI preview analysis is reduced.
+    const sampleWidth = Math.min(96, width);
     const sampleHeight = Math.max(1, Math.round((height / width) * sampleWidth));
     const canvas = document.createElement("canvas");
     canvas.width = sampleWidth;
