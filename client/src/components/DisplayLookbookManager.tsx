@@ -48,7 +48,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const [cartHairLength, setCartHairLength] = useState<"short" | "medium" | "long">("medium");
   const [lookbookTitle, setLookbookTitle] = useState("");
   const [recommendationName, setRecommendationName] = useState("");
-  const [galleryScope, setGalleryScope] = useState<"selected" | "all">("selected");
+  const [galleryScope, setGalleryScope] = useState<"selected" | "all">("all");
   const [previewImage, setPreviewImage] = useState<any | null>(null);
   const filteredProducts = useMemo(() => { const sorted = products.filter((product: any) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) !== "SOLD_OUT").sort((a: any, b: any) => (recency(b.createdAt ?? b.updatedAt) || Number(b.id ?? 0)) - (recency(a.createdAt ?? a.updatedAt) || Number(a.id ?? 0))); return group === "all" ? sorted : sorted.filter((product: any) => groupFor(product) === group); }, [products, group]);
   const selected = useMemo(() => products.find((product: any) => product.id === productId), [products, productId]);

@@ -85,7 +85,8 @@ describe("customer-facing curated experience contract", () => {
     expect(bottomNav).not.toContain('href: "/quick-fit"');
     expect(bottomNav).not.toContain('href: "/body-model"');
     expect(bottomNav).toContain('href: "/operations"');
-    expect(bottomNav).toContain('outfits: "AI 룩북"');
+    expect(bottomNav).not.toContain('label: copy.outfits');
+    expect(header).not.toContain('path: "/operations", icon: Sparkles');
     expect(app).not.toContain('path={"/outfit-management"}');
     expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
   });
