@@ -120,18 +120,32 @@ const editorialScenePrompts = editorialPosePrompts.map((pose, index) => ({
   editorial: true,
   description: pose + ", " + studioBackgrounds[index % studioBackgrounds.length] + ", adult Western woman fashion magazine model, complete outfit visible, pose " + (index + 1) + " of 100",
 }));
+const mirrorSelfiePosePrompts = [
+  "standing straight facing the full-length mirror, phone held at chest height, full outfit visible",
+  "three-quarter angle to the mirror, one shoulder slightly turned, phone held beside the face",
+  "side-profile mirror selfie, one hand on the waist, phone held away from the garment",
+  "relaxed contrapposto stance, one knee softly bent, phone held at shoulder height",
+  "walking toward the mirror and pausing mid-step, phone held low so the outfit remains visible",
+  "one hand adjusting the jacket lapel while the other hand holds the phone, natural reflection",
+  "turning slightly away from the mirror while looking back over one shoulder, phone visible",
+  "seated on a simple fitting-room bench, phone raised for a full reflection, garment unobstructed",
+  "standing with one foot forward and the phone held to the side, clear front reflection",
+  "checking the sleeve in the mirror, phone held in a relaxed lowered position",
+  "full-body mirror selfie from a slightly lower phone angle, natural posture and complete outfit",
+  "over-the-shoulder mirror selfie with the phone near the cheek, body and garment still fully visible",
+];
 const backgroundStyleInput = z.enum(["editorial_studio", "fitting_room_mirror"]).default("editorial_studio");
 type BackgroundStyle = "editorial_studio" | "fitting_room_mirror";
-function applyBackground(scene: (typeof editorialScenePrompts)[number] | undefined, backgroundStyle: BackgroundStyle) {
+function applyBackground(scene: (typeof editorialScenePrompts)[number] | undefined, backgroundStyle: BackgroundStyle, poseIndex = 0) {
   const safeScene = scene ?? editorialScenePrompts[0];
   if (!safeScene) throw new Error("LOOKBOOK_SCENE_UNAVAILABLE");
   if (backgroundStyle === "editorial_studio") return safeScene;
-  const pose = safeScene.description.split(", ")[0];
-  return { ...safeScene, description: `${pose}, taking a natural phone photo of the outfit reflected in a full-length mirror inside a clean modern fitting room, realistic mirror reflection, phone visible in one hand, soft fitting-room lighting, no store floor or shoppers` };
+  const pose = mirrorSelfiePosePrompts[poseIndex % mirrorSelfiePosePrompts.length];
+  return { ...safeScene, description: `${pose}, taking a natural phone photo of the outfit reflected in a full-length mirror inside a clean modern fitting room, realistic mirror reflection, phone visible in one hand, soft fitting-room lighting, no store floor or shoppers, fitting-room mirror selfie background` };
 }
 function selectLookbookScene(_presentationStyle: "east_asian_female" | "western_female", backgroundStyle: BackgroundStyle = "editorial_studio") {
   const scene = randomItem(editorialScenePrompts) ?? editorialScenePrompts[0];
-  return { scene: applyBackground(scene, backgroundStyle), style: _presentationStyle };
+  return { scene: applyBackground(scene, backgroundStyle, Math.floor(Math.random() * mirrorSelfiePosePrompts.length)), style: _presentationStyle };
 }
 const sceneTypes = editorialScenePrompts;
 const hairLengthInput = z.enum(["short", "medium", "long"]).default("medium");
@@ -240,7 +254,7 @@ function missingGarmentColorDirection(product: any, catalogProducts: any[] = [])
 }
 function buildPrompt(product: any, sceneDescription: string, index: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, catalogProducts: any[] = [], backgroundStyle: BackgroundStyle = "editorial_studio") {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the exact supplied garment reference.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
 function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle = "editorial_studio", addedGroup: OutfitGroup | null = null, addedFromCatalog = false) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
@@ -340,7 +354,7 @@ export const displayLookbookRouter = router({
     const originalUrl = absoluteImageUrl(originalPath, publicOrigin(ctx.req));
     const hair = input.hairLength === "short" ? "short black hair" : input.hairLength === "long" ? "long black hair" : "medium-length black hair";
     const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-    const scene = applyBackground(randomItem(editorialScenePrompts) ?? editorialScenePrompts[0], input.backgroundStyle);
+    const scene = applyBackground(randomItem(editorialScenePrompts) ?? editorialScenePrompts[0], input.backgroundStyle, Math.floor(Math.random() * mirrorSelfiePosePrompts.length));
     const modelLine = `${input.presentationStyle === "east_asian_female" ? "Show one adult East Asian woman" : "Show one adult Western woman"} with ${hair} wearing the exact supplied garment reference.`;
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
     const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });

@@ -80,6 +80,11 @@ describe("store display AI lookbook", () => {
     expect(router).toContain('backgroundStyleInput = z.enum(["editorial_studio", "fitting_room_mirror"])');
     expect(router).toContain("fitting-room mirror selfie background");
     expect(router).toContain("full-length mirror reflection");
+    expect(router).toContain("const mirrorSelfiePosePrompts = [");
+    expect(router).toContain("three-quarter angle to the mirror");
+    expect(router).toContain("side-profile mirror selfie");
+    expect(router).toContain("seated on a simple fitting-room bench");
+    expect(router).toContain("poseIndex % mirrorSelfiePosePrompts.length");
     expect(router).toContain("Use only a clean white, light-gray, or soft neutral studio background");
     expect(router).toContain("never use a shop, boutique, street, checkout, rack, or workplace setting");
     expect(router).not.toContain("dongdaemunActions");
