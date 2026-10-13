@@ -9,6 +9,10 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
     expect(manager).toContain("count");
     expect(manager).toContain("generateBatch.useMutation");
+    expect(manager).toContain("generateSingleProduct");
+    expect(manager).toContain("이 상품으로 룩북 1장 만들기");
+    expect(manager).toContain("count: 1");
+    expect(manager).toContain("단품 머리 길이");
     expect(manager).toContain("east_asian_female");
     expect(manager).toContain("western_female");
     expect(manager).toContain("동양 여성");

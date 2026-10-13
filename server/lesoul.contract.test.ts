@@ -84,7 +84,9 @@ describe("customer-facing curated experience contract", () => {
     expect(header).toContain('const showAdminManage = user?.role === "admin" || ownerStatus.data?.isOwner === true');
     expect(bottomNav).not.toContain('href: "/quick-fit"');
     expect(bottomNav).not.toContain('href: "/body-model"');
-    expect(bottomNav).toContain('href: "/outfit-management"');
+    expect(bottomNav).toContain('href: "/operations"');
+    expect(bottomNav).toContain('outfits: "AI 룩북"');
+    expect(app).not.toContain('path={"/outfit-management"}');
     expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
   });
 

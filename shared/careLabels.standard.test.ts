@@ -43,4 +43,12 @@ describe("Care Labels Chinese apparel standard controls", () => {
     expect(CARE_LABEL_PUBLIC_FIELD_OPTIONS.length).toBeGreaterThan(10);
     expect(defaultPublicFields({ ...oldProduct, publicFields: ["name", "composition"] } as any)).toEqual(["name", "composition"]);
   });
+
+  it("rejects saved material metadata unless the total is exactly 100%", async () => {
+    const { normalizeCareLabelData } = await import("./careLabels");
+    const base = { id: "LS-0001", materialComposition: [{ key: "cotton", nameZh: "棉", nameKo: "면", percentage: 60 }] };
+    expect(() => normalizeCareLabelData(base)).toThrow("CARE_LABEL_MATERIAL_TOTAL_MUST_BE_100");
+    expect(() => normalizeCareLabelData({ ...base, materialComposition: [{ ...base.materialComposition[0], percentage: 101 }] })).toThrow("CARE_LABEL_MATERIAL_PERCENTAGE_INVALID");
+    expect(normalizeCareLabelData({ ...base, materialComposition: [{ ...base.materialComposition[0], percentage: 100 }] }).materialComposition?.[0]?.percentage).toBe(100);
+  });
 });

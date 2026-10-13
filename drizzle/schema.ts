@@ -90,6 +90,8 @@ export const products = mysqlTable("products", {
   descriptionEn: text("descriptionEn"),
   descriptionKo: text("descriptionKo"),
   descriptionZh: text("descriptionZh"),
+  /** Owner-authored visual guidance used only when generating AI lookbook images. */
+  lookbookPrompt: text("lookbookPrompt"),
   discountSeasonEnabled: int("discountSeasonEnabled").default(0).notNull(),
   discountOnePercent: int("discountOnePercent").default(20).notNull(),
   discountTwoPercent: int("discountTwoPercent").default(25).notNull(),
@@ -489,6 +491,9 @@ export const displayLookbookImages = mysqlTable("displayLookbookImages", {
   shotIndex: int("shotIndex").notNull(),
   sceneType: mysqlEnum("sceneType", ["studio_front", "studio_side", "studio_full", "store_work", "store_customer", "store_walk"]).notNull(),
   sceneDescription: varchar("sceneDescription", { length: 300 }).notNull(),
+  /** Optional owner-facing title and recommendation label for this generated look. */
+  lookbookTitle: varchar("lookbookTitle", { length: 200 }),
+  recommendationName: varchar("recommendationName", { length: 200 }),
   imageUrl: text("imageUrl").notNull(),
   storageKey: text("storageKey").notNull(),
   isApproved: int("isApproved").default(0).notNull(),

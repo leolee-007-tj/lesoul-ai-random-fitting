@@ -18,7 +18,6 @@ import PurchaseList from "./pages/PurchaseList";
 import OperationsDashboard from "./pages/OperationsDashboard";
 import StyleMatch from "./pages/StyleMatch";
 import Login from "./pages/Login";
-import OutfitManager from "./pages/OutfitManager";
 import Profile from "./pages/Profile";
 import PublicIntroduction from "./pages/PublicIntroduction";
 import TrialStoreConsole from "./pages/TrialStoreConsole";
@@ -60,7 +59,6 @@ function Router() {
       <Route path={"/care-labels/print"} component={() => <AdminGate><CareLabelPrint /></AdminGate>} />
       <Route path={"/account-management"} component={() => <AdminGate><AccountManagement /></AdminGate>} />
       <Route path={"/sale-settings"} component={() => <AdminGate><SaleSettings /></AdminGate>} />
-      <Route path={"/outfit-management"} component={() => <AdminGate><OutfitManager /></AdminGate>} />
       <Route path={"/style-match"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/result-preview"} component={() => <CustomerGate><StyleMatch /></CustomerGate>} />
       <Route path={"/404"} component={NotFound} />

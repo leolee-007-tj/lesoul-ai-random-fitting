@@ -139,6 +139,13 @@ export function normalizeCareLabelData(value: unknown): CareLabelData {
   if (!value || typeof value !== "object") throw new Error("CARE_LABEL_DATA_INVALID");
   const record = value as Record<string, unknown>;
   if (typeof record.id !== "string" || !/^LS-\d{4}$/.test(record.id)) throw new Error("CARE_LABEL_ID_INVALID");
+  if (record.materialComposition !== undefined) {
+    if (!Array.isArray(record.materialComposition) || record.materialComposition.length === 0) throw new Error("CARE_LABEL_MATERIAL_COMPOSITION_REQUIRED");
+    const percentages = record.materialComposition.map((item) => Number((item as Record<string, unknown>)?.percentage));
+    if (percentages.some((percentage) => !Number.isFinite(percentage) || percentage < 0 || percentage > 100)) throw new Error("CARE_LABEL_MATERIAL_PERCENTAGE_INVALID");
+    const total = percentages.reduce((sum, percentage) => sum + percentage, 0);
+    if (Math.abs(total - 100) > 0.0001) throw new Error("CARE_LABEL_MATERIAL_TOTAL_MUST_BE_100");
+  }
   return record as CareLabelData;
 }
 

@@ -456,6 +456,13 @@
       "when": 1790587287334,
       "tag": "0064_strange_goliath",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "5",
+      "when": 1791877391463,
+      "tag": "0065_handy_dagger",
+      "breakpoints": true
     }
   ]
 }

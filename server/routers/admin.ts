@@ -78,6 +78,7 @@ const productInput = z.object({
   descriptionEn: z.string().max(4000).nullable().optional(),
   descriptionKo: z.string().max(4000).nullable().optional(),
   descriptionZh: z.string().max(4000).nullable().optional(),
+  lookbookPrompt: z.string().max(4000).nullable().optional(),
   discountSeasonEnabled: z.number().int().min(0).max(1).optional(),
   discountOnePercent: z.number().int().min(0).max(100).optional(),
   discountTwoPercent: z.number().int().min(0).max(100).optional(),

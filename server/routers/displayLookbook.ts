@@ -7,105 +7,105 @@ import { customerProcedure, ownerProcedure, publicProcedure, router, storeDispla
 import { normaliseAvailabilityStatus } from "../../shared/productAvailability";
 
 const editorialPosePrompts = [
-  'front-facing relaxed stance with one hand at the waist',,
-  'front-facing stance with both hands softly clasped',,
-  'front-facing stance with one foot slightly forward',,
-  'front-facing stance with arms naturally at the sides',,
-  'front-facing stance with one hand touching the opposite elbow',,
-  'front-facing stance with a subtle shoulder tilt',,
-  'front-facing stance looking just past the camera',,
-  'front-facing stance with chin slightly raised',,
-  'front-facing stance with chin slightly lowered',,
-  'front-facing stance with hands behind the back',,
-  'front-facing stance holding the jacket lapel',,
-  'front-facing stance adjusting one cuff',,
-  'front-facing stance touching the neckline',,
-  'front-facing stance smoothing the garment front',,
-  'front-facing stance with one hand in a pocket',,
-  'front-facing stance with both hands in pockets',,
-  'front-facing stance holding a small neutral clutch',,
-  'front-facing stance with a gentle half-smile',,
-  'front-facing stance with a calm serious expression',,
-  'front-facing stance with eyes closed in a quiet editorial moment',,
-  'walking slowly toward the camera',,
-  'walking away while glancing over one shoulder',,
-  'walking diagonally across the frame',,
-  'taking a long stride with the garment in motion',,
-  'pausing mid-step with one heel lifted',,
-  'walking with one hand in a pocket',,
-  'walking while holding the coat open',,
-  'walking with the coat draped over one shoulder',,
-  'walking while turning the head to the side',,
-  'walking past the camera in profile',,
-  'walking with a flowing skirt captured in motion',,
-  'walking with a trouser hem in motion',,
-  'walking and adjusting a sleeve',,
-  'walking and touching the handbag strap',,
-  'walking with a relaxed runway pace',,
-  'walking with crossed steps like a runway model',,
-  'walking toward a gray studio wall',,
-  'walking away from a white cyclorama',,
-  'walking while looking down naturally',,
-  'walking while looking directly into the camera',,
-  'profile view with the body facing left',,
-  'profile view with the body facing right',,
-  'three-quarter view turning toward the camera',,
-  'three-quarter view turning away from the camera',,
-  'back view with a slight shoulder turn',,
-  'back view showing the garment silhouette clearly',,
-  'over-the-shoulder glance from the back',,
-  'side view adjusting the waistline',,
-  'side view with one hand on the hip',,
-  'side view with arms folded loosely',,
-  'leaning lightly against a white studio wall',,
-  'leaning lightly against a gray studio wall',,
-  'standing beside a minimal white plinth',,
-  'standing beside a minimal gray plinth',,
-  'sitting on a low white cube with legs angled',,
-  'sitting on a low gray cube with one ankle crossed',,
-  'sitting on a studio stool with an upright posture',,
-  'sitting on a studio stool turned three-quarter',,
-  'sitting on the floor with knees softly bent',,
-  'kneeling elegantly on one knee',,
-  'crouching gracefully to show the garment length',,
-  'squatting lightly with the outfit fully visible',,
-  'standing on a small white step',,
-  'standing on a small gray step',,
-  'resting one foot on a low plinth',,
-  'raising both arms slightly to show sleeve movement',,
-  'raising one arm above the head',,
-  'placing one hand behind the neck',,
-  'touching the hair with one hand',,
-  'placing both hands behind the head',,
-  'crossing one arm over the torso',,
-  'opening the arms slightly to show the outer layer',,
-  'holding the hem gently with both hands',,
-  'holding one side of the skirt for movement',,
-  'pulling the coat collar into a sculptural pose',,
-  'checking one cuff with the opposite hand',,
-  'adjusting a belt or waist detail',,
-  'adjusting a shoulder strap',,
-  'touching a pocket detail',,
-  'showing the sleeve profile with one arm extended',,
-  'showing the back detail with both arms relaxed',,
-  'showing the side seam with one hand at the hip',,
-  'showing the hemline with a slight pivot',,
-  'showing the neckline with shoulders relaxed',,
-  'showing fabric drape with a gentle turn',,
-  'dramatic high-fashion pose with one knee bent',,
-  'minimalist geometric pose with angular arms',,
-  'editorial pose with a long diagonal line',,
-  'editorial pose with asymmetrical shoulders',,
-  'editorial pose with a sculptural hand gesture',,
-  'quiet contemplative pose looking toward the light',,
-  'confident power pose with feet apart',,
-  'soft romantic pose with hands near the heart',,
-  'modern preppy pose with one knee turned inward',,
-  'clean quiet-luxury pose with a neutral expression',,
-  'playful pose with one foot lifted behind',,
-  'dynamic pivot with the garment moving naturally',,
-  'slow turn captured at three-quarter angle',,
-  'final runway pose centered in the frame',,
+  'front-facing relaxed stance with one hand at the waist',
+  'front-facing stance with both hands softly clasped',
+  'front-facing stance with one foot slightly forward',
+  'front-facing stance with arms naturally at the sides',
+  'front-facing stance with one hand touching the opposite elbow',
+  'front-facing stance with a subtle shoulder tilt',
+  'front-facing stance looking just past the camera',
+  'front-facing stance with chin slightly raised',
+  'front-facing stance with chin slightly lowered',
+  'front-facing stance with hands behind the back',
+  'front-facing stance holding the jacket lapel',
+  'front-facing stance adjusting one cuff',
+  'front-facing stance touching the neckline',
+  'front-facing stance smoothing the garment front',
+  'front-facing stance with one hand in a pocket',
+  'front-facing stance with both hands in pockets',
+  'front-facing stance holding a small neutral clutch',
+  'front-facing stance with a gentle half-smile',
+  'front-facing stance with a calm serious expression',
+  'front-facing stance with eyes closed in a quiet editorial moment',
+  'walking slowly toward the camera',
+  'walking away while glancing over one shoulder',
+  'walking diagonally across the frame',
+  'taking a long stride with the garment in motion',
+  'pausing mid-step with one heel lifted',
+  'walking with one hand in a pocket',
+  'walking while holding the coat open',
+  'walking with the coat draped over one shoulder',
+  'walking while turning the head to the side',
+  'walking past the camera in profile',
+  'walking with a flowing skirt captured in motion',
+  'walking with a trouser hem in motion',
+  'walking and adjusting a sleeve',
+  'walking and touching the handbag strap',
+  'walking with a relaxed runway pace',
+  'walking with crossed steps like a runway model',
+  'walking toward a gray studio wall',
+  'walking away from a white cyclorama',
+  'walking while looking down naturally',
+  'walking while looking directly into the camera',
+  'profile view with the body facing left',
+  'profile view with the body facing right',
+  'three-quarter view turning toward the camera',
+  'three-quarter view turning away from the camera',
+  'back view with a slight shoulder turn',
+  'back view showing the garment silhouette clearly',
+  'over-the-shoulder glance from the back',
+  'side view adjusting the waistline',
+  'side view with one hand on the hip',
+  'side view with arms folded loosely',
+  'leaning lightly against a white studio wall',
+  'leaning lightly against a gray studio wall',
+  'standing beside a minimal white plinth',
+  'standing beside a minimal gray plinth',
+  'sitting on a low white cube with legs angled',
+  'sitting on a low gray cube with one ankle crossed',
+  'sitting on a studio stool with an upright posture',
+  'sitting on a studio stool turned three-quarter',
+  'sitting on the floor with knees softly bent',
+  'kneeling elegantly on one knee',
+  'crouching gracefully to show the garment length',
+  'squatting lightly with the outfit fully visible',
+  'standing on a small white step',
+  'standing on a small gray step',
+  'resting one foot on a low plinth',
+  'raising both arms slightly to show sleeve movement',
+  'raising one arm above the head',
+  'placing one hand behind the neck',
+  'touching the hair with one hand',
+  'placing both hands behind the head',
+  'crossing one arm over the torso',
+  'opening the arms slightly to show the outer layer',
+  'holding the hem gently with both hands',
+  'holding one side of the skirt for movement',
+  'pulling the coat collar into a sculptural pose',
+  'checking one cuff with the opposite hand',
+  'adjusting a belt or waist detail',
+  'adjusting a shoulder strap',
+  'touching a pocket detail',
+  'showing the sleeve profile with one arm extended',
+  'showing the back detail with both arms relaxed',
+  'showing the side seam with one hand at the hip',
+  'showing the hemline with a slight pivot',
+  'showing the neckline with shoulders relaxed',
+  'showing fabric drape with a gentle turn',
+  'dramatic high-fashion pose with one knee bent',
+  'minimalist geometric pose with angular arms',
+  'editorial pose with a long diagonal line',
+  'editorial pose with asymmetrical shoulders',
+  'editorial pose with a sculptural hand gesture',
+  'quiet contemplative pose looking toward the light',
+  'confident power pose with feet apart',
+  'soft romantic pose with hands near the heart',
+  'modern preppy pose with one knee turned inward',
+  'clean quiet-luxury pose with a neutral expression',
+  'playful pose with one foot lifted behind',
+  'dynamic pivot with the garment moving naturally',
+  'slow turn captured at three-quarter angle',
+  'final runway pose centered in the frame',
   'close full-body editorial pose with the complete garment visible',
 ];
 const studioBackgrounds = [
@@ -159,8 +159,9 @@ function modelProfileDescription(profile: ModelProfile, presentationStyle: "east
 
 const presentationStyleInput = z.enum(["east_asian_female", "western_female"]).default("western_female");
 const generateInput = z.object({ productId: z.number().int().positive() });
-const generateBatchInput = generateInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, count: z.number().int().min(1).max(10).default(10) });
-const generateOutfitInput = z.object({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3) });
+const lookbookMetaInput = z.object({ lookbookTitle: z.string().trim().max(200).nullable().optional(), recommendationName: z.string().trim().max(200).nullable().optional() });
+const generateBatchInput = generateInput.extend(lookbookMetaInput.shape).extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, count: z.number().int().min(1).max(10).default(10) });
+const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3) });
 const guestPreviewInput = z.object({ productId: z.number().int().positive(), hairLength: hairLengthInput, presentationStyle: presentationStyleInput, backgroundStyle: backgroundStyleInput });
 const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
@@ -254,14 +255,14 @@ function missingGarmentColorDirection(product: any, catalogProducts: any[] = [])
 }
 function buildPrompt(product: any, sceneDescription: string, index: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, catalogProducts: any[] = [], backgroundStyle: BackgroundStyle = "editorial_studio") {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the exact supplied garment reference.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the exact supplied garment reference.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, product.lookbookPrompt ? `OWNER GARMENT NOTES (follow these factual notes exactly): ${product.lookbookPrompt}.` : "", missingGarmentColorDirection(product, catalogProducts), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
 function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle = "editorial_studio", addedGroup: OutfitGroup | null = null, addedFromCatalog = false) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western woman wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, missingOutfitDirection(products, addedGroup, addedFromCatalog), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "east_asian_female" ? `Show ${modelProfileDescription(modelProfile, presentationStyle)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western woman wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, products.map((product) => product.lookbookPrompt ? `Owner notes for ${product.name || "garment"}: ${product.lookbookPrompt}.` : "").filter(Boolean).join(" "), missingOutfitDirection(products, addedGroup, addedFromCatalog), backgroundStyle === "fitting_room_mirror" ? "Use the selected fitting-room mirror selfie background: a clean modern fitting room, full-length mirror reflection, phone visible in one hand, realistic mirror perspective, no shop floor or shoppers." : "Use the selected white/gray Western fashion magazine studio background only.", `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
 }
 
-async function generateBatch(productId: number, requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null) {
+async function generateBatch(productId: number, requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null, lookbookTitle: string | null = null, recommendationName: string | null = null) {
   const db = await getDb();
   if (!db) throw new Error("DATABASE_UNAVAILABLE");
   const catalog = await getCatalog();
@@ -273,13 +274,13 @@ async function generateBatch(productId: number, requestedCount: number, presenta
   const batchId = `LOOKBOOK_${productId}_${crypto.randomUUID()}`;
   const startedAt = Date.now();
   progressByProduct.set(productId, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
-  const rows: Array<{ productId: number; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
+  const rows: Array<{ productId: number; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; lookbookTitle: string | null; recommendationName: string | null; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
   for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
     const { scene, style: shotStyle } = selectLookbookScene(presentationStyle, backgroundStyle);
     try {
       const result = await generateImage({ prompt: buildPrompt(product, scene.description, index, shotStyle, modelProfile, catalog.products, backgroundStyle), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
-      rows.push({ productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
+      rows.push({ productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, lookbookTitle, recommendationName, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
       const lastError = error instanceof Error ? error.message : String(error);
       const current = progressByProduct.get(productId)!;
@@ -300,7 +301,7 @@ async function generateBatch(productId: number, requestedCount: number, presenta
   return { batchId, productId, generated: rows.length, requested: requestedCount, durationMs: Date.now() - startedAt, images: rows };
 }
 
-async function generateOutfitBatch(productIds: number[], requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null) {
+async function generateOutfitBatch(productIds: number[], requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null, lookbookTitle: string | null = null, recommendationName: string | null = null) {
   const db = await getDb();
   if (!db) throw new Error("DATABASE_UNAVAILABLE");
   const catalog = await getCatalog();
@@ -315,13 +316,13 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const batchId = `LOOKBOOK_OUTFIT_${anchor.id}_${crypto.randomUUID()}`;
   const label = outfitLabel(products);
   progressByProduct.set(anchor.id, { status: "generating", completed: 0, failed: 0, total: requestedCount, percent: 0, batchId });
-  const rows: Array<{ productId: number; compositionProductIds: number[]; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
+  const rows: Array<{ productId: number; compositionProductIds: number[]; compositionLabel: string; batchId: string; shotIndex: number; sceneType: typeof sceneTypes[number]["type"]; sceneDescription: string; lookbookTitle: string | null; recommendationName: string | null; imageUrl: string; storageKey: string; isApproved: number; isActive: number }> = [];
   for (const index of Array.from({ length: requestedCount }, (_, value) => value)) {
     const { scene, style: shotStyle } = selectLookbookScene(presentationStyle, backgroundStyle);
     try {
       const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index, shotStyle, modelProfile, backgroundStyle, completed.addedGroup, completed.addedFromCatalog), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
-      rows.push({ productId: anchor.id, compositionProductIds: products.map((product) => product.id), compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
+      rows.push({ productId: anchor.id, compositionProductIds: products.map((product) => product.id), compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, lookbookTitle, recommendationName, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
       const lastError = error instanceof Error ? error.message : String(error);
       const current = progressByProduct.get(anchor.id)!;
@@ -357,7 +358,7 @@ export const displayLookbookRouter = router({
     const scene = applyBackground(randomItem(editorialScenePrompts) ?? editorialScenePrompts[0], input.backgroundStyle, Math.floor(Math.random() * mirrorSelfiePosePrompts.length));
     const modelLine = `${input.presentationStyle === "east_asian_female" ? "Show one adult East Asian woman" : "Show one adult Western woman"} with ${hair} wearing the exact supplied garment reference.`;
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
-    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
+    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, product.lookbookPrompt ? `OWNER GARMENT NOTES (follow these factual notes exactly): ${product.lookbookPrompt}.` : "", missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
     if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
     await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
     return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null, savedPublicly: true };
@@ -393,8 +394,8 @@ export const displayLookbookRouter = router({
     if (!db) return [];
     return db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.productId, input.productId), eq(displayLookbookImages.isActive, 1))).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.shotIndex);
   }),
-  generateBatch: ownerProcedure.input(generateBatchInput).mutation(async ({ ctx, input }) => generateBatch(input.productId, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req))),
-  generateOutfitBatch: ownerProcedure.input(generateOutfitInput).mutation(async ({ ctx, input }) => generateOutfitBatch(input.productIds, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req))),
+  generateBatch: ownerProcedure.input(generateBatchInput).mutation(async ({ ctx, input }) => generateBatch(input.productId, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req), input.lookbookTitle ?? null, input.recommendationName ?? null)),
+  generateOutfitBatch: ownerProcedure.input(generateOutfitInput).mutation(async ({ ctx, input }) => generateOutfitBatch(input.productIds, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req), input.lookbookTitle ?? null, input.recommendationName ?? null)),
   approve: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 1 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   revoke: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   remove: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isActive: 0, isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
