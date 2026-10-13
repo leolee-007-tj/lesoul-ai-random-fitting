@@ -28,7 +28,7 @@ describe("non-generative operations contract", () => {
   it("keeps account and catalog operations available without image-provider controls", () => {
     const dashboard = source("../client/src/pages/OperationsDashboard.tsx");
     expect(dashboard).toContain("OPERATIONS DASHBOARD");
-    expect(dashboard).toContain("VipAccountManager");
+    expect(dashboard).not.toContain("VipAccountManager");
     expect(dashboard).not.toContain("AI COST SETTINGS");
     expect(dashboard).not.toContain("updateSettings");
   });

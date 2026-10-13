@@ -54,6 +54,7 @@ function Router() {
       <Route path={"/product-fit"} component={() => <AdminGate><ProductFitManager /></AdminGate>} />
       <Route path={"/release-control"} component={() => <AdminGate><ReleaseControl /></AdminGate>} />
       <Route path={"/purchase-notices"} component={() => <AdminGate><PurchaseNoticeManager /></AdminGate>} />
+      <Route path={"/operations/lookbook"} component={() => <AdminGate><OperationsDashboard /></AdminGate>} />
       <Route path={"/operations"} component={() => <AdminGate><OperationsDashboard /></AdminGate>} />
       <Route path={"/care-labels/admin"} component={() => <AdminGate><CareLabelAdmin /></AdminGate>} />
       <Route path={"/care-labels/print"} component={() => <AdminGate><CareLabelPrint /></AdminGate>} />
