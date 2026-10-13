@@ -143,6 +143,7 @@ function applyBackground(scene: (typeof editorialScenePrompts)[number] | undefin
   const pose = mirrorSelfiePosePrompts[poseIndex % mirrorSelfiePosePrompts.length];
   return { ...safeScene, description: `${pose}, taking a natural phone photo of the outfit reflected in a full-length mirror inside a clean modern fitting room, realistic mirror reflection, phone visible in one hand, soft fitting-room lighting, no store floor or shoppers, fitting-room mirror selfie background` };
 }
+function persistedSceneDescription(description: string) { return description.slice(0, 600); }
 function selectLookbookScene(_presentationStyle: "east_asian_female" | "western_female", backgroundStyle: BackgroundStyle = "editorial_studio") {
   const scene = randomItem(editorialScenePrompts) ?? editorialScenePrompts[0];
   return { scene: applyBackground(scene, backgroundStyle, Math.floor(Math.random() * mirrorSelfiePosePrompts.length)), style: _presentationStyle };
@@ -280,7 +281,7 @@ async function generateBatch(productId: number, requestedCount: number, presenta
     try {
       const result = await generateImage({ prompt: buildPrompt(product, scene.description, index, shotStyle, modelProfile, catalog.products, backgroundStyle), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/products/${productId}/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
-      rows.push({ productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, lookbookTitle, recommendationName, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
+      rows.push({ productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: persistedSceneDescription(scene.description), lookbookTitle, recommendationName, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
       const lastError = error instanceof Error ? error.message : String(error);
       const current = progressByProduct.get(productId)!;
@@ -322,7 +323,7 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
     try {
       const result = await generateImage({ prompt: buildOutfitPrompt(products, scene.description, index, shotStyle, modelProfile, backgroundStyle, completed.addedGroup, completed.addedFromCatalog), originalImages: sources.map((url) => ({ url, mimeType: "image/jpeg" })), model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/outfits/${batchId}/shot-${String(index + 1).padStart(2, "0")}.png` });
       if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
-      rows.push({ productId: anchor.id, compositionProductIds: products.map((product) => product.id), compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: scene.description, lookbookTitle, recommendationName, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
+      rows.push({ productId: anchor.id, compositionProductIds: products.map((product) => product.id), compositionLabel: label, batchId, shotIndex: index + 1, sceneType: scene.type, sceneDescription: persistedSceneDescription(scene.description), lookbookTitle, recommendationName, imageUrl: result.url, storageKey: result.key, isApproved: 0, isActive: 1 });
     } catch (error) {
       const lastError = error instanceof Error ? error.message : String(error);
       const current = progressByProduct.get(anchor.id)!;
@@ -360,7 +361,7 @@ export const displayLookbookRouter = router({
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
     const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, product.lookbookPrompt ? `OWNER GARMENT NOTES (follow these factual notes exactly): ${product.lookbookPrompt}.` : "", missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
     if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
-    await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: scene.description, imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
+    await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: persistedSceneDescription(scene.description), imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
     return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null, savedPublicly: true };
   }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {

@@ -490,7 +490,8 @@ export const displayLookbookImages = mysqlTable("displayLookbookImages", {
   batchId: varchar("batchId", { length: 96 }).notNull(),
   shotIndex: int("shotIndex").notNull(),
   sceneType: mysqlEnum("sceneType", ["studio_front", "studio_side", "studio_full", "store_work", "store_customer", "store_walk"]).notNull(),
-  sceneDescription: varchar("sceneDescription", { length: 300 }).notNull(),
+  /** Mirror-selfie prompts can be longer than the original 300-character store-shot limit. */
+  sceneDescription: varchar("sceneDescription", { length: 600 }).notNull(),
   /** Optional owner-facing title and recommendation label for this generated look. */
   lookbookTitle: varchar("lookbookTitle", { length: 200 }),
   recommendationName: varchar("recommendationName", { length: 200 }),

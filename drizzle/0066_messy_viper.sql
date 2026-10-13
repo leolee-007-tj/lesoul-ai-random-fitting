@@ -1,0 +1,1 @@
+ALTER TABLE `displayLookbookImages` MODIFY COLUMN `sceneDescription` varchar(600) NOT NULL;
