@@ -9,8 +9,11 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
     expect(manager).toContain("count");
     expect(manager).toContain("generateBatch.useMutation");
-    expect(manager).toContain("western_model");
-    expect(manager).toContain("Western fashion magazine studio");
+    expect(manager).toContain("east_asian_female");
+    expect(manager).toContain("western_female");
+    expect(manager).toContain("동양 여성");
+    expect(manager).toContain("서양 여성");
+    expect(manager).toContain("여성 모델 선택");
     expect(manager).toContain("fitting_room_mirror");
     expect(manager).toContain("피팅룸 거울 셀카");
     expect(manager).toContain("generateOutfitBatch");

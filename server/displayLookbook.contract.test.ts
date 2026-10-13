@@ -69,7 +69,9 @@ describe("store display AI lookbook", () => {
     expect(router).toContain(' + (index + 1) + " of 100"');
     expect(router).toContain("pure white seamless cyclorama");
     expect(router).toContain("light gray seamless studio backdrop");
-    expect(router).toContain("adult Western fashion magazine model");
+    expect(router).toContain("adult Western woman");
+    expect(router).toContain("adult East Asian woman");
+    expect(router).toContain("presentationStyleInput = z.enum([\"east_asian_female\", \"western_female\"])");
     expect(router).toContain('backgroundStyleInput = z.enum(["editorial_studio", "fitting_room_mirror"])');
     expect(router).toContain("fitting-room mirror selfie background");
     expect(router).toContain("full-length mirror reflection");
@@ -81,7 +83,7 @@ describe("store display AI lookbook", () => {
     expect(router).not.toContain("a few customers browsing");
     expect(router).toContain('z.enum(["short", "medium", "long"])');
     expect(router).toContain("black hair");
-    expect(router).toContain("natural body shape and proportions that suit the supplied clothing");
+    expect(router).toContain("natural feminine body shape and proportions that suit the supplied clothing");
     expect(router).toContain("selectLookbookScene");
     expect(router).toContain("scene ?? editorialScenePrompts[0]");
     expect(router).toContain("LOOKBOOK_SCENE_UNAVAILABLE");
