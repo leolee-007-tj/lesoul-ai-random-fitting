@@ -70,6 +70,9 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("pure white seamless cyclorama");
     expect(router).toContain("light gray seamless studio backdrop");
     expect(router).toContain("adult Western fashion magazine model");
+    expect(router).toContain('backgroundStyleInput = z.enum(["editorial_studio", "fitting_room_mirror"])');
+    expect(router).toContain("fitting-room mirror selfie background");
+    expect(router).toContain("full-length mirror reflection");
     expect(router).toContain("Use only a clean white, light-gray, or soft neutral studio background");
     expect(router).toContain("never use a shop, boutique, street, checkout, rack, or workplace setting");
     expect(router).not.toContain("dongdaemunActions");
