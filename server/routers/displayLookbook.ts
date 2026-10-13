@@ -4,6 +4,7 @@ import { displayLookbookImages } from "../../drizzle/schema";
 import { getCatalog, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { customerProcedure, ownerProcedure, publicProcedure, router, storeDisplayProcedure } from "../_core/trpc";
+import { normaliseAvailabilityStatus } from "../../shared/productAvailability";
 
 const editorialPosePrompts = [
   'front-facing relaxed stance with one hand at the waist',,
@@ -199,7 +200,7 @@ function completeOutfitWithCatalog(selectedProducts: any[], catalogProducts: any
   const selectedGroups = new Set(selectedProducts.map(outfitGroup));
   const missingGroup: OutfitGroup | null = selectedGroups.has("outer") && selectedGroups.has("bottom") && !selectedGroups.has("top") ? "top" : selectedGroups.has("outer") && selectedGroups.has("top") && !selectedGroups.has("bottom") ? "bottom" : selectedGroups.has("top") && selectedGroups.has("bottom") && !selectedGroups.has("outer") ? "outer" : null;
   if (!missingGroup) return { products: selectedProducts, addedGroup: null as OutfitGroup | null, addedFromCatalog: false };
-  const candidates = catalogProducts.filter((product) => outfitGroup(product) === missingGroup && !selectedProducts.some((selected) => selected.id === product.id) && productImage(product));
+  const candidates = catalogProducts.filter((product) => outfitGroup(product) === missingGroup && !selectedProducts.some((selected) => selected.id === product.id) && normaliseAvailabilityStatus(product.availabilityStatus, product.status) !== "SOLD_OUT" && product.isActive !== 0 && productImage(product));
   const addition = candidates.length ? randomItem(candidates) : null;
   return addition ? { products: [...selectedProducts, addition], addedGroup: missingGroup, addedFromCatalog: true } : { products: selectedProducts, addedGroup: missingGroup, addedFromCatalog: false };
 }
@@ -291,6 +292,7 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const catalog = await getCatalog();
   const selectedProducts = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
   if (selectedProducts.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
+  if (selectedProducts.some((product) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) === "SOLD_OUT")) throw new Error("PRODUCT_SOLD_OUT");
   const completed = completeOutfitWithCatalog(selectedProducts, catalog.products);
   const products = completed.products;
   const sources = products.map((product) => productImage(product)).filter(Boolean).map((url) => absoluteImageUrl(url, origin));

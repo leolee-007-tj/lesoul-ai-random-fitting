@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Download, ImagePlus, LoaderCircle, Trash2, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { normaliseAvailabilityStatus } from "../../../shared/productAvailability";
 
 type Locale = "ko" | "zh" | "en";
 type GarmentGroup = "all" | "top" | "bottom" | "outer" | "dress";
@@ -46,7 +47,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const [cartHairLength, setCartHairLength] = useState<"short" | "medium" | "long">("medium");
   const [galleryScope, setGalleryScope] = useState<"selected" | "all">("selected");
   const [previewImage, setPreviewImage] = useState<any | null>(null);
-  const filteredProducts = useMemo(() => { const sorted = [...products].sort((a: any, b: any) => (recency(b.createdAt ?? b.updatedAt) || Number(b.id ?? 0)) - (recency(a.createdAt ?? a.updatedAt) || Number(a.id ?? 0))); return group === "all" ? sorted : sorted.filter((product: any) => groupFor(product) === group); }, [products, group]);
+  const filteredProducts = useMemo(() => { const sorted = products.filter((product: any) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) !== "SOLD_OUT").sort((a: any, b: any) => (recency(b.createdAt ?? b.updatedAt) || Number(b.id ?? 0)) - (recency(a.createdAt ?? a.updatedAt) || Number(a.id ?? 0))); return group === "all" ? sorted : sorted.filter((product: any) => groupFor(product) === group); }, [products, group]);
   const selected = useMemo(() => products.find((product: any) => product.id === productId), [products, productId]);
   useEffect(() => { if (!filteredProducts.some((product: any) => product.id === productId)) setProductId(filteredProducts[0]?.id ?? null); }, [filteredProducts, productId]);
   const imagesQuery = trpc.displayLookbook.adminList.useQuery({ productId: productId ?? 0 }, { enabled: Boolean(productId), retry: 1 });
