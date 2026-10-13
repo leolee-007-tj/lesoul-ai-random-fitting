@@ -6,13 +6,13 @@ const display = readFileSync(new URL("../pages/StoreDisplayCatalog.tsx", import.
 
 describe("display AI lookbook UI", () => {
   it("exposes owner generation and approval controls", () => {
-    expect(manager).toContain("trpc.displayLookbook.generateBatch.useMutation");
-    expect(manager).toContain("count");
-    expect(manager).toContain("generateBatch.useMutation");
-    expect(manager).toContain("generateSingleProduct");
-    expect(manager).toContain("이 상품으로 룩북 1장 만들기");
-    expect(manager).toContain("count: 1");
-    expect(manager).toContain("단품 머리 길이");
+    expect(manager).not.toContain("trpc.displayLookbook.generateBatch.useMutation");
+    expect(manager).not.toContain("generateSingleProduct");
+    expect(manager).not.toContain("선택 상품 AI 룩북");
+    expect(manager).toContain("stylingRequirements");
+    expect(manager).toContain("코디 상세 요구사항 (선택)");
+    expect(manager).toContain("셔츠의 앞부분만 바지 안에 넣고");
+    expect(manager).toContain("stylingRequirements: stylingRequirements.trim()");
     expect(manager).toContain("east_asian_female");
     expect(manager).toContain("western_female");
     expect(manager).toContain("동양 여성");
