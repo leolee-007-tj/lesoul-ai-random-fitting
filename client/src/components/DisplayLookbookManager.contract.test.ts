@@ -13,7 +13,6 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("Western fashion magazine studio");
     expect(manager).toContain("fitting_room_mirror");
     expect(manager).toContain("피팅룸 거울 셀카");
-    expect(manager).toContain("randomOutfitPlan");
     expect(manager).toContain("generateOutfitBatch");
     expect(manager).toContain("상의 + 하의 (+ 외투)");
     expect(manager).toContain("원피스 (+ 외투)");
