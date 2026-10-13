@@ -85,9 +85,11 @@ describe("customer-facing curated experience contract", () => {
     expect(bottomNav).not.toContain('href: "/quick-fit"');
     expect(bottomNav).not.toContain('href: "/body-model"');
     expect(bottomNav).toContain('href: "/operations"');
-    expect(bottomNav).not.toContain('label: copy.outfits');
-    expect(header).not.toContain('path: "/operations", icon: Sparkles');
+    expect(bottomNav).toContain('label: copy.outfits');
+    expect(bottomNav).toContain('href: "/operations?lookbook=1"');
+    expect(header).toContain('path: "/operations?lookbook=1", icon: Sparkles');
     expect(app).not.toContain('path={"/outfit-management"}');
+    expect(source("../client/src/pages/OperationsDashboard.tsx")).toContain('lookbookMode');
     expect(app).toContain('<AdminGate><OperationsDashboard /></AdminGate>');
   });
 
