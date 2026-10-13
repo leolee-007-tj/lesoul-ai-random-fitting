@@ -5,66 +5,130 @@ import { getCatalog, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { customerProcedure, ownerProcedure, publicProcedure, router, storeDisplayProcedure } from "../_core/trpc";
 
-const sceneTypes = [
-  { type: "studio_front" as const, description: "clean studio front full-body fashion look" },
-  { type: "studio_side" as const, description: "clean studio three-quarter side fashion look" },
-  { type: "studio_full" as const, description: "full-body editorial studio look with the garment clearly visible" },
-  { type: "store_work" as const, description: "a natural Dongdaemun boutique employee organizing a clothing rack while wearing the garment" },
-  { type: "store_customer" as const, description: "a natural Dongdaemun boutique employee helping a customer while wearing the garment" },
-  { type: "store_walk" as const, description: "a natural Dongdaemun boutique employee walking through a small clothing store while wearing the garment" },
+const editorialPosePrompts = [
+  'front-facing relaxed stance with one hand at the waist',,
+  'front-facing stance with both hands softly clasped',,
+  'front-facing stance with one foot slightly forward',,
+  'front-facing stance with arms naturally at the sides',,
+  'front-facing stance with one hand touching the opposite elbow',,
+  'front-facing stance with a subtle shoulder tilt',,
+  'front-facing stance looking just past the camera',,
+  'front-facing stance with chin slightly raised',,
+  'front-facing stance with chin slightly lowered',,
+  'front-facing stance with hands behind the back',,
+  'front-facing stance holding the jacket lapel',,
+  'front-facing stance adjusting one cuff',,
+  'front-facing stance touching the neckline',,
+  'front-facing stance smoothing the garment front',,
+  'front-facing stance with one hand in a pocket',,
+  'front-facing stance with both hands in pockets',,
+  'front-facing stance holding a small neutral clutch',,
+  'front-facing stance with a gentle half-smile',,
+  'front-facing stance with a calm serious expression',,
+  'front-facing stance with eyes closed in a quiet editorial moment',,
+  'walking slowly toward the camera',,
+  'walking away while glancing over one shoulder',,
+  'walking diagonally across the frame',,
+  'taking a long stride with the garment in motion',,
+  'pausing mid-step with one heel lifted',,
+  'walking with one hand in a pocket',,
+  'walking while holding the coat open',,
+  'walking with the coat draped over one shoulder',,
+  'walking while turning the head to the side',,
+  'walking past the camera in profile',,
+  'walking with a flowing skirt captured in motion',,
+  'walking with a trouser hem in motion',,
+  'walking and adjusting a sleeve',,
+  'walking and touching the handbag strap',,
+  'walking with a relaxed runway pace',,
+  'walking with crossed steps like a runway model',,
+  'walking toward a gray studio wall',,
+  'walking away from a white cyclorama',,
+  'walking while looking down naturally',,
+  'walking while looking directly into the camera',,
+  'profile view with the body facing left',,
+  'profile view with the body facing right',,
+  'three-quarter view turning toward the camera',,
+  'three-quarter view turning away from the camera',,
+  'back view with a slight shoulder turn',,
+  'back view showing the garment silhouette clearly',,
+  'over-the-shoulder glance from the back',,
+  'side view adjusting the waistline',,
+  'side view with one hand on the hip',,
+  'side view with arms folded loosely',,
+  'leaning lightly against a white studio wall',,
+  'leaning lightly against a gray studio wall',,
+  'standing beside a minimal white plinth',,
+  'standing beside a minimal gray plinth',,
+  'sitting on a low white cube with legs angled',,
+  'sitting on a low gray cube with one ankle crossed',,
+  'sitting on a studio stool with an upright posture',,
+  'sitting on a studio stool turned three-quarter',,
+  'sitting on the floor with knees softly bent',,
+  'kneeling elegantly on one knee',,
+  'crouching gracefully to show the garment length',,
+  'squatting lightly with the outfit fully visible',,
+  'standing on a small white step',,
+  'standing on a small gray step',,
+  'resting one foot on a low plinth',,
+  'raising both arms slightly to show sleeve movement',,
+  'raising one arm above the head',,
+  'placing one hand behind the neck',,
+  'touching the hair with one hand',,
+  'placing both hands behind the head',,
+  'crossing one arm over the torso',,
+  'opening the arms slightly to show the outer layer',,
+  'holding the hem gently with both hands',,
+  'holding one side of the skirt for movement',,
+  'pulling the coat collar into a sculptural pose',,
+  'checking one cuff with the opposite hand',,
+  'adjusting a belt or waist detail',,
+  'adjusting a shoulder strap',,
+  'touching a pocket detail',,
+  'showing the sleeve profile with one arm extended',,
+  'showing the back detail with both arms relaxed',,
+  'showing the side seam with one hand at the hip',,
+  'showing the hemline with a slight pivot',,
+  'showing the neckline with shoulders relaxed',,
+  'showing fabric drape with a gentle turn',,
+  'dramatic high-fashion pose with one knee bent',,
+  'minimalist geometric pose with angular arms',,
+  'editorial pose with a long diagonal line',,
+  'editorial pose with asymmetrical shoulders',,
+  'editorial pose with a sculptural hand gesture',,
+  'quiet contemplative pose looking toward the light',,
+  'confident power pose with feet apart',,
+  'soft romantic pose with hands near the heart',,
+  'modern preppy pose with one knee turned inward',,
+  'clean quiet-luxury pose with a neutral expression',,
+  'playful pose with one foot lifted behind',,
+  'dynamic pivot with the garment moving naturally',,
+  'slow turn captured at three-quarter angle',,
+  'final runway pose centered in the frame',,
+  'close full-body editorial pose with the complete garment visible',
 ];
-
-const dongdaemunActions = [
-  // Rack and display
-  "hanging the selected garment on a rack", "removing the garment from a rack", "re-spacing hangers by color", "straightening a crooked hanger", "checking the shoulder shape on a hanger", "moving a garment to the front display", "matching a garment to nearby colors", "adjusting a rack height", "counting hangers on a rail", "brushing lint from a hanging garment",
-  // Checkout and stock
-  "counting cash at the checkout counter", "checking a mobile calculator at checkout", "writing a small stock note", "checking a customer order on a phone", "folding a receipt beside the register", "placing a paper shopping bag on the counter", "checking a barcode tag", "organizing change in the cash tray", "speaking with a nearby supplier", "marking a sold item on a clipboard",
-  // Customer service
-  "welcoming a customer with a small bow", "showing a customer the garment color", "helping a customer compare two garments", "pointing out the sleeve detail", "holding a garment up for a customer", "answering a customer question", "walking beside a customer through the aisle", "offering a different size", "checking the garment label with a customer", "smiling while listening to a customer",
-  // Fitting and posing
-  "taking a fitting photo in front of a customer", "holding a phone while the customer poses", "checking a fitting photo on the phone", "standing in front of a mirror with a confident pose", "turning slightly to show the side silhouette", "showing the back fit in a mirror", "adjusting the camera angle for a fitting photo", "giving a small styling pose to the customer", "reviewing a full-body outfit photo", "posing naturally beside the fitting mirror",
-  // Garment inspection
-  "checking the garment hem in a mirror", "checking the sleeve length", "checking the neckline construction", "smoothing the front panel with both hands", "checking the fabric texture closely", "looking for a loose thread", "checking the inside label", "measuring a garment with a tape measure", "comparing garment lengths on a rail", "folding the garment after inspection",
-  // Crouching and organizing
-  "crouching to organize a low shelf", "squatting to sort folded clothes", "sitting briefly on a low stool while folding clothes", "kneeling beside a garment box", "reaching into a low storage bin", "sorting clothes on the floor beside a rack", "tying a bundle of garments while crouching", "lifting a folded stack from a low shelf", "organizing shoe-level stock near the wall", "resting in a low crouch while checking a tag",
-  // Walking and carrying
-  "walking between tightly packed clothing racks", "carrying a small stack of folded clothes", "rolling a compact garment rack", "walking toward the checkout counter", "carrying a garment to the fitting mirror", "returning a hanger to the back rail", "walking past a customer with a clothing bundle", "opening a stockroom curtain with one hand", "bringing a new box from the back", "walking through the entrance while holding a garment",
-  // Steaming and preparation
-  "steaming the garment before display", "using a small lint roller", "preparing a garment on a tabletop", "folding tissue paper around a garment", "removing a protective cover", "checking a garment under warm lights", "placing a garment in a clear protective bag", "preparing a new arrival tag", "arranging a display mannequin nearby", "polishing a small mirror beside the display",
-  // Team and store moments
-  "talking quietly with another store worker", "handing a hanger to a coworker", "checking a shared inventory list", "opening the store entrance curtain", "turning on a display light", "refreshing the front rack after a customer visit", "sharing a styling idea with a coworker", "organizing a delivery pile with a coworker", "greeting a customer arriving at the entrance", "checking the aisle before the next customer",
-  // Natural candid details
-  "tucking loose hair behind one ear while working", "looking up from a garment as a customer arrives", "smiling naturally while holding the outfit", "pausing to check the store aisle", "stretching one arm after organizing stock", "taking a short water break beside the counter", "looking through a rack for a matching piece", "holding a garment against the body to check proportions", "standing with one hand on a rack between tasks", "finishing a task and looking toward the camera",
+const studioBackgrounds = [
+  "pure white seamless cyclorama, soft high-key magazine lighting",
+  "light gray seamless studio backdrop, diffused editorial lighting",
+  "white-to-light-gray gradient studio background, clean fashion magazine lighting",
+  "matte warm-white studio wall and floor, restrained luxury editorial lighting",
+  "cool pale-gray studio wall and floor, crisp softbox lighting",
 ];
-const dongdaemunSettings = [
-  "inside a slightly spacious Dongdaemun wholesale fashion store with a few customers browsing, realistic afternoon activity",
-  "near broad clothing aisles with several customers softly blurred in the background",
-  "at a busy but believable store counter with a few shoppers waiting naturally",
-  "under warm shop lights in a moderately large Dongdaemun store with garment racks and customer movement",
-  "in a candid moment with a few customers browsing without blocking the full outfit",
-];
-const dongdaemunScenePrompts = dongdaemunActions.map((action, index) => ({
-  type: index % 4 === 1 ? "store_customer" as const : index % 4 === 2 ? "studio_front" as const : index % 3 === 0 ? "store_work" as const : "store_walk" as const,
-  description: `${action}, ${dongdaemunSettings[index % dongdaemunSettings.length]}; natural candid Dongdaemun wholesale fashion-store moment, action ${index + 1} of 100`,
+const editorialScenePrompts = editorialPosePrompts.map((pose, index) => ({
+  type: index % 3 === 0 ? "studio_front" as const : index % 3 === 1 ? "studio_side" as const : "studio_full" as const,
+  editorial: true,
+  description: pose + ", " + studioBackgrounds[index % studioBackgrounds.length] + ", adult Western fashion magazine model, complete outfit visible, pose " + (index + 1) + " of 100",
 }));
-const editorialScenePrompts = [
-  { type: "studio_front" as const, editorial: true, description: "a pure white seamless studio background, soft high-key lighting, full-body Western fashion magazine model composition, centered editorial pose" },
-  { type: "studio_side" as const, editorial: true, description: "a clean white cyclorama background, bright softbox lighting, three-quarter side pose by an adult Western fashion magazine model" },
-  { type: "studio_full" as const, editorial: true, description: "a minimal white fashion magazine set, crisp high-key light, elegant full-body Western runway editorial composition" },
-];
-function selectLookbookScene(presentationStyle: "korean_staff" | "western_model") {
-  if (presentationStyle === "korean_staff" && Math.random() < 0.35) {
-    return { scene: randomItem(editorialScenePrompts), style: "western_model" as const };
-  }
-  const pool = presentationStyle === "korean_staff" ? dongdaemunScenePrompts : sceneTypes;
-  return { scene: randomItem(pool), style: presentationStyle };
+function selectLookbookScene(_presentationStyle: "korean_staff" | "western_model") {
+  return { scene: randomItem(editorialScenePrompts), style: "western_model" as const };
 }
+const sceneTypes = editorialScenePrompts;
 const hairLengthInput = z.enum(["short", "medium", "long"]).default("medium");
 const modelProfileInput = z.object({ hairLength: hairLengthInput }).default({ hairLength: "medium" });
 type ModelProfile = { hairLength: "short" | "medium" | "long" };
 function modelProfileDescription(profile: ModelProfile) {
   const hair = profile.hairLength === "short" ? "short black hair" : profile.hairLength === "long" ? "long black hair" : "medium-length black hair";
-  return `one adult East Asian Korean female Dongdaemun boutique employee, fixed height 165 cm, ${hair}, a natural body shape and proportions that suit the supplied clothing, healthy realistic appearance`;
+  return `one adult Western fashion magazine model, ${hair}, natural body shape and proportions that suit the supplied clothing, healthy realistic appearance`;
 }
 
 const presentationStyleInput = z.enum(["korean_staff", "western_model"]).default("western_model");
@@ -145,11 +209,11 @@ function missingGarmentColorDirection(product: any, catalogProducts: any[] = [])
 }
 function buildPrompt(product: any, sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile, catalogProducts: any[] = []) {
   const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "For store scenes use a believable Korean Dongdaemun wholesale boutique with natural daylight and candid activity; for editorial scenes use a pure white seamless studio with high-key magazine lighting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the exact supplied garment reference in a Dongdaemun wholesale fashion store.` : "Show an adult Western fashion model wearing the exact supplied garment reference.", `Garment information: ${garment || "fashion garment"}.`, missingGarmentColorDirection(product, catalogProducts), `Scene ${index + 1}: ${sceneDescription}.`, "Preserve the garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details from the reference image.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no visible brand logo added by the model, no collage, no duplicated people, no cropped garment, and keep the complete outfit visible whenever possible."].join(" ");
 }
 function buildOutfitPrompt(products: any[], sceneDescription: string, index: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile) {
   const garmentList = products.map((product, pieceIndex) => `Piece ${pieceIndex + 1}: ${[product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ") || "registered garment"}`).join(". ");
-  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "For store scenes use a believable Korean Dongdaemun wholesale boutique with natural daylight and candid activity; for editorial scenes use a pure white seamless studio with high-key magazine lighting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
+  return ["Create a premium, natural-looking fashion editorial photograph for a store display showroom.", presentationStyle === "korean_staff" ? `Show ${modelProfileDescription(modelProfile)} wearing the complete coordinated outfit made only from the supplied garment references.` : "Show one adult Western fashion model wearing the complete coordinated outfit made only from the supplied garment references.", garmentList, `Scene ${index + 1}: ${sceneDescription}.`, "Keep every supplied garment as a separate, correctly layered piece: top with bottom, and outerwear over the outfit when provided. Preserve each garment's exact color, silhouette, hemline, neckline, sleeves, texture, construction, and visible details. Do not substitute, merge, redesign, recolor, or invent any garment.", "Use only a clean white, light-gray, or soft neutral studio background with professional Western fashion-magazine lighting; never use a shop, boutique, street, checkout, rack, or workplace setting.", "No text, no watermark, no collage, no duplicated people, no cropped garment, and keep the complete coordinated outfit visible whenever possible."].join(" ");
 }
 
 async function generateBatch(productId: number, requestedCount: number, presentationStyle: "korean_staff" | "western_model", modelProfile: ModelProfile, origin: string | null) {
@@ -242,9 +306,8 @@ export const displayLookbookRouter = router({
     const originalUrl = absoluteImageUrl(originalPath, publicOrigin(ctx.req));
     const hair = input.hairLength === "short" ? "short black hair" : input.hairLength === "long" ? "long black hair" : "medium-length black hair";
     const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
-    const editorial = Math.random() < 0.5;
-    const scene = editorial ? randomItem(editorialScenePrompts) : randomItem(dongdaemunScenePrompts);
-    const modelLine = editorial ? "Show one adult Western fashion magazine model wearing the exact supplied garment reference." : `Show one adult East Asian Korean woman, fixed height 165 cm, ${hair}, with a natural body shape suited to the supplied garment, wearing the exact supplied garment reference in a Dongdaemun boutique.`;
+    const scene = randomItem(editorialScenePrompts);
+    const modelLine = `Show one adult Western fashion magazine model with ${hair} wearing the exact supplied garment reference.`;
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
     const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
     if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");

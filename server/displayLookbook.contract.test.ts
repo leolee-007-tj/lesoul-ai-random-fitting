@@ -64,22 +64,23 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("Registered complementary color cues available in this catalog");
     expect(router).toContain("catalog.products)");
   });
-  it("uses the shared Dongdaemun employee profile and a 100-situation prompt library", () => {
-    expect(router).toContain("dongdaemunActions");
-    expect(router).toContain("dongdaemunSettings");
-    expect(router).toContain("const dongdaemunActions = [");
-    expect(router).toContain("action ${index + 1} of 100");
-    expect(router).toContain("crouching to organize a low shelf");
-    expect(router).toContain("squatting to sort folded clothes");
-    expect(router).toContain("a few customers browsing");
+  it("uses 100 Western magazine studio poses with no store setting", () => {
+    expect(router).toContain("const editorialPosePrompts = [");
+    expect(router).toContain(' + (index + 1) + " of 100"');
+    expect(router).toContain("pure white seamless cyclorama");
+    expect(router).toContain("light gray seamless studio backdrop");
+    expect(router).toContain("adult Western fashion magazine model");
+    expect(router).toContain("Use only a clean white, light-gray, or soft neutral studio background");
+    expect(router).toContain("never use a shop, boutique, street, checkout, rack, or workplace setting");
+    expect(router).not.toContain("dongdaemunActions");
+    expect(router).not.toContain("dongdaemunSettings");
+    expect(router).not.toContain("Dongdaemun boutique employee");
+    expect(router).not.toContain("a few customers browsing");
     expect(router).toContain('z.enum(["short", "medium", "long"])');
-    expect(router).toContain("fixed height 165 cm");
     expect(router).toContain("black hair");
-    expect(router).toContain("a natural body shape and proportions that suit the supplied clothing");
+    expect(router).toContain("natural body shape and proportions that suit the supplied clothing");
     expect(router).toContain("selectLookbookScene");
     expect(router).toContain("editorialScenePrompts");
-    expect(router).toContain("pure white seamless studio background");
-    expect(router).toContain("Western fashion magazine model");
     expect(router).toContain("modelProfile: modelProfileInput");
   });
 });
