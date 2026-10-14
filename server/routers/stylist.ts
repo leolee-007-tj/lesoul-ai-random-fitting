@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, getPublishedCuratedOutfits, saveStylistFeedback } from "../db";
+import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, getPublishedLookbookOutfits, saveStylistFeedback } from "../db";
 import { canViewVipEarlyAccess, getReleaseSettings } from "../access";
 import { customerProcedure, customerReadProcedure, publicProcedure, resolveCustomerVisitorId, router } from "../_core/trpc";
 import { recommendCuratedTopLooks, validateRecommendedProductIds } from "../stylistEngine";
@@ -75,15 +75,8 @@ export const stylistRouter = router({
     return (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
   }),
   published: customerReadProcedure.input(z.object({ locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
-    const settings = await getReleaseSettings();
-    const outfits = await getPublishedCuratedOutfits({ includePreorder: Boolean(settings.stylistIncludePreorder), role: ctx.user?.role, limit: 3 });
-    return outfits.map((outfit) => ({
-      lookId: `CURATED_${outfit.id}`,
-      name: input.locale === "ko" ? outfit.nameKo : input.locale === "zh" ? outfit.nameZh : outfit.nameEn,
-      reason: input.locale === "ko" ? outfit.reasonKo : input.locale === "zh" ? outfit.reasonZh : outfit.reasonEn,
-      stylePresetKey: outfit.stylePresetKey,
-      products: outfit.items.map((item) => item.product).filter(Boolean),
-    }));
+    const outfits = await getPublishedLookbookOutfits({ role: ctx.user?.role, limit: 12 });
+    return outfits.map((outfit) => ({ ...outfit, name: outfit.name || (input.locale === "ko" ? "관리자 추천 코디" : input.locale === "zh" ? "店主精选搭配" : "Administrator-curated look") }));
   }),
   displayRecommend: customerReadProcedure.input(displayRecommendationInput).query(async ({ input, ctx }) => {
     const settings = await getReleaseSettings();

@@ -7,8 +7,8 @@ describe("administrator-curated looks only contract", () => {
   it("exposes a customer procedure that reads published administrator looks", () => {
     const router = source("./routers/stylist.ts");
     expect(router).toContain("published: customerReadProcedure");
-    expect(router).toContain("getPublishedCuratedOutfits");
-    expect(router).toContain("limit: 3");
+    expect(router).toContain("getPublishedLookbookOutfits");
+    expect(router).toContain("limit: 12");
   });
 
   it("does not use visitor search or user-selected anchors in the customer panel", () => {

@@ -495,6 +495,7 @@ export const displayLookbookImages = mysqlTable("displayLookbookImages", {
   /** Optional owner-facing title and recommendation label for this generated look. */
   lookbookTitle: varchar("lookbookTitle", { length: 200 }),
   recommendationName: varchar("recommendationName", { length: 200 }),
+  recommendationReason: varchar("recommendationReason", { length: 500 }),
   imageUrl: text("imageUrl").notNull(),
   storageKey: text("storageKey").notNull(),
   isApproved: int("isApproved").default(0).notNull(),

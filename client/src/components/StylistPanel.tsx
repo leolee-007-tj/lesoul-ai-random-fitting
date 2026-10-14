@@ -50,6 +50,7 @@ export function shouldShowStylistStatusBadge(surface: "picker" | "recommendation
 
 type PublishedLook = {
   lookId: string;
+  imageUrl?: string | null;
   name: string | null;
   reason: string | null;
   stylePresetKey: string;
@@ -113,10 +114,11 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
   );
   const looks = (published.data ?? []) as PublishedLook[];
   const selectedLook = looks.find((look) => look.lookId === selectedLookId) ?? null;
+  const productTitle = (product: StylistProduct) => locale === "ko" ? product.nameKo || product.name : locale === "zh" ? product.nameZh || product.name : product.nameEn || product.name;
 
   const useLook = (look: PublishedLook) => {
     const products = look.products.filter(Boolean);
-    if (products.length < 2) {
+    if (products.length < 1) {
       onError(stylistErrorMessage("incomplete", locale));
       return;
     }
@@ -170,14 +172,15 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
                 </div>
                 {isSelected && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-black px-2 py-1 text-[9px] font-bold text-white"><Check size={10} aria-hidden="true" />{copy.selected}</span>}
               </div>
+              {look.imageUrl && <img src={look.imageUrl} alt={copy.selectedPhoto} className="mt-3 aspect-[3/4] w-full rounded-xl object-cover" loading="lazy" />}
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {look.products.map((product) => (
                   <div key={product.id} className="min-w-0">
                     <div className="relative overflow-hidden rounded-lg">
-                      <NormalizedProductImage src={product.imageUrl} alt={product.name} catalogDisplay={product.catalogDisplay} className="aspect-square w-full" />
+                      <NormalizedProductImage src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full" />
                       {shouldShowStylistStatusBadge("recommendation") && <ProductStatusBadges availabilityStatus={product.availabilityStatus} legacyStatus={product.status} isNew={product.isNew} showAvailability={false} className="inset-x-1 top-1" />}
                     </div>
-                    <p className="mt-1 line-clamp-2 text-[10px] font-semibold text-[#413a34]">{product.name}</p>
+                    <p className="mt-1 line-clamp-2 text-[10px] font-semibold text-[#413a34]">{productTitle(product)}</p>
                     <ProductPrice product={product} className="mt-1 text-[10px]" />
                   </div>
                 ))}
@@ -201,7 +204,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
           {selectedLook.products[0] && <NormalizedProductImage src={selectedLook.products[0].imageUrl} alt={copy.selectedPhoto} catalogDisplay={selectedLook.products[0].catalogDisplay} className="mt-3 aspect-[4/5] w-full rounded-xl" />}
           <h2 className="mt-4 font-serif text-2xl text-[#2d2722]">{selectedLook.name || copy.title}</h2>
           <p className="mt-2 text-sm leading-6 text-[#71685f]">{selectedLook.reason || copy.defaultReason}</p>
-          {selectedLook.products.length > 1 && <div className="mt-4 grid grid-cols-4 gap-2">{selectedLook.products.slice(1).map((product) => <NormalizedProductImage key={product.id} src={product.imageUrl} alt={product.name} catalogDisplay={product.catalogDisplay} className="aspect-square w-full rounded-lg" />)}</div>}
+          {selectedLook.products.length > 1 && <div className="mt-4 grid grid-cols-4 gap-2">{selectedLook.products.slice(1).map((product) => <NormalizedProductImage key={product.id} src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full rounded-lg" />)}</div>}
         </section>
       )}
     </section>

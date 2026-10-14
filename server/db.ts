@@ -1,6 +1,6 @@
-import { count, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { backgrounds, curatedOutfitItems, curatedOutfits, generationLogs, generations, InsertUser, poses, productCategories, products, productEngagementEvents, productShareVisits, releaseSettings, siteVisitSummaries, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
+import { backgrounds, curatedOutfitItems, curatedOutfits, displayLookbookImages, generationLogs, generations, InsertUser, poses, productCategories, products, productEngagementEvents, productShareVisits, releaseSettings, siteVisitSummaries, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
 import { demoBackgrounds, demoPoses, demoProducts } from "./catalogSeed";
 import { ENV } from "./_core/env";
 import { DEFAULT_STYLE_PRESETS, type StylePresetKey } from "../shared/stylist";
@@ -350,6 +350,28 @@ export async function getPublishedCuratedOutfits(input: { includePreorder?: bool
       ...outfit,
       items: outfit.items.map((item) => ({ ...item, product: visibleProducts.find((product) => product.id === item.productId) ?? null })),
     }));
+}
+
+/** Customer-facing source of truth for administrator-approved AI lookbook outfits. */
+export async function getPublishedLookbookOutfits(input: { role?: User["role"]; limit?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("AI lookbook recommendations are temporarily unavailable.");
+  const [images, catalog] = await Promise.all([
+    db.select().from(displayLookbookImages).where(and(eq(displayLookbookImages.isApproved, 1), eq(displayLookbookImages.isActive, 1))).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.shotIndex),
+    getCatalog(),
+  ]);
+  const visibleProducts = catalog.products.filter((product) => product.vipEarlyAccess !== 1 || input.role === "vip" || input.role === "admin");
+  const productById = new Map(visibleProducts.map((product) => [product.id, product]));
+  const seenBatches = new Set<string>();
+  return images.flatMap((image) => {
+    if (image.batchId.startsWith("GUEST_PREVIEW_")) return [];
+    if (seenBatches.has(image.batchId)) return [];
+    const ids = Array.isArray(image.compositionProductIds) ? image.compositionProductIds : [image.productId];
+    const outfitProducts = ids.map((id) => productById.get(id)).filter(Boolean);
+    if (!outfitProducts.length || outfitProducts.length !== ids.length) return [];
+    seenBatches.add(image.batchId);
+    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: image.lookbookTitle || image.recommendationName || image.compositionLabel || null, reason: image.recommendationReason || null, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
+  }).slice(0, input.limit ?? 12);
 }
 
 function normaliseCuratedItems(items: CuratedOutfitWrite["items"]) {

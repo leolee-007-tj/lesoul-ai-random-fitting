@@ -64,7 +64,8 @@ describe("customer-facing curated experience contract", () => {
     expect(stylist).toContain("CURATED LOOKS");
     expect(stylist).not.toContain("body: fitBody");
     expect(router).toContain("getEligibleCuratedOutfits");
-    expect(router).toContain("getPublishedCuratedOutfits");
+    expect(router).toContain("getPublishedLookbookOutfits");
+    expect(router).toContain("limit: 12");
     expect(router).toContain("published: customerReadProcedure");
     expect(router).not.toContain("prioritizeCuratedTopLooks");
   });

@@ -1,0 +1,1 @@
+ALTER TABLE `displayLookbookImages` ADD `recommendationReason` varchar(500);

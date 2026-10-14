@@ -166,6 +166,7 @@ const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presen
 const guestPreviewInput = z.object({ productId: z.number().int().positive(), hairLength: hairLengthInput, presentationStyle: presentationStyleInput, backgroundStyle: backgroundStyleInput });
 const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
+const metadataInput = imageIdInput.extend({ lookbookTitle: z.string().trim().max(200).nullable(), recommendationName: z.string().trim().max(200).nullable(), recommendationReason: z.string().trim().max(500).nullable() });
 type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
 const progressByProduct = new Map<number, LookbookProgress>();
 
@@ -399,6 +400,7 @@ export const displayLookbookRouter = router({
   generateOutfitBatch: ownerProcedure.input(generateOutfitInput).mutation(async ({ ctx, input }) => generateOutfitBatch(input.productIds, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req), input.lookbookTitle ?? null, input.recommendationName ?? null, input.stylingRequirements)),
   approve: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 1 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   revoke: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
+  updateMetadata: ownerProcedure.input(metadataInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); const row = (await db.select({ batchId: displayLookbookImages.batchId }).from(displayLookbookImages).where(eq(displayLookbookImages.id, input.id)).limit(1))[0]; if (!row) throw new Error("LOOKBOOK_NOT_FOUND"); const { id: _id, ...metadata } = input; await db.update(displayLookbookImages).set(metadata).where(eq(displayLookbookImages.batchId, row.batchId)); return { success: true }; }),
   remove: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isActive: 0, isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
 });
 

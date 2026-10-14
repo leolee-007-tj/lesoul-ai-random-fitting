@@ -32,7 +32,7 @@ describe("display lookbook gallery and touch scroll", () => {
     expect(css).toContain(".lesoul-mobile-content { touch-action: pan-y;");
     expect(css).toContain(".lesoul-display-row");
     expect(css).toContain("overflow-y: visible;");
-    expect(css).toContain("touch-action: auto;");
+    expect(css).toContain("touch-action: pan-y;");
     expect(css).toContain("scroll-snap-type: x proximity;");
   });
 });
