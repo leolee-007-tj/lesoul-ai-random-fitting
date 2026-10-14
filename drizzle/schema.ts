@@ -548,10 +548,12 @@ export const productShareVisits = mysqlTable("productShareVisits", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 }, (table) => [uniqueIndex("product_share_visit_daily_unique").on(table.productId, table.visitorId, table.source, table.visitDay)]);
 
-/** Anonymous customer-facing daily visits. The browser sends coarse categories only; no IP or raw User-Agent is retained. */
+/** Anonymous customer-facing visits. Raw IP/User-Agent data is never retained; the server may keep an opaque IP hash for deduplication. */
 export const siteVisitSummaries = mysqlTable("siteVisitSummaries", {
   id: int("id").autoincrement().primaryKey(),
   visitorId: varchar("visitorId", { length: 96 }).notNull(),
+  /** HMAC-SHA256 of the request IP; raw IP addresses are never stored. */
+  visitorIpHash: varchar("visitorIpHash", { length: 64 }),
   visitDay: varchar("visitDay", { length: 10 }).notNull(),
   deviceType: mysqlEnum("deviceType", ["phone", "tablet", "desktop", "unknown"]).default("unknown").notNull(),
   operatingSystem: varchar("operatingSystem", { length: 32 }).default("unknown").notNull(),

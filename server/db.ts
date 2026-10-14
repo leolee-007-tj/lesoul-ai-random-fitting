@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { and, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { backgrounds, curatedOutfitItems, curatedOutfits, displayLookbookImages, generationLogs, generations, InsertUser, poses, productCategories, products, productEngagementEvents, productShareVisits, releaseSettings, siteVisitSummaries, stylePresets, stylistFeedback, type User, users } from "../drizzle/schema";
@@ -145,9 +146,18 @@ export async function recordWeChatProductShareVisit(input: { productId: number; 
 
 export type SiteVisitInput = {
   visitorId: string;
+  visitorIpHash?: string | null;
   locale: "en" | "ko" | "zh";
   entryPath: string;
 };
+
+/** Hashes a forwarded/request IP without retaining the raw address. */
+export function hashVisitorIp(ip: string | null | undefined) {
+  if (!ip) return null;
+  const normalized = ip.trim().split(",")[0]?.trim();
+  if (!normalized) return null;
+  return createHmac("sha256", ENV.cookieSecret || "lesoul-analytics").update(normalized).digest("hex");
+}
 
 /** Internal operating accounts must never become customer analytics visitors. */
 export function isExcludedAnalyticsRole(role: string | null | undefined) {
@@ -168,9 +178,9 @@ export async function recordSiteVisit(input: SiteVisitInput, role?: string | nul
 export async function getSiteVisitAnalytics() {
   const db = await getDb();
   if (!db) return { uniqueVisitors: 0 };
-  const rows = await db.select({ visitorId: siteVisitSummaries.visitorId, entryPath: siteVisitSummaries.entryPath }).from(siteVisitSummaries);
+  const rows = await db.select({ visitorId: siteVisitSummaries.visitorId, visitorIpHash: siteVisitSummaries.visitorIpHash, entryPath: siteVisitSummaries.entryPath }).from(siteVisitSummaries);
   const customerRows = rows.filter((row) => !row.entryPath.startsWith("/operations") && row.entryPath !== "/store-display" && row.entryPath !== "/trial-store");
-  return { uniqueVisitors: new Set(customerRows.map((row) => row.visitorId)).size };
+  return { uniqueVisitors: new Set(customerRows.map((row) => row.visitorIpHash || row.visitorId)).size };
 }
 
 export async function recordProductEngagement(input: { productId: number; visitorId: string; eventType: ProductConversionEventType }, role?: string | null) {

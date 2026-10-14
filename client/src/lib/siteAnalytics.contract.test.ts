@@ -40,6 +40,8 @@ describe("privacy-minimized anonymous site analytics contract", () => {
     expect(catalog).toContain("trackSiteVisit");
     expect(catalog).not.toContain("deviceType: z.enum");
     expect(db).toContain("uniqueVisitors: new Set");
+    expect(db).toContain("visitorIpHash");
+    expect(db).toContain("hashVisitorIp");
     expect(db).toContain('deviceType: "unknown"');
     expect(schema).toContain("site_visit_daily_unique");
     expect(db).toContain("isExcludedAnalyticsRole");

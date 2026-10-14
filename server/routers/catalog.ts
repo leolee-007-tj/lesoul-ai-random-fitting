@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, listGenerationsForUser, listProductCategories, recordProductEngagement, recordSiteVisit, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult, getDb } from "../db";
+import { createGeneration, getCatalog, getGenerationForUser, getProductDetailById, hashVisitorIp, listGenerationsForUser, listProductCategories, recordProductEngagement, recordSiteVisit, recordWeChatProductShareVisit, saveGeneration, updateGenerationResult, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
 import { selectOutfit } from "../styling";
@@ -84,7 +84,11 @@ export const catalogRouter = router({
   }),
   trackWeChatShareVisit: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().regex(/^visitor_[A-Za-z0-9-]{8,80}$/) })).mutation(async ({ input, ctx }) => ({ tracked: ["admin", "store_display", "store_trial"].includes(ctx.user?.role ?? "") ? false : await recordWeChatProductShareVisit(input) })),
   trackProductEngagement: publicProcedure.input(z.object({ productId: z.number().int().positive(), visitorId: z.string().regex(/^visitor_[A-Za-z0-9-]{8,80}$/), eventType: z.enum(["DETAIL_VIEW", "PURCHASE_LIST_ADD"]) })).mutation(async ({ input, ctx }) => ({ tracked: await recordProductEngagement(input, ctx.user?.role) })),
-  trackSiteVisit: publicProcedure.input(z.object({ visitorId: z.string().regex(/^visitor_[A-Za-z0-9-]{8,80}$/), locale: z.enum(["en", "ko", "zh"]), entryPath: z.string().trim().min(1).max(160) })).mutation(async ({ input, ctx }) => ({ tracked: await recordSiteVisit(input, ctx.user?.role) })),
+  trackSiteVisit: publicProcedure.input(z.object({ visitorId: z.string().regex(/^visitor_[A-Za-z0-9-]{8,80}$/), locale: z.enum(["en", "ko", "zh"]), entryPath: z.string().trim().min(1).max(160) })).mutation(async ({ input, ctx }) => {
+    const forwarded = ctx.req.headers["x-forwarded-for"];
+    const requestIp = Array.isArray(forwarded) ? forwarded[0] : forwarded || ctx.req.socket.remoteAddress;
+    return { tracked: await recordSiteVisit({ ...input, visitorIpHash: hashVisitorIp(requestIp) }, ctx.user?.role) };
+  }),
   poses: publicProcedure.query(async () => (await getCatalog()).poses),
   backgrounds: publicProcedure.query(async () => (await getCatalog()).backgrounds),
   purchaseInfo: publicProcedure.input(z.object({ productId: z.number().int().positive() })).query(async ({ input, ctx }) => {

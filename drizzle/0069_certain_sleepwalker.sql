@@ -1,0 +1,1 @@
+ALTER TABLE `siteVisitSummaries` ADD `visitorIpHash` varchar(64);
