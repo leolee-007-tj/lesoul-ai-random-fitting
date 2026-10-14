@@ -13,6 +13,10 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("코디 상세 요구사항 (선택)");
     expect(manager).toContain("셔츠의 앞부분만 바지 안에 넣고");
     expect(manager).toContain("stylingRequirements: stylingRequirements.trim()");
+    expect(manager).toContain("장바구니 초기화");
+    expect(manager).toContain("canAddToOutfitCart");
+    expect(manager).toContain("isLayerBottom");
+    expect(manager).toContain("다른 하의와 중복 선택 불가");
     expect(manager).toContain("east_asian_female");
     expect(manager).toContain("western_female");
     expect(manager).toContain("동양 여성");
