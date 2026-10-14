@@ -24,7 +24,7 @@ async function saveQrImage(url: string, filename: string) {
   }
 }
 
-export default function StoreInquiryQr({ className = "", productId }: { className?: string; productId?: number }) {
+export default function StoreInquiryQr({ className = "", productId, compact = false }: { className?: string; productId?: number; compact?: boolean }) {
   const { i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -37,6 +37,7 @@ export default function StoreInquiryQr({ className = "", productId }: { classNam
       ? { label: "店铺咨询", missing: "请通过微信咨询价格", alt: "店铺咨询微信二维码", enlarge: "查看大二维码", close: "关闭二维码", save: "保存图片", saving: "保存中…", saved: "已保存", fallback: "当前浏览器限制自动保存，请长按二维码保存到相册。", guide: "请截图此二维码，或长按后在微信中识别", share: "分享商品链接", copied: "商品链接已复制", shared: "已打开分享窗口", linkFallback: "当前浏览器限制自动复制，请长按下方链接复制。" }
       : { label: "STORE INQUIRY", missing: "Please ask the store for the price on WeChat", alt: "WeChat QR code for store inquiry", enlarge: "View large QR", close: "Close QR", save: "Save image", saving: "Saving…", saved: "Saved", fallback: "Automatic saving is limited in this browser. Long-press the QR to save it to Photos.", guide: "Screenshot this QR or long-press it to scan in WeChat", share: "Share product link", copied: "Product link copied", shared: "Share sheet opened", linkFallback: "Automatic copying is limited. Long-press the link below to copy it." };
   const qrUrl = config.data?.adminTrialPaymentQrUrl ?? null;
+  const displayLabel = compact && locale === "ko" ? "점원 문의" : compact && locale === "zh" ? "店员咨询" : compact ? "Ask staff" : copy.label;
   const productUrl = productId ? `${window.location.origin}/share/product/${productId}?lang=${locale}` : null;
   const handleSave = async () => {
     if (!qrUrl || saveState === "saving") return;
@@ -55,9 +56,9 @@ export default function StoreInquiryQr({ className = "", productId }: { classNam
   };
   return <>
     <div className={`w-full ${className}`}>
-      <button type="button" data-store-inquiry-qr="true" onClick={() => qrUrl && setExpanded(true)} disabled={!qrUrl} aria-label={qrUrl ? `${copy.label} · ${copy.enlarge}` : copy.missing} className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-[#ded5cb] bg-white px-3 py-2 text-left transition active:scale-[.99] disabled:cursor-default ${qrUrl ? "cursor-pointer hover:border-[#bda993]" : ""}`}>
-        <span className="min-w-0"><span className="block text-xs font-bold tracking-[.08em] text-[#4d4238]">{copy.label}</span><span className="mt-0.5 block text-[10px] leading-4 text-[#897c70]">{qrUrl ? copy.missing : `${copy.missing} · WeChat QR ${locale === "ko" ? "미설정" : locale === "zh" ? "未设置" : "not configured"}`}</span></span>
-        {qrUrl ? <img src={qrUrl} alt={copy.alt} className="size-12 shrink-0 rounded-md object-contain" /> : <span className="grid size-12 shrink-0 place-items-center rounded-md bg-[#f1ece5] text-[#9a8d80]" aria-hidden="true"><QrCode size={20} /></span>}
+      <button type="button" data-store-inquiry-qr="true" onClick={() => qrUrl && setExpanded(true)} disabled={!qrUrl} aria-label={qrUrl ? `${displayLabel} · ${copy.enlarge}` : copy.missing} className={`flex ${compact ? "min-h-9 rounded-lg px-2.5 py-1.5" : "min-h-12 rounded-xl px-3 py-2"} w-full items-center justify-between gap-2 border border-[#ded5cb] bg-white text-left transition active:scale-[.99] disabled:cursor-default ${qrUrl ? "cursor-pointer hover:border-[#bda993]" : ""}`}>
+        {compact ? <span className="truncate text-[10px] font-bold text-[#4d4238]">{displayLabel}</span> : <span className="min-w-0"><span className="block text-xs font-bold tracking-[.08em] text-[#4d4238]">{copy.label}</span><span className="mt-0.5 block text-[10px] leading-4 text-[#897c70]">{qrUrl ? copy.missing : `${copy.missing} · WeChat QR ${locale === "ko" ? "미설정" : locale === "zh" ? "未设置" : "not configured"}`}</span></span>}
+        {qrUrl ? <img src={qrUrl} alt={copy.alt} className={`${compact ? "size-8 rounded" : "size-12 rounded-md"} shrink-0 object-contain`} /> : <span className={`${compact ? "size-8 rounded" : "size-12 rounded-md"} grid shrink-0 place-items-center bg-[#f1ece5] text-[#9a8d80]`} aria-hidden="true"><QrCode size={compact ? 15 : 20} /></span>}
       </button>
       {productUrl && <button type="button" onClick={() => void handleShare()} className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#d8cec2] bg-white px-3 text-[10px] font-semibold text-[#5d5147] active:scale-[.98]"><Share2 size={14} />{linkState === "copied" ? copy.copied : linkState === "shared" ? copy.shared : copy.share}</button>}
       {linkState === "fallback" && productUrl && <p className="mt-1 break-all text-[10px] leading-4 text-[#8a5d43]">{copy.linkFallback}<br /><span className="select-text text-[#6f6258]">{productUrl}</span></p>}

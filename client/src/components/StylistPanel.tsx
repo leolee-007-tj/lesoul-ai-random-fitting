@@ -71,6 +71,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
   const { i18n } = useTranslation();
   const [selectedLookId, setSelectedLookId] = useState<string | null>(null);
   const [previewLook, setPreviewLook] = useState<PublishedLook | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<StylistProduct | null>(null);
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
     en: {
@@ -185,12 +186,12 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {look.products.map((product) => (
                   <div key={product.id} className="min-w-0">
-                    <div className="relative overflow-hidden rounded-lg">
-                      <NormalizedProductImage src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full" />
+                    <button type="button" onClick={() => setPreviewProduct(product)} className="group relative block w-full overflow-hidden rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black" aria-label={`${productTitle(product)} · ${locale === "ko" ? "크게 보기" : locale === "zh" ? "放大查看" : "View larger"}`}>
+                      <NormalizedProductImage src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full transition duration-200 group-hover:scale-[1.03] group-active:scale-95" />
                       {shouldShowStylistStatusBadge("recommendation") && <ProductStatusBadges availabilityStatus={product.availabilityStatus} legacyStatus={product.status} isNew={product.isNew} showAvailability={false} className="inset-x-1 top-1" />}
-                    </div>
+                    </button>
                     <p className="mt-1 line-clamp-2 text-[10px] font-semibold text-[#413a34]">{productTitle(product)}</p>
-                    <ProductPrice product={product} className="mt-1 text-[10px]" />
+                    <ProductPrice product={product} compactInquiry className="mt-1 text-[10px]" />
                   </div>
                 ))}
               </div>
@@ -222,6 +223,15 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
             <button type="button" onClick={() => setPreviewLook(null)} className="absolute right-0 top-0 z-10 grid size-10 place-items-center rounded-full bg-white text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={20} /></button>
             <img src={previewLook.imageUrl} alt={copy.selectedPhoto} className="max-h-[84svh] w-full rounded-2xl object-contain" />
             <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-center text-sm font-semibold text-[#2d2722]">{previewLook.name || copy.title}</div>
+          </div>
+        </div>
+      )}
+      {previewProduct && (
+        <div className="fixed inset-0 z-[110] grid place-items-center bg-black/75 p-4" role="dialog" aria-modal="true" aria-label={productTitle(previewProduct)} onClick={() => setPreviewProduct(null)}>
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-3 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button type="button" onClick={() => setPreviewProduct(null)} className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full bg-white/95 text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={18} /></button>
+            <NormalizedProductImage src={previewProduct.imageUrl} alt={productTitle(previewProduct)} catalogDisplay={previewProduct.catalogDisplay} className="aspect-[4/5] w-full rounded-xl" />
+            <p className="px-1 pb-1 pt-3 text-sm font-bold text-[#302a25]">{productTitle(previewProduct)}</p>
           </div>
         </div>
       )}
