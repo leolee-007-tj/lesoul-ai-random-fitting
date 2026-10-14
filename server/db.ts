@@ -353,7 +353,7 @@ export async function getPublishedCuratedOutfits(input: { includePreorder?: bool
 }
 
 /** Customer-facing source of truth for administrator-approved AI lookbook outfits. */
-export async function getPublishedLookbookOutfits(input: { role?: User["role"]; limit?: number }) {
+export async function getPublishedLookbookOutfits(input: { role?: User["role"]; limit?: number; locale?: "ko" | "zh" | "en" }) {
   const db = await getDb();
   if (!db) throw new Error("AI lookbook recommendations are temporarily unavailable.");
   const [images, catalog] = await Promise.all([
@@ -370,7 +370,9 @@ export async function getPublishedLookbookOutfits(input: { role?: User["role"]; 
     const outfitProducts = ids.map((id) => productById.get(id)).filter(Boolean);
     if (!outfitProducts.length || outfitProducts.length !== ids.length) return [];
     seenBatches.add(image.batchId);
-    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: image.lookbookTitle || image.recommendationName || image.compositionLabel || null, reason: image.recommendationReason || null, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
+    const name = input.locale === "ko" ? image.lookbookTitleKo || image.lookbookTitle || image.recommendationName : input.locale === "zh" ? image.lookbookTitleZh || image.lookbookTitle || image.recommendationName : image.lookbookTitleEn || image.lookbookTitle || image.recommendationName;
+    const reason = input.locale === "ko" ? image.recommendationReasonKo || image.recommendationReason : input.locale === "zh" ? image.recommendationReasonZh || image.recommendationReason : image.recommendationReasonEn || image.recommendationReason;
+    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: name || image.compositionLabel || null, reason: reason || null, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
   }).slice(0, input.limit ?? 12);
 }
 

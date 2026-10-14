@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import NormalizedProductImage from "@/components/NormalizedProductImage";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import ProductPrice from "@/components/ProductPrice";
-import { Check, LoaderCircle, ShoppingBag, Sparkles } from "lucide-react";
+import { Check, LoaderCircle, ShoppingBag, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -65,6 +65,7 @@ type StylistPanelProps = {
 export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) {
   const { i18n } = useTranslation();
   const [selectedLookId, setSelectedLookId] = useState<string | null>(null);
+  const [previewLook, setPreviewLook] = useState<PublishedLook | null>(null);
   const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
   const copy = {
     en: {
@@ -112,7 +113,9 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
     { locale },
     { retry: shouldRetryStylistRecommendation },
   );
-  const looks = (published.data ?? []) as PublishedLook[];
+  const publishedData = published.data as { gridColumns?: number; outfits?: PublishedLook[] } | undefined;
+  const looks = publishedData?.outfits ?? [];
+  const gridColumns = Math.min(4, Math.max(1, publishedData?.gridColumns ?? 2));
   const selectedLook = looks.find((look) => look.lookId === selectedLookId) ?? null;
   const productTitle = (product: StylistProduct) => locale === "ko" ? product.nameKo || product.name : locale === "zh" ? product.nameZh || product.name : product.nameEn || product.name;
 
@@ -160,7 +163,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
         <div className="mt-4 rounded-xl border border-dashed border-[#d8d1c7] bg-white p-6 text-center text-xs leading-5 text-[#70675e]">{copy.empty}</div>
       )}
 
-      <div className="mt-4 grid gap-4">
+      <div className="mt-4 grid gap-4" style={{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }}>
         {looks.map((look) => {
           const isSelected = selectedLookId === look.lookId;
           return (
@@ -172,7 +175,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
                 </div>
                 {isSelected && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-black px-2 py-1 text-[9px] font-bold text-white"><Check size={10} aria-hidden="true" />{copy.selected}</span>}
               </div>
-              {look.imageUrl && <img src={look.imageUrl} alt={copy.selectedPhoto} className="mt-3 aspect-[3/4] w-full rounded-xl object-cover" loading="lazy" />}
+              {look.imageUrl && <button type="button" onClick={() => setPreviewLook(look)} className="mt-3 block w-full cursor-zoom-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"><img src={look.imageUrl} alt={copy.selectedPhoto} className="aspect-[3/4] w-full rounded-xl object-cover" loading="lazy" /></button>}
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {look.products.map((product) => (
                   <div key={product.id} className="min-w-0">
@@ -206,6 +209,15 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
           <p className="mt-2 text-sm leading-6 text-[#71685f]">{selectedLook.reason || copy.defaultReason}</p>
           {selectedLook.products.length > 1 && <div className="mt-4 grid grid-cols-4 gap-2">{selectedLook.products.slice(1).map((product) => <NormalizedProductImage key={product.id} src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full rounded-lg" />)}</div>}
         </section>
+      )}
+      {previewLook?.imageUrl && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-label={copy.selectedPhoto} onClick={() => setPreviewLook(null)}>
+          <div className="relative flex max-h-[94svh] w-full max-w-3xl flex-col items-center" onClick={(event) => event.stopPropagation()}>
+            <button type="button" onClick={() => setPreviewLook(null)} className="absolute right-0 top-0 z-10 grid size-10 place-items-center rounded-full bg-white text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={20} /></button>
+            <img src={previewLook.imageUrl} alt={copy.selectedPhoto} className="max-h-[84svh] w-full rounded-2xl object-contain" />
+            <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-center text-sm font-semibold text-[#2d2722]">{previewLook.name || copy.title}</div>
+          </div>
+        </div>
       )}
     </section>
   );

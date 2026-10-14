@@ -75,8 +75,8 @@ export const stylistRouter = router({
     return (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
   }),
   published: customerReadProcedure.input(z.object({ locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
-    const outfits = await getPublishedLookbookOutfits({ role: ctx.user?.role, limit: 12 });
-    return outfits.map((outfit) => ({ ...outfit, name: outfit.name || (input.locale === "ko" ? "관리자 추천 코디" : input.locale === "zh" ? "店主精选搭配" : "Administrator-curated look") }));
+    const [outfits, settings] = await Promise.all([getPublishedLookbookOutfits({ role: ctx.user?.role, limit: 12, locale: input.locale }), getReleaseSettings()]);
+    return { gridColumns: Math.min(4, Math.max(1, settings.lookbookGridColumns ?? 2)), outfits: outfits.map((outfit) => ({ ...outfit, name: outfit.name || (input.locale === "ko" ? "관리자 추천 코디" : input.locale === "zh" ? "店主精选搭配" : "Administrator-curated look") })) };
   }),
   displayRecommend: customerReadProcedure.input(displayRecommendationInput).query(async ({ input, ctx }) => {
     const settings = await getReleaseSettings();

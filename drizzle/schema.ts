@@ -248,6 +248,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   betaFreeGenerationAllowance: int("betaFreeGenerationAllowance").default(3).notNull(),
   globalDailyGenerationLimit: int("globalDailyGenerationLimit").default(120).notNull(),
   monthlyGenerationLimit: int("monthlyGenerationLimit").default(2400).notNull(),
+  /** Owner-controlled number of recommendation cards per row on customer screens. */
+  lookbookGridColumns: int("lookbookGridColumns").default(2).notNull(),
   generationEnabled: int("generationEnabled").default(1).notNull(),
   studioImageProcessingEnabled: int("studioImageProcessingEnabled").default(1).notNull(),
   /** Central AI policy settings. Monetary values are CNY fen and are always shown as estimates unless provider metadata supplies an actual amount. */
@@ -496,6 +498,12 @@ export const displayLookbookImages = mysqlTable("displayLookbookImages", {
   lookbookTitle: varchar("lookbookTitle", { length: 200 }),
   recommendationName: varchar("recommendationName", { length: 200 }),
   recommendationReason: varchar("recommendationReason", { length: 500 }),
+  lookbookTitleKo: varchar("lookbookTitleKo", { length: 200 }),
+  lookbookTitleZh: varchar("lookbookTitleZh", { length: 200 }),
+  lookbookTitleEn: varchar("lookbookTitleEn", { length: 200 }),
+  recommendationReasonKo: varchar("recommendationReasonKo", { length: 500 }),
+  recommendationReasonZh: varchar("recommendationReasonZh", { length: 500 }),
+  recommendationReasonEn: varchar("recommendationReasonEn", { length: 500 }),
   imageUrl: text("imageUrl").notNull(),
   storageKey: text("storageKey").notNull(),
   isApproved: int("isApproved").default(0).notNull(),

@@ -240,7 +240,10 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const [recommendationName, setRecommendationName] = useState("");
   const [stylingRequirements, setStylingRequirements] = useState("");
   const [metadataDrafts, setMetadataDrafts] = useState<Record<number, { lookbookTitle: string; recommendationName: string; recommendationReason: string }>>({});
+  const [localizedDrafts, setLocalizedDrafts] = useState<Record<number, { titleKo: string; titleZh: string; titleEn: string; reasonKo: string; reasonZh: string; reasonEn: string }>>({});
   const [galleryScope, setGalleryScope] = useState<"selected" | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "approved" | "pending" | "hidden">("all");
+  const [gridColumns, setGridColumns] = useState(2);
   const [previewImage, setPreviewImage] = useState<any | null>(null);
   const filteredProducts = useMemo(() => {
     const sorted = products
@@ -300,13 +303,24 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const remove = trpc.displayLookbook.remove.useMutation({
     onSuccess: refreshGalleries,
   });
+  const restore = trpc.displayLookbook.restore.useMutation({
+    onSuccess: refreshGalleries,
+  });
   const updateMetadata = trpc.displayLookbook.updateMetadata.useMutation({
     onSuccess: refreshGalleries,
   });
+  const releaseConfig = trpc.admin.releaseConfig.useQuery(undefined, { staleTime: 30_000 });
+  const updateReleaseConfig = trpc.admin.updateReleaseConfig.useMutation({
+    onSuccess: () => void releaseConfig.refetch(),
+  });
+  useEffect(() => {
+    if (releaseConfig.data?.lookbookGridColumns) setGridColumns(releaseConfig.data.lookbookGridColumns);
+  }, [releaseConfig.data?.lookbookGridColumns]);
   const busy = generateOutfit.isPending;
   const imageRows = imagesQuery.data ?? [];
   const allImageRows = allImagesQuery.data ?? [];
-  const visibleRows = galleryScope === "all" ? allImageRows : imageRows;
+  const scopedRows = galleryScope === "all" ? allImageRows : imageRows;
+  const visibleRows = scopedRows.filter((image: any) => statusFilter === "all" || statusFilter === "approved" && image.isActive === 1 && image.isApproved === 1 || statusFilter === "pending" && image.isActive === 1 && image.isApproved === 0 || statusFilter === "hidden" && image.isActive === 0);
   const progress = progressQuery.data;
   const approvedCount = imageRows.filter(
     (image: any) => image.isApproved === 1
@@ -945,6 +959,18 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
                     : "View all outfits"}
               </button>
             </div>
+            <div className="flex flex-wrap items-center gap-2 text-[10px]">
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} className="h-8 rounded-full border border-[#d9d0c5] bg-white px-3 font-bold">
+                <option value="all">{locale === "ko" ? "전체 상태" : locale === "zh" ? "全部状态" : "All statuses"}</option>
+                <option value="approved">{locale === "ko" ? "승인됨" : locale === "zh" ? "已批准" : "Approved"}</option>
+                <option value="pending">{locale === "ko" ? "대기" : locale === "zh" ? "待审核" : "Pending"}</option>
+                <option value="hidden">{locale === "ko" ? "숨김" : locale === "zh" ? "已隐藏" : "Hidden"}</option>
+              </select>
+              <label className="inline-flex items-center gap-1 font-bold text-[#665b50]">
+                {locale === "ko" ? "추천 카드/줄" : locale === "zh" ? "每行推荐卡片" : "Cards per row"}
+                <select value={gridColumns} onChange={(event) => { const value = Number(event.target.value); setGridColumns(value); updateReleaseConfig.mutate({ lookbookGridColumns: value, releaseMode: releaseConfig.data?.releaseMode ?? "PRIVATE", betaCatalogLimit: releaseConfig.data?.betaCatalogLimit ?? 12, betaDailyVisitorLimit: releaseConfig.data?.betaDailyVisitorLimit ?? 2, globalDailyGenerationLimit: releaseConfig.data?.globalDailyGenerationLimit ?? 120, monthlyGenerationLimit: releaseConfig.data?.monthlyGenerationLimit ?? 2400, generationEnabled: releaseConfig.data?.generationEnabled ?? 1 }); }} className="h-8 rounded-full border border-[#d9d0c5] bg-white px-2"><option value={1}>1</option><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option></select>
+              </label>
+            </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {visibleRows.map((image: any) => (
@@ -1021,10 +1047,23 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
                       rows={2}
                       className="w-full resize-y rounded border border-[#ded6cc] px-1.5 py-1 text-[10px] leading-4"
                     />
+                    <details className="rounded border border-[#eee5db] p-1.5">
+                      <summary className="cursor-pointer text-[10px] font-bold text-[#665b50]">{locale === "ko" ? "다국어 제목·추천 이유" : locale === "zh" ? "多语言标题与推荐理由" : "Localized title & reason"}</summary>
+                      <div className="mt-2 grid gap-1.5">
+                        {(["Ko", "Zh", "En"] as const).map((language) => {
+                          const draft = localizedDrafts[image.id];
+                          const titleKey = `title${language}` as "titleKo" | "titleZh" | "titleEn";
+                          const reasonKey = `reason${language}` as "reasonKo" | "reasonZh" | "reasonEn";
+                          const titleFallback = language === "Ko" ? image.lookbookTitleKo : language === "Zh" ? image.lookbookTitleZh : image.lookbookTitleEn;
+                          const reasonFallback = language === "Ko" ? image.recommendationReasonKo : language === "Zh" ? image.recommendationReasonZh : image.recommendationReasonEn;
+                          return <div key={language} className="grid grid-cols-2 gap-1.5"><input value={draft?.[titleKey] ?? titleFallback ?? ""} onChange={(event) => setLocalizedDrafts((current) => ({ ...current, [image.id]: { titleKo: current[image.id]?.titleKo ?? image.lookbookTitleKo ?? "", titleZh: current[image.id]?.titleZh ?? image.lookbookTitleZh ?? "", titleEn: current[image.id]?.titleEn ?? image.lookbookTitleEn ?? "", reasonKo: current[image.id]?.reasonKo ?? image.recommendationReasonKo ?? "", reasonZh: current[image.id]?.reasonZh ?? image.recommendationReasonZh ?? "", reasonEn: current[image.id]?.reasonEn ?? image.recommendationReasonEn ?? "", [titleKey]: event.target.value } }))} placeholder={`${language} title`} className="h-7 rounded border border-[#ded6cc] px-1.5 text-[10px]" /><input value={draft?.[reasonKey] ?? reasonFallback ?? ""} onChange={(event) => setLocalizedDrafts((current) => ({ ...current, [image.id]: { titleKo: current[image.id]?.titleKo ?? image.lookbookTitleKo ?? "", titleZh: current[image.id]?.titleZh ?? image.lookbookTitleZh ?? "", titleEn: current[image.id]?.titleEn ?? image.lookbookTitleEn ?? "", reasonKo: current[image.id]?.reasonKo ?? image.recommendationReasonKo ?? "", reasonZh: current[image.id]?.reasonZh ?? image.recommendationReasonZh ?? "", reasonEn: current[image.id]?.reasonEn ?? image.recommendationReasonEn ?? "", [reasonKey]: event.target.value } }))} placeholder={`${language} reason`} className="h-7 rounded border border-[#ded6cc] px-1.5 text-[10px]" /></div>;
+                        })}
+                      </div>
+                    </details>
                     <button
                       type="button"
                       disabled={updateMetadata.isPending}
-                      onClick={() => { const draft = metadataDrafts[image.id] ?? { lookbookTitle: image.lookbookTitle ?? "", recommendationName: image.recommendationName ?? "", recommendationReason: image.recommendationReason ?? "" }; updateMetadata.mutate({ id: image.id, lookbookTitle: draft.lookbookTitle.trim() || null, recommendationName: draft.recommendationName.trim() || null, recommendationReason: draft.recommendationReason.trim() || null }); }}
+                      onClick={() => { const draft = metadataDrafts[image.id] ?? { lookbookTitle: image.lookbookTitle ?? "", recommendationName: image.recommendationName ?? "", recommendationReason: image.recommendationReason ?? "" }; const localized = localizedDrafts[image.id]; updateMetadata.mutate({ id: image.id, lookbookTitle: draft.lookbookTitle.trim() || null, recommendationName: draft.recommendationName.trim() || null, recommendationReason: draft.recommendationReason.trim() || null, lookbookTitleKo: localized?.titleKo?.trim() || image.lookbookTitleKo || null, lookbookTitleZh: localized?.titleZh?.trim() || image.lookbookTitleZh || null, lookbookTitleEn: localized?.titleEn?.trim() || image.lookbookTitleEn || null, recommendationReasonKo: localized?.reasonKo?.trim() || image.recommendationReasonKo || null, recommendationReasonZh: localized?.reasonZh?.trim() || image.recommendationReasonZh || null, recommendationReasonEn: localized?.reasonEn?.trim() || image.recommendationReasonEn || null }); }}
                       className="h-7 rounded bg-[#f1e9dd] px-2 text-[10px] font-bold text-[#5b4d40] disabled:opacity-50"
                     >
                       {locale === "ko" ? "이름·이유 저장" : locale === "zh" ? "保存名称和理由" : "Save title & reason"}
@@ -1053,11 +1092,11 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => remove.mutate({ id: image.id })}
+                      onClick={() => image.isActive === 0 ? restore.mutate({ id: image.id }) : remove.mutate({ id: image.id })}
                       className="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-[#fff0ed] text-[10px] font-bold text-[#9b4439]"
                     >
-                      <Trash2 size={12} />
-                      {text.remove}
+                      {image.isActive === 0 ? <Check size={12} /> : <Trash2 size={12} />}
+                      {image.isActive === 0 ? (locale === "ko" ? "복구" : locale === "zh" ? "恢复" : "Restore") : text.remove}
                     </button>
                   </div>
                 </div>
