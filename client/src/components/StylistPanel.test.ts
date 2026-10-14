@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldRetryStylistRecommendation, shouldShowStylistStatusBadge, stylistErrorMessage } from "./StylistPanel";
+import { shouldRetryStylistRecommendation, shouldShowStylistStatusBadge, stylistErrorMessage, stylistGridClass } from "./StylistPanel";
 
 describe("Style This Item error guidance", () => {
   it("shows a localized curated-look explanation instead of a blank recommendation area", () => {
@@ -21,5 +21,13 @@ describe("Style This Item error guidance", () => {
   it("hides purchase-availability badges in the fixed-item picker only", () => {
     expect(shouldShowStylistStatusBadge("picker")).toBe(false);
     expect(shouldShowStylistStatusBadge("recommendation")).toBe(true);
+  });
+
+  it("keeps 1-2 columns on mobile and expands to 3-4 columns from the iPad breakpoint", () => {
+    expect(stylistGridClass(1)).toBe("grid-cols-1");
+    expect(stylistGridClass(2)).toBe("grid-cols-2");
+    expect(stylistGridClass(3)).toBe("grid-cols-2 sm:grid-cols-3");
+    expect(stylistGridClass(4)).toBe("grid-cols-2 sm:grid-cols-4");
+    expect(stylistGridClass(99)).toBe("grid-cols-2 sm:grid-cols-4");
   });
 });

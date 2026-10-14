@@ -48,6 +48,11 @@ export function shouldShowStylistStatusBadge(surface: "picker" | "recommendation
   return surface === "recommendation";
 }
 
+export function stylistGridClass(columns: number) {
+  const safeColumns = Math.min(4, Math.max(1, Math.round(columns || 2)));
+  return safeColumns === 1 ? "grid-cols-1" : safeColumns === 2 ? "grid-cols-2" : safeColumns === 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-4";
+}
+
 type PublishedLook = {
   lookId: string;
   imageUrl?: string | null;
@@ -116,6 +121,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
   const publishedData = published.data as { gridColumns?: number; outfits?: PublishedLook[] } | undefined;
   const looks = publishedData?.outfits ?? [];
   const gridColumns = Math.min(4, Math.max(1, publishedData?.gridColumns ?? 2));
+  const gridColumnClass = stylistGridClass(gridColumns);
   const selectedLook = looks.find((look) => look.lookId === selectedLookId) ?? null;
   const productTitle = (product: StylistProduct) => locale === "ko" ? product.nameKo || product.name : locale === "zh" ? product.nameZh || product.name : product.nameEn || product.name;
 
@@ -163,7 +169,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
         <div className="mt-4 rounded-xl border border-dashed border-[#d8d1c7] bg-white p-6 text-center text-xs leading-5 text-[#70675e]">{copy.empty}</div>
       )}
 
-      <div className="mt-4 grid gap-4" style={{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }}>
+      <div className={`mt-4 grid gap-4 ${gridColumnClass}`}>
         {looks.map((look) => {
           const isSelected = selectedLookId === look.lookId;
           return (
