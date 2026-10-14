@@ -12,7 +12,14 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/service-worker.js").catch(() => undefined));
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 3_000),
+    },
+  },
+});
 
 queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
@@ -33,11 +40,22 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
-      fetch(input, init) {
-        return globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
+      async fetch(input, init) {
+        const requestInit = { ...(init ?? {}), credentials: "include" as const };
+        // Retrying GETs is safe and masks the brief disconnect that can happen
+        // while the dev/proxy server is restarting. Never retry mutations.
+        const method = (requestInit.method ?? "GET").toUpperCase();
+        const attempts = method === "GET" ? 3 : 1;
+        let lastError: unknown;
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          try {
+            return await globalThis.fetch(input, requestInit);
+          } catch (error) {
+            lastError = error;
+            if (attempt + 1 < attempts) await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** attempt));
+          }
+        }
+        throw lastError;
       },
     }),
   ],
