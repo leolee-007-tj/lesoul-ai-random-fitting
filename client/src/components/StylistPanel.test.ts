@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldRetryStylistRecommendation, shouldShowStylistStatusBadge, stylistErrorMessage, stylistGridClass } from "./StylistPanel";
+import { shortLookbookReason, shouldRetryStylistRecommendation, shouldShowStylistStatusBadge, stylistErrorMessage, stylistGridClass } from "./StylistPanel";
 
 describe("Style This Item error guidance", () => {
   it("shows a localized curated-look explanation instead of a blank recommendation area", () => {
@@ -29,5 +29,11 @@ describe("Style This Item error guidance", () => {
     expect(stylistGridClass(3)).toBe("grid-cols-2 sm:grid-cols-3");
     expect(stylistGridClass(4)).toBe("grid-cols-2 sm:grid-cols-4");
     expect(stylistGridClass(99)).toBe("grid-cols-2 sm:grid-cols-4");
+  });
+
+  it("keeps the customer-facing recommendation reason concise", () => {
+    expect(shortLookbookReason("짧은 추천 이유", "기본 이유")).toBe("짧은 추천 이유");
+    expect(shortLookbookReason("1234567890", "기본 이유", 6)).toBe("12345…");
+    expect(shortLookbookReason("  ", "기본 이유")).toBe("기본 이유");
   });
 });

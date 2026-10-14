@@ -1,8 +1,8 @@
 import { trpc } from "@/lib/trpc";
 import NormalizedProductImage from "@/components/NormalizedProductImage";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
-import ProductPrice from "@/components/ProductPrice";
-import { Check, LoaderCircle, ShoppingBag, Sparkles, X } from "lucide-react";
+import StoreInquiryQr from "@/components/StoreInquiryQr";
+import { LoaderCircle, ShoppingBag, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -51,6 +51,11 @@ export function shouldShowStylistStatusBadge(surface: "picker" | "recommendation
 export function stylistGridClass(columns: number) {
   const safeColumns = Math.min(4, Math.max(1, Math.round(columns || 2)));
   return safeColumns === 1 ? "grid-cols-1" : safeColumns === 2 ? "grid-cols-2" : safeColumns === 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-4";
+}
+
+export function shortLookbookReason(reason: string | null | undefined, fallback: string, maxLength = 96) {
+  const text = reason?.trim() || fallback;
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
 }
 
 type PublishedLook = {
@@ -175,27 +180,26 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
           const isSelected = selectedLookId === look.lookId;
           return (
             <article key={look.lookId} className={`rounded-[1.2rem] border-2 bg-white p-3 transition ${isSelected ? "border-black ring-2 ring-black/20 shadow-[0_10px_24px_rgba(31,26,21,.12)]" : "border-[#dedbd4]"}`}>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-[#302a25]">{look.name || copy.title}</p>
-                  <p className="mt-1 text-[10px] font-bold tracking-[.12em] text-[#83786d]">{look.products.length}{copy.productCount}</p>
-                </div>
-                {isSelected && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-black px-2 py-1 text-[9px] font-bold text-white"><Check size={10} aria-hidden="true" />{copy.selected}</span>}
-              </div>
               {look.imageUrl && <button type="button" onClick={() => setPreviewLook(look)} className="mt-3 block w-full cursor-zoom-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"><img src={look.imageUrl} alt={copy.selectedPhoto} className="aspect-[3/4] w-full rounded-xl object-cover" loading="lazy" /></button>}
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {look.products.map((product) => (
+              <div className="mt-3 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-5 text-[#302a25]">{look.name || copy.title}</p>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-[#71685f]">{shortLookbookReason(look.reason, copy.defaultReason)}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-[#f1ede7] px-2 py-1 text-[9px] font-bold text-[#665c52]">{look.products.length}{copy.productCount}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {look.products.slice(0, 3).map((product) => (
                   <div key={product.id} className="min-w-0">
                     <button type="button" onClick={() => setPreviewProduct(product)} className="group relative block w-full overflow-hidden rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black" aria-label={`${productTitle(product)} · ${locale === "ko" ? "크게 보기" : locale === "zh" ? "放大查看" : "View larger"}`}>
                       <NormalizedProductImage src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full transition duration-200 group-hover:scale-[1.03] group-active:scale-95" />
                       {shouldShowStylistStatusBadge("recommendation") && <ProductStatusBadges availabilityStatus={product.availabilityStatus} legacyStatus={product.status} isNew={product.isNew} showAvailability={false} className="inset-x-1 top-1" />}
                     </button>
                     <p className="mt-1 line-clamp-2 text-[10px] font-semibold text-[#413a34]">{productTitle(product)}</p>
-                    <ProductPrice product={product} compactInquiry className="mt-1 text-[10px]" />
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-[11px] leading-5 text-[#71685f]">{look.reason || copy.defaultReason}</p>
+              <StoreInquiryQr compact className="mt-3" />
               <button onClick={() => useLook(look)} aria-pressed={isSelected} className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[11px] font-bold text-white ${isSelected ? "bg-[#29231e]" : "bg-black"}`}>
                 <ShoppingBag size={14} aria-hidden="true" />
                 {isSelected ? copy.selected : copy.choose}
