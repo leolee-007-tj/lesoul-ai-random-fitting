@@ -380,9 +380,11 @@ export async function getPublishedLookbookOutfits(input: { role?: User["role"]; 
     const outfitProducts = ids.map((id) => productById.get(id)).filter(Boolean);
     if (!outfitProducts.length || outfitProducts.length !== ids.length) return [];
     seenBatches.add(image.batchId);
-    const name = input.locale === "ko" ? image.lookbookTitleKo || image.lookbookTitle || image.recommendationName : input.locale === "zh" ? image.lookbookTitleZh || image.lookbookTitle || image.recommendationName : image.lookbookTitleEn || image.lookbookTitle || image.recommendationName;
-    const reason = input.locale === "ko" ? image.recommendationReasonKo || image.recommendationReason : input.locale === "zh" ? image.recommendationReasonZh || image.recommendationReason : image.recommendationReasonEn || image.recommendationReason;
-    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: name || image.compositionLabel || null, reason: reason || null, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
+    const fallbackName = input.locale === "ko" ? "관리자 추천 코디" : input.locale === "zh" ? "店主精选搭配" : "Administrator-curated look";
+    const fallbackReason = input.locale === "ko" ? "관리자가 선택한 조화로운 코디입니다." : input.locale === "zh" ? "这是店主精选的协调搭配。" : "A coordinated look selected by the administrator.";
+    const name = input.locale === "ko" ? image.lookbookTitleKo : input.locale === "zh" ? image.lookbookTitleZh : image.lookbookTitleEn;
+    const reason = input.locale === "ko" ? image.recommendationReasonKo : input.locale === "zh" ? image.recommendationReasonZh : image.recommendationReasonEn;
+    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: name || fallbackName, reason: reason || fallbackReason, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
   }).slice(0, input.limit ?? 12);
 }
 

@@ -1,6 +1,5 @@
 import { trpc } from "@/lib/trpc";
 import NormalizedProductImage from "@/components/NormalizedProductImage";
-import { ProductStatusBadges } from "@/components/ProductStatusBadges";
 import StoreInquiryQr from "@/components/StoreInquiryQr";
 import { LoaderCircle, ShoppingBag, Sparkles, X } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +13,11 @@ export type StylistProduct = {
   nameZh?: string | null;
   imageUrl: string;
   category: string;
+  brand?: string | null;
+  color?: string | null;
+  style?: string | null;
+  fit?: string | null;
+  description?: string;
   status: string;
   price: number;
   priceOriginal?: number | null;
@@ -85,12 +89,18 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
       empty: "No administrator-curated looks are published yet.",
       loading: "Loading administrator-curated looks…",
       retry: "TRY AGAIN",
-      choose: "ADD THIS LOOK TO PURCHASE LIST",
-      selected: "ADDED TO PURCHASE LIST",
+      choose: "ADD TO CART",
+      selected: "ADDED",
       defaultReason: "A complete look selected by the LESOUL administrator.",
       productCount: "products",
       selectedTitle: "SELECTED CURATED LOOK",
       selectedPhoto: "Selected look photo",
+      detail: "PRODUCT DETAILS",
+      brand: "Brand",
+      color: "Color",
+      style: "Style",
+      fit: "Fit",
+      description: "Description",
     },
     ko: {
       title: "관리자 추천 코디",
@@ -98,12 +108,18 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
       empty: "아직 공개된 관리자 추천 코디가 없습니다.",
       loading: "관리자 추천 코디를 불러오는 중…",
       retry: "다시 시도",
-      choose: "이 코디를 구매목록에 담기",
-      selected: "구매목록에 담김",
+      choose: "담기",
+      selected: "담김",
       defaultReason: "LESOUL 관리자가 선택한 완성 코디입니다.",
       productCount: "개 상품",
       selectedTitle: "선택한 관리자 추천 코디",
       selectedPhoto: "선택한 추천 코디 사진",
+      detail: "상품 상세",
+      brand: "브랜드",
+      color: "색상",
+      style: "스타일",
+      fit: "핏",
+      description: "상품 설명",
     },
     zh: {
       title: "店主精选搭配",
@@ -111,12 +127,18 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
       empty: "暂时没有已公开的店主精选搭配。",
       loading: "正在加载店主精选搭配…",
       retry: "重试",
-      choose: "将此搭配加入购买清单",
-      selected: "已加入购买清单",
+      choose: "加入",
+      selected: "已加入",
       defaultReason: "这是由 LESOUL 店主精选的完整搭配。",
       productCount: "件商品",
       selectedTitle: "已选择的店主精选搭配",
       selectedPhoto: "已选择的精选搭配图片",
+      detail: "商品详情",
+      brand: "品牌",
+      color: "颜色",
+      style: "款式",
+      fit: "版型",
+      description: "商品说明",
     },
   }[locale];
 
@@ -193,9 +215,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
                   <div key={product.id} className="min-w-0">
                     <button type="button" onClick={() => setPreviewProduct(product)} className="group relative block w-full overflow-hidden rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black" aria-label={`${productTitle(product)} · ${locale === "ko" ? "크게 보기" : locale === "zh" ? "放大查看" : "View larger"}`}>
                       <NormalizedProductImage src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full transition duration-200 group-hover:scale-[1.03] group-active:scale-95" />
-                      {shouldShowStylistStatusBadge("recommendation") && <ProductStatusBadges availabilityStatus={product.availabilityStatus} legacyStatus={product.status} isNew={product.isNew} showAvailability={false} className="inset-x-1 top-1" />}
                     </button>
-                    <p className="mt-1 line-clamp-2 text-[10px] font-semibold text-[#413a34]">{productTitle(product)}</p>
                   </div>
                 ))}
               </div>
@@ -235,7 +255,17 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
           <div className="relative w-full max-w-sm rounded-2xl bg-white p-3 shadow-2xl" onClick={(event) => event.stopPropagation()}>
             <button type="button" onClick={() => setPreviewProduct(null)} className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full bg-white/95 text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={18} /></button>
             <NormalizedProductImage src={previewProduct.imageUrl} alt={productTitle(previewProduct)} catalogDisplay={previewProduct.catalogDisplay} className="aspect-[4/5] w-full rounded-xl" />
-            <p className="px-1 pb-1 pt-3 text-sm font-bold text-[#302a25]">{productTitle(previewProduct)}</p>
+            <div className="px-1 pb-1 pt-3">
+              <p className="text-[10px] font-bold tracking-[.12em] text-[#766b60]">{copy.detail}</p>
+              <p className="mt-1 text-base font-bold text-[#302a25]">{productTitle(previewProduct)}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] leading-4 text-[#655b52]">
+                {previewProduct.brand && <><dt className="font-semibold text-[#93877b]">{copy.brand}</dt><dd className="truncate">{previewProduct.brand}</dd></>}
+                {previewProduct.color && <><dt className="font-semibold text-[#93877b]">{copy.color}</dt><dd className="truncate">{previewProduct.color}</dd></>}
+                {previewProduct.style && <><dt className="font-semibold text-[#93877b]">{copy.style}</dt><dd className="truncate">{previewProduct.style}</dd></>}
+                {previewProduct.fit && <><dt className="font-semibold text-[#93877b]">{copy.fit}</dt><dd className="truncate">{previewProduct.fit}</dd></>}
+              </dl>
+              {previewProduct.description && <p className="mt-3 text-xs leading-5 text-[#71685f]">{previewProduct.description}</p>}
+            </div>
           </div>
         </div>
       )}
