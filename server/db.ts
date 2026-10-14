@@ -149,8 +149,14 @@ export type SiteVisitInput = {
   entryPath: string;
 };
 
+/** Internal operating accounts must never become customer analytics visitors. */
+export function isExcludedAnalyticsRole(role: string | null | undefined) {
+  return role === "admin" || role === "store_display" || role === "store_trial";
+}
+
 /** Store one opaque visitor per UTC day; all device and location fields are intentionally neutralized. */
-export async function recordSiteVisit(input: SiteVisitInput) {
+export async function recordSiteVisit(input: SiteVisitInput, role?: string | null) {
+  if (isExcludedAnalyticsRole(role)) return false;
   const db = await getDb();
   if (!db) return false;
   const visitDay = new Date().toISOString().slice(0, 10);
@@ -162,11 +168,13 @@ export async function recordSiteVisit(input: SiteVisitInput) {
 export async function getSiteVisitAnalytics() {
   const db = await getDb();
   if (!db) return { uniqueVisitors: 0 };
-  const rows = await db.select({ visitorId: siteVisitSummaries.visitorId }).from(siteVisitSummaries);
-  return { uniqueVisitors: new Set(rows.map((row) => row.visitorId)).size };
+  const rows = await db.select({ visitorId: siteVisitSummaries.visitorId, entryPath: siteVisitSummaries.entryPath }).from(siteVisitSummaries);
+  const customerRows = rows.filter((row) => !row.entryPath.startsWith("/operations") && row.entryPath !== "/store-display" && row.entryPath !== "/trial-store");
+  return { uniqueVisitors: new Set(customerRows.map((row) => row.visitorId)).size };
 }
 
-export async function recordProductEngagement(input: { productId: number; visitorId: string; eventType: ProductConversionEventType }) {
+export async function recordProductEngagement(input: { productId: number; visitorId: string; eventType: ProductConversionEventType }, role?: string | null) {
+  if (isExcludedAnalyticsRole(role)) return false;
   const db = await getDb();
   if (!db) return false;
   const product = (await db.select({ id: products.id, isActive: products.isActive }).from(products).where(eq(products.id, input.productId)).limit(1))[0];

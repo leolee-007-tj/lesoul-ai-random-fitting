@@ -35,11 +35,16 @@ describe("privacy-minimized anonymous site analytics contract", () => {
     const catalog = source("../../../server/routers/catalog.ts");
     const db = source("../../../server/db.ts");
     const schema = source("../../../drizzle/schema.ts");
+    const gate = source("../components/CustomerGate.tsx");
     expect(router).toContain("siteVisitAnalytics: ownerProcedure");
     expect(catalog).toContain("trackSiteVisit");
     expect(catalog).not.toContain("deviceType: z.enum");
     expect(db).toContain("uniqueVisitors: new Set");
     expect(db).toContain('deviceType: "unknown"');
     expect(schema).toContain("site_visit_daily_unique");
+    expect(db).toContain("isExcludedAnalyticsRole");
+    expect(db).toContain('role === "admin"');
+    expect(db).toContain('row.entryPath.startsWith("/operations")');
+    expect(gate).toContain('"store_display"');
   });
 });

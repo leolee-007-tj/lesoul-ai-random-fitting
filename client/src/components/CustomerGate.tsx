@@ -33,11 +33,11 @@ export default function CustomerGate({ children, allowAdmin = false }: { childre
   }, [explicitlyLoggedOut, guestLogin, isAuthenticated, loading, location, navigate, utils, visitorId]);
 
   useEffect(() => {
-    if (loading || !isAuthenticated || trackedVisitDay.current) return;
+    if (loading || !isAuthenticated || ["admin", "store_display", "store_trial"].includes(user?.role ?? "") || trackedVisitDay.current) return;
     const day = new Date().toISOString().slice(0, 10);
     trackedVisitDay.current = day;
     trackSiteVisit.mutate(getSiteVisitPayload(i18n.language, location));
-  }, [i18n.language, isAuthenticated, loading, location, trackSiteVisit]);
+  }, [i18n.language, isAuthenticated, loading, location, trackSiteVisit, user?.role]);
 
   useEffect(() => {
     if (!allowAdmin && !loading && user?.role === "admin" && location !== "/operations") navigate("/operations");
