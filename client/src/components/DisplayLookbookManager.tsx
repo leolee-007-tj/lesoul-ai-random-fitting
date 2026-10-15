@@ -255,6 +255,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const [recommendationName, setRecommendationName] = useState("");
   const [stylingRequirements, setStylingRequirements] = useState("");
   const [autoComplete, setAutoComplete] = useState({ top: false, bottom: false, outer: false });
+  const [baseLayerColor, setBaseLayerColor] = useState<"black" | "white">("black");
   const [metadataDrafts, setMetadataDrafts] = useState<Record<number, { lookbookTitle: string; recommendationName: string; recommendationReason: string }>>({});
   const [localizedDrafts, setLocalizedDrafts] = useState<Record<number, { titleKo: string; titleZh: string; titleEn: string; reasonKo: string; reasonZh: string; reasonEn: string }>>({});
   const [galleryScope, setGalleryScope] = useState<"selected" | "all">("all");
@@ -440,6 +441,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
         recommendationName: recommendationName.trim() || null,
         stylingRequirements: stylingRequirements.trim(),
         autoComplete,
+        baseLayerColor,
       });
   };
   const downloadBrandedImage = async (imageUrl: string, imageId: number) => {
@@ -796,6 +798,24 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
                   onChange={event => setAutoComplete(current => ({ ...current, [section]: event.target.checked }))}
                 />
                 {section === "top" ? locale === "ko" ? "상의 자동" : locale === "zh" ? "上装自动" : "Auto top" : section === "bottom" ? locale === "ko" ? "하의 자동" : locale === "zh" ? "下装自动" : "Auto bottom" : locale === "ko" ? "외투 자동" : locale === "zh" ? "外套自动" : "Auto outer"}
+              </label>
+            ))}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-[#665b50]">
+              {locale === "ko" ? "기본 이너 색상" : locale === "zh" ? "基础内搭颜色" : "Base-layer color"}
+            </span>
+            {(["black", "white"] as const).map(color => (
+              <label key={color} className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-[#f7f3ed] px-2.5 py-1.5 font-bold">
+                <input
+                  type="radio"
+                  name="lookbook-base-layer-color"
+                  value={color}
+                  checked={baseLayerColor === color}
+                  disabled={busy}
+                  onChange={() => setBaseLayerColor(color)}
+                />
+                {color === "black" ? (locale === "ko" ? "검정" : locale === "zh" ? "黑色" : "Black") : locale === "ko" ? "흰색" : locale === "zh" ? "白色" : "White"}
               </label>
             ))}
           </div>

@@ -18,6 +18,8 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("하의 자동");
     expect(manager).toContain("외투 자동");
     expect(manager).toContain("검정/흰색 스포츠브라");
+    expect(manager).toContain("baseLayerColor");
+    expect(manager).toContain("lookbook-base-layer-color");
     expect(manager).toContain("의류는 최대 3개, 액세서리는 의류 수와 상관없이");
     expect(manager).toContain("productKindKey");
     expect(manager).toContain("productKinds.map");

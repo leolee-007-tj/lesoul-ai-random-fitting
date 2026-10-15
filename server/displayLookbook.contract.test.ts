@@ -75,7 +75,9 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("autoComplete.top || autoComplete.bottom || autoComplete.outer");
     expect(router).toContain("ONLY A TOP WAS SELECTED");
     expect(router).toContain("ONLY A BOTTOM WAS SELECTED");
-    expect(router).toContain("black or white sports bra");
+    expect(router).toContain('baseLayerColor: z.enum(["black", "white"]).default("black")');
+    expect(router).toContain("${baseLayerColor} sports bra");
+    expect(router).toContain("input.baseLayerColor");
   });
   it("allows accessories outside the three-piece clothing limit and rejects sold-out selections", () => {
     expect(router).toContain('productIds: z.array(z.number().int().positive()).min(1).max(20)');
