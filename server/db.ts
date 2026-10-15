@@ -384,7 +384,7 @@ export async function getPublishedLookbookOutfits(input: { role?: User["role"]; 
     const fallbackReason = input.locale === "ko" ? "관리자가 선택한 조화로운 코디입니다." : input.locale === "zh" ? "这是店主精选的协调搭配。" : "A coordinated look selected by the administrator.";
     const name = input.locale === "ko" ? image.lookbookTitleKo : input.locale === "zh" ? image.lookbookTitleZh : image.lookbookTitleEn;
     const reason = input.locale === "ko" ? image.recommendationReasonKo : input.locale === "zh" ? image.recommendationReasonZh : image.recommendationReasonEn;
-    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: name || fallbackName, reason: reason || fallbackReason, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
+    return [{ lookId: `AI_LOOKBOOK_${image.batchId}`, imageUrl: image.imageUrl, name: name || fallbackName, reason: reason || fallbackReason, nameKo: image.lookbookTitleKo, nameZh: image.lookbookTitleZh, nameEn: image.lookbookTitleEn, reasonKo: image.recommendationReasonKo, reasonZh: image.recommendationReasonZh, reasonEn: image.recommendationReasonEn, stylePresetKey: "AI_LOOKBOOK", products: outfitProducts }];
   }).slice(0, input.limit ?? 12);
 }
 

@@ -67,6 +67,12 @@ type PublishedLook = {
   imageUrl?: string | null;
   name: string | null;
   reason: string | null;
+  nameKo?: string | null;
+  nameZh?: string | null;
+  nameEn?: string | null;
+  reasonKo?: string | null;
+  reasonZh?: string | null;
+  reasonEn?: string | null;
   stylePresetKey: string;
   products: StylistProduct[];
 };
@@ -152,6 +158,8 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
   const gridColumnClass = stylistGridClass(gridColumns);
   const selectedLook = looks.find((look) => look.lookId === selectedLookId) ?? null;
   const productTitle = (product: StylistProduct) => locale === "ko" ? product.nameKo || product.name : locale === "zh" ? product.nameZh || product.name : product.nameEn || product.name;
+  const lookTitle = (look: PublishedLook) => locale === "ko" ? look.nameKo || look.name || copy.title : locale === "zh" ? look.nameZh || look.name || copy.title : look.nameEn || look.name || copy.title;
+  const lookReason = (look: PublishedLook) => shortLookbookReason(locale === "ko" ? look.reasonKo || look.reason : locale === "zh" ? look.reasonZh || look.reason : look.reasonEn || look.reason, copy.defaultReason);
 
   const useLook = (look: PublishedLook) => {
     const products = look.products.filter(Boolean);
@@ -162,7 +170,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
     setSelectedLookId(look.lookId);
     onUseLook({
       products,
-      styleName: look.name ?? copy.title,
+      styleName: lookTitle(look),
       styleKey: look.stylePresetKey,
       selectedLookId: look.lookId,
       recommendations: [],
@@ -205,8 +213,8 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
               {look.imageUrl && <button type="button" onClick={() => setPreviewLook(look)} className="mt-3 block w-full cursor-zoom-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"><img src={look.imageUrl} alt={copy.selectedPhoto} className="aspect-[3/4] w-full rounded-xl object-cover" loading="lazy" /></button>}
               <div className="mt-3 flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold leading-5 text-[#302a25]">{look.name || copy.title}</p>
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-[#71685f]">{shortLookbookReason(look.reason, copy.defaultReason)}</p>
+                  <p className="text-sm font-semibold leading-5 text-[#302a25]">{lookTitle(look)}</p>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-[#71685f]">{lookReason(look)}</p>
                 </div>
                 <span className="shrink-0 rounded-full bg-[#f1ede7] px-2 py-1 text-[9px] font-bold text-[#665c52]">{look.products.length}{copy.productCount}</span>
               </div>
@@ -236,8 +244,8 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
             <span className="rounded-full bg-[#f1ede7] px-2 py-1 text-[9px] font-bold text-[#665c52]">{selectedLook.products.length}{copy.productCount}</span>
           </div>
           {selectedLook.products[0] && <NormalizedProductImage src={selectedLook.products[0].imageUrl} alt={copy.selectedPhoto} catalogDisplay={selectedLook.products[0].catalogDisplay} className="mt-3 aspect-[4/5] w-full rounded-xl" />}
-          <h2 className="mt-4 font-serif text-2xl text-[#2d2722]">{selectedLook.name || copy.title}</h2>
-          <p className="mt-2 text-sm leading-6 text-[#71685f]">{selectedLook.reason || copy.defaultReason}</p>
+          <h2 className="mt-4 font-serif text-2xl text-[#2d2722]">{lookTitle(selectedLook)}</h2>
+          <p className="mt-2 text-sm leading-6 text-[#71685f]">{lookReason(selectedLook)}</p>
           {selectedLook.products.length > 1 && <div className="mt-4 grid grid-cols-4 gap-2">{selectedLook.products.slice(1).map((product) => <NormalizedProductImage key={product.id} src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full rounded-lg" />)}</div>}
         </section>
       )}
@@ -246,7 +254,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
           <div className="relative flex max-h-[94svh] w-full max-w-3xl flex-col items-center" onClick={(event) => event.stopPropagation()}>
             <button type="button" onClick={() => setPreviewLook(null)} className="absolute right-0 top-0 z-10 grid size-10 place-items-center rounded-full bg-white text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={20} /></button>
             <img src={previewLook.imageUrl} alt={copy.selectedPhoto} className="max-h-[84svh] w-full rounded-2xl object-contain" />
-            <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-center text-sm font-semibold text-[#2d2722]">{previewLook.name || copy.title}</div>
+            <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-center text-sm font-semibold text-[#2d2722]">{lookTitle(previewLook)}</div>
           </div>
         </div>
       )}
