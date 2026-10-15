@@ -74,6 +74,14 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("autoCompleteMissing ? completeOutfitWithCatalog");
     expect(router).toContain("input.autoCompleteMissing");
   });
+  it("allows accessories outside the three-piece clothing limit and rejects sold-out selections", () => {
+    expect(router).toContain('productIds: z.array(z.number().int().positive()).min(1).max(20)');
+    expect(router).toContain('"accessory" | "other"');
+    expect(router).toContain('return "accessory"');
+    expect(router).toContain('const garmentCount = selectedProducts.filter');
+    expect(router).toContain('if (garmentCount > 3) throw new Error("OUTFIT_TOO_MANY_CLOTHING_ITEMS")');
+    expect(router).toContain('PRODUCT_SOLD_OUT');
+  });
   it("uses 100 Western magazine studio poses with no store setting", () => {
     expect(router).toContain("const editorialPosePrompts = [");
     expect(router).toContain(' + (index + 1) + " of 100"');

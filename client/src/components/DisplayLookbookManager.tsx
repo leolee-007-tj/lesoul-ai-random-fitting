@@ -11,8 +11,10 @@ import { trpc } from "@/lib/trpc";
 import { normaliseAvailabilityStatus } from "../../../shared/productAvailability";
 
 type Locale = "ko" | "zh" | "en";
-type GarmentGroup = "all" | "top" | "bottom" | "outer" | "dress";
+type GarmentGroup = "all" | "top" | "bottom" | "outer" | "dress" | "accessory";
 type PresentationStyle = "east_asian_female" | "western_female";
+const MAX_CLOTHING_ITEMS = 3;
+const MAX_LOOKBOOK_ITEMS = 20;
 
 const sceneCopy = {
   ko: {
@@ -45,7 +47,7 @@ const copy = {
   ko: {
     eyebrow: "STORE DISPLAY AI LOOKBOOK",
     title: "매장 디스플레이 AI 룩북",
-    body: "상품별 이미지 또는 등록 상품을 상·하의·외투·원피스로 랜덤 조합한 코디 이미지를 실제 AI로 생성합니다. 승인된 이미지만 매장 디스플레이 자동전시에 사용됩니다.",
+    body: "상품별 이미지 또는 실제 등록된 상·하의·외투·원피스·신발·가방 등으로 코디 이미지를 생성합니다. 의류는 최대 3개, 액세서리는 별도로 추가할 수 있으며 승인된 이미지만 매장 전시에 사용됩니다.",
     choose: "상품 선택",
     count: "생성 장수",
     randomOutfit: "랜덤 코디 생성",
@@ -83,7 +85,7 @@ const copy = {
   zh: {
     eyebrow: "STORE DISPLAY AI LOOKBOOK",
     title: "门店展示 AI Lookbook",
-    body: "使用真实 AI 图像生成模型，也可以将已登记的上装、下装、外套、连衣裙随机组合成搭配。只有批准的图片会用于门店自动展示。",
+    body: "使用真实 AI 图像生成模型，也可以将已登记的上装、下装、外套、连衣裙、鞋履、包袋等组合成搭配。服装最多 3 件，配饰可单独追加，只有批准的图片会用于门店展示。",
     choose: "选择商品",
     count: "生成张数",
     randomOutfit: "生成随机搭配",
@@ -121,7 +123,7 @@ const copy = {
   en: {
     eyebrow: "STORE DISPLAY AI LOOKBOOK",
     title: "Store Display AI Lookbook",
-    body: "Generate real AI images for individual products or randomly combine registered tops, bottoms, outerwear, and dresses into complete outfits. Only approved images appear in the showroom.",
+    body: "Generate real AI images from registered tops, bottoms, outerwear, dresses, shoes, bags, and other available product types. Use up to 3 clothing pieces plus separate accessories; only approved images appear in the showroom.",
     choose: "Choose a product",
     count: "Image count",
     randomOutfit: "Generate random outfit",
@@ -176,11 +178,24 @@ function groupFor(product: any): Exclude<GarmentGroup, "all"> {
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+  if (/accessor|jewelry|jewel|bag|shoes|shoe|belt|hat|scarf|가방|신발|구두|벨트|모자|스카프|액세서리|악세서리|配饰|鞋|包|腰带|帽|围巾/.test(text)) return "accessory";
   if (/dress|원피스|连衣裙/.test(text)) return "dress";
   if (/outer|coat|jacket|cardigan|외투|아우터|코트|재킷|자켓|外套/.test(text))
     return "outer";
   if (/bottom|skirt|pants|하의|치마|바지|裙|裤/.test(text)) return "bottom";
   return "top";
+}
+
+function productKindKey(product: any) {
+  return String(
+    product.displayCategory?.id ??
+      product.displayCategory?.nameKo ??
+      product.displayCategory?.name ??
+      product.category ??
+      "other"
+  )
+    .trim()
+    .toLowerCase();
 }
 
 function isLayerBottom(product: any) {
@@ -211,7 +226,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
     staleTime: 60_000,
   });
   const products = productsQuery.data ?? [];
-  const [group, setGroup] = useState<GarmentGroup>("all");
+  const [group, setGroup] = useState<string>("all");
   const count = 1;
   const [outfitCart, setOutfitCart] = useState<number[]>([]);
   const [qrOverlayEnabled, setQrOverlayEnabled] = useState(true);
@@ -262,8 +277,24 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
       );
     return group === "all"
       ? sorted
-      : sorted.filter((product: any) => groupFor(product) === group);
+      : sorted.filter((product: any) => productKindKey(product) === group);
   }, [products, group]);
+  const productKinds = useMemo(() => {
+    const options = new Map<string, any>();
+    products
+      .filter(
+        (product: any) =>
+          normaliseAvailabilityStatus(
+            product.availabilityStatus,
+            product.status
+          ) !== "SOLD_OUT"
+      )
+      .forEach((product: any) => {
+        const key = productKindKey(product);
+        if (!options.has(key)) options.set(key, product);
+      });
+    return Array.from(options, ([key, product]) => ({ key, product }));
+  }, [products]);
   const selected = useMemo(
     () => products.find((product: any) => product.id === productId),
     [products, productId]
@@ -369,10 +400,17 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
           : "Registered product")
     );
   };
-  const canAddToOutfitCart = (product: any) => {
-    if (outfitCart.length >= 3 || outfitCart.includes(product.id)) return true;
+  const canAddToOutfitCart = (product: any, selectedIds = outfitCart) => {
+    if (selectedIds.includes(product.id)) return true;
+    if (selectedIds.length >= MAX_LOOKBOOK_ITEMS) return false;
+    if (groupFor(product) === "accessory") return true;
+    const selectedClothingCount = selectedIds.filter(id => {
+      const item = products.find((candidate: any) => candidate.id === id);
+      return item && groupFor(item) !== "accessory";
+    }).length;
+    if (selectedClothingCount >= MAX_CLOTHING_ITEMS) return false;
     if (groupFor(product) !== "bottom") return true;
-    const selectedBottoms = outfitCart
+    const selectedBottoms = selectedIds
       .map(id => products.find((item: any) => item.id === id))
       .filter((item: any) => item && groupFor(item) === "bottom");
     return (
@@ -385,7 +423,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
     setOutfitCart(current => {
       if (current.includes(id)) return current.filter(item => item !== id);
       const product = products.find((item: any) => item.id === id);
-      return product && canAddToOutfitCart(product) && current.length < 3
+      return product && canAddToOutfitCart(product, current)
         ? [...current, id]
         : current;
     });
@@ -589,15 +627,24 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
             </p>
             <p className="mt-1 text-[10px] leading-4 text-[#786e63]">
               {locale === "ko"
-                ? "상품을 눌러 담고, 다시 누르면 바로 삭제합니다. 선택한 상품만 입히며 최대 3개까지 조합할 수 있습니다."
+                ? "실제 등록된 상품종류별로 골라 담습니다. 의류는 최대 3개, 액세서리는 의류 수와 상관없이 추가할 수 있습니다."
               : locale === "zh"
-                  ? "点击商品加入，再次点击即可删除。默认只使用已选商品，最多可组合 3 件。"
-                  : "Tap to add; tap again to remove. The model wears only selected pieces by default; up to 3 can be combined."}
+                  ? "按实际商品类别选择。服装最多 3 件，配饰不受服装数量限制。"
+                  : "Choose from the product types that actually exist. Up to 3 clothing pieces; accessories are separate from that limit."}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="rounded-full bg-[#f1e9dd] px-2.5 py-1 text-[10px] font-bold">
-              {outfitCart.length}/3
+              {outfitCart.filter(id => {
+                const product = products.find((item: any) => item.id === id);
+                return product && groupFor(product) !== "accessory";
+              }).length}/{MAX_CLOTHING_ITEMS}
+              <span className="ml-1 text-[#8b7d70]">
+                +{outfitCart.filter(id => {
+                  const product = products.find((item: any) => item.id === id);
+                  return product && groupFor(product) === "accessory";
+                }).length} {locale === "ko" ? "액세서리" : locale === "zh" ? "配饰" : "accessories"}
+              </span>
             </span>
             <button
               type="button"
@@ -614,30 +661,27 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {(["all", "top", "bottom", "outer", "dress"] as GarmentGroup[]).map(
-            key => (
-              <button
-                type="button"
-                key={key}
-                onClick={() => setGroup(key)}
-                className={`rounded-full px-2.5 py-1.5 text-[10px] font-bold ${group === key ? "bg-black text-white" : "bg-[#f5f1eb] text-[#6f655b]"}`}
-              >
-                {key === "all"
-                  ? locale === "ko"
-                    ? "전체"
-                    : locale === "zh"
-                      ? "全部"
-                      : "All"
-                  : key === "top"
-                    ? text.topTab
-                    : key === "bottom"
-                      ? text.bottomTab
-                      : key === "outer"
-                        ? text.outerTab
-                        : text.dress}
-              </button>
-            )
-          )}
+          <button
+            type="button"
+            onClick={() => setGroup("all")}
+            className={`rounded-full px-2.5 py-1.5 text-[10px] font-bold ${group === "all" ? "bg-black text-white" : "bg-[#f5f1eb] text-[#6f655b]"}`}
+          >
+            {locale === "ko" ? "전체" : locale === "zh" ? "全部" : "All"}
+          </button>
+          {productKinds.map(({ key, product }) => (
+            <button
+              type="button"
+              key={key}
+              onClick={() => setGroup(key)}
+              className={`rounded-full px-2.5 py-1.5 text-[10px] font-bold ${group === key ? "bg-black text-white" : "bg-[#f5f1eb] text-[#6f655b]"}`}
+            >
+              {locale === "ko"
+                ? product.displayCategory?.nameKo || product.category || product.nameKo || product.name
+                : locale === "zh"
+                  ? product.displayCategory?.nameZh || product.category || product.nameZh || product.name
+                  : product.displayCategory?.nameEn || product.category || product.nameEn || product.name}
+            </button>
+          ))}
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {filteredProducts.map((product: any) => (
@@ -667,11 +711,17 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
                       ? "已加入 · 再次点击删除"
                       : "Added · tap to remove"
                   : !canAddToOutfitCart(product)
-                    ? locale === "ko"
-                      ? "다른 하의와 중복 선택 불가"
-                      : locale === "zh"
-                        ? "不能与其他下装重复"
-                        : "Another bottom is already selected"
+                    ? groupFor(product) === "bottom"
+                      ? locale === "ko"
+                        ? "다른 하의와 중복 선택 불가"
+                        : locale === "zh"
+                          ? "不能与其他下装重复"
+                          : "Another bottom is already selected"
+                      : locale === "ko"
+                        ? "의류는 최대 3개까지"
+                        : locale === "zh"
+                          ? "服装最多 3 件"
+                          : "Up to 3 clothing pieces"
                     : locale === "ko"
                       ? "담기"
                       : locale === "zh"

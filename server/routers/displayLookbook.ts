@@ -162,7 +162,7 @@ const presentationStyleInput = z.enum(["east_asian_female", "western_female"]).d
 const generateInput = z.object({ productId: z.number().int().positive() });
 const lookbookMetaInput = z.object({ lookbookTitle: z.string().trim().max(200).nullable().optional(), recommendationName: z.string().trim().max(200).nullable().optional() });
 const generateBatchInput = generateInput.extend(lookbookMetaInput.shape).extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, count: z.number().int().min(1).max(10).default(10) });
-const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3), stylingRequirements: z.string().trim().max(1000).optional().default(""), autoCompleteMissing: z.boolean().default(false) });
+const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(20), count: z.number().int().min(1).max(10).default(3), stylingRequirements: z.string().trim().max(1000).optional().default(""), autoCompleteMissing: z.boolean().default(false) });
 const guestPreviewInput = z.object({ productId: z.number().int().positive(), hairLength: hairLengthInput, presentationStyle: presentationStyleInput, backgroundStyle: backgroundStyleInput });
 const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
@@ -170,7 +170,7 @@ const metadataInput = imageIdInput.extend({ lookbookTitle: z.string().trim().max
 type LookbookProgress = { status: "idle" | "generating" | "completed" | "failed"; completed: number; failed: number; total: number; percent: number; batchId?: string; lastError?: string };
 const progressByProduct = new Map<number, LookbookProgress>();
 
-type OutfitGroup = "top" | "bottom" | "outer" | "dress" | "other";
+type OutfitGroup = "top" | "bottom" | "outer" | "dress" | "accessory" | "other";
 function productImage(product: any) { return product.imageViews?.front?.studioCut || product.imageViews?.front?.original || product.imageUrl; }
 function publicOrigin(req: { headers: Record<string, string | string[] | undefined>; protocol?: string }) {
   const forwardedHost = req.headers["x-forwarded-host"];
@@ -187,6 +187,7 @@ function absoluteImageUrl(url: string, origin: string | null) {
 }
 function outfitGroup(product: any): OutfitGroup {
   const text = [product.category, product.productType, product.displayCategory?.name, product.displayCategory?.nameKo, product.displayCategory?.nameEn, product.name].filter(Boolean).join(" ").toLowerCase();
+  if (/accessor|jewelry|jewel|bag|shoes|shoe|belt|hat|scarf|가방|신발|구두|벨트|모자|스카프|액세서리|악세서리|配饰|鞋|包|腰带|帽|围巾/.test(text)) return "accessory";
   if (/dress|원피스|连衣裙/.test(text)) return "dress";
   if (/outer|coat|jacket|cardigan|외투|아우터|코트|재킷|자켓|外套/.test(text)) return "outer";
   if (/bottom|skirt|pants|하의|치마|바지|裙|裤/.test(text)) return "bottom";
@@ -310,6 +311,8 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const selectedProducts = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
   if (selectedProducts.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
   if (selectedProducts.some((product) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) === "SOLD_OUT")) throw new Error("PRODUCT_SOLD_OUT");
+  const garmentCount = selectedProducts.filter((product) => outfitGroup(product) !== "accessory").length;
+  if (garmentCount > 3) throw new Error("OUTFIT_TOO_MANY_CLOTHING_ITEMS");
   const completed = autoCompleteMissing ? completeOutfitWithCatalog(selectedProducts, catalog.products) : { products: selectedProducts, addedGroup: null as OutfitGroup | null, addedFromCatalog: false };
   const products = completed.products;
   const sources = products.map((product) => productImage(product)).filter(Boolean).map((url) => absoluteImageUrl(url, origin));

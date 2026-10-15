@@ -15,7 +15,13 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("stylingRequirements: stylingRequirements.trim()");
     expect(manager).toContain("autoCompleteMissing");
     expect(manager).toContain("부족한 의류 자동 보완");
-    expect(manager).toContain("선택한 상품만 입히며");
+    expect(manager).toContain("의류는 최대 3개, 액세서리는 의류 수와 상관없이");
+    expect(manager).toContain("productKindKey");
+    expect(manager).toContain("productKinds.map");
+    expect(manager).toContain("MAX_CLOTHING_ITEMS = 3");
+    expect(manager).toContain("MAX_LOOKBOOK_ITEMS = 20");
+    expect(manager).toContain('groupFor(product) === "accessory"');
+    expect(manager).toContain("액세서리는 의류 수와 상관없이");
     expect(manager).toContain("장바구니 초기화");
     expect(manager).toContain("canAddToOutfitCart");
     expect(manager).toContain("isLayerBottom");
