@@ -24,7 +24,7 @@ async function saveQrImage(url: string, filename: string) {
   }
 }
 
-export default function StoreInquiryQr({ className = "", productId, compact = false }: { className?: string; productId?: number; compact?: boolean }) {
+export default function StoreInquiryQr({ className = "", productId, compact = false, showThumbnail = true }: { className?: string; productId?: number; compact?: boolean; showThumbnail?: boolean }) {
   const { i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -58,7 +58,7 @@ export default function StoreInquiryQr({ className = "", productId, compact = fa
     <div className={`w-full ${className}`}>
       <button type="button" data-store-inquiry-qr="true" onClick={() => qrUrl && setExpanded(true)} disabled={!qrUrl} aria-label={qrUrl ? `${displayLabel} · ${copy.enlarge}` : copy.missing} className={`flex ${compact ? "min-h-9 rounded-lg px-2.5 py-1.5" : "min-h-12 rounded-xl px-3 py-2"} w-full items-center justify-between gap-2 border border-[#ded5cb] bg-white text-left transition active:scale-[.99] disabled:cursor-default ${qrUrl ? "cursor-pointer hover:border-[#bda993]" : ""}`}>
         {compact ? <span className="truncate text-[10px] font-bold text-[#4d4238]">{displayLabel}</span> : <span className="min-w-0"><span className="block text-xs font-bold tracking-[.08em] text-[#4d4238]">{copy.label}</span><span className="mt-0.5 block text-[10px] leading-4 text-[#897c70]">{qrUrl ? copy.missing : `${copy.missing} · WeChat QR ${locale === "ko" ? "미설정" : locale === "zh" ? "未设置" : "not configured"}`}</span></span>}
-        {qrUrl ? <img src={qrUrl} alt={copy.alt} className={`${compact ? "size-8 rounded" : "size-12 rounded-md"} shrink-0 object-contain`} /> : <span className={`${compact ? "size-8 rounded" : "size-12 rounded-md"} grid shrink-0 place-items-center bg-[#f1ece5] text-[#9a8d80]`} aria-hidden="true"><QrCode size={compact ? 15 : 20} /></span>}
+        {showThumbnail && (qrUrl ? <img src={qrUrl} alt={copy.alt} className={`${compact ? "size-8 rounded" : "size-12 rounded-md"} shrink-0 object-contain`} /> : <span className={`${compact ? "size-8 rounded" : "size-12 rounded-md"} grid shrink-0 place-items-center bg-[#f1ece5] text-[#9a8d80]`} aria-hidden="true"><QrCode size={compact ? 15 : 20} /></span>)}
       </button>
       {productUrl && <button type="button" onClick={() => void handleShare()} className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#d8cec2] bg-white px-3 text-[10px] font-semibold text-[#5d5147] active:scale-[.98]"><Share2 size={14} />{linkState === "copied" ? copy.copied : linkState === "shared" ? copy.shared : copy.share}</button>}
       {linkState === "fallback" && productUrl && <p className="mt-1 break-all text-[10px] leading-4 text-[#8a5d43]">{copy.linkFallback}<br /><span className="select-text text-[#6f6258]">{productUrl}</span></p>}
