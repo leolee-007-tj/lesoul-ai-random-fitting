@@ -16,4 +16,11 @@ describe("administrator operations after camera removal", () => {
     expect(adminRouter).toContain("updatePresenceAlertConfig: ownerProcedure");
     expect(catalogRouter).toContain("presenceAlertConfig: storeDisplayProcedure");
   });
+
+  it("shows only the top three products by conversion rate", () => {
+    expect(dashboard).toContain("const topProductConversions");
+    expect(dashboard).toContain(".sort((left, right) => right.conversionRate - left.conversionRate");
+    expect(dashboard).toContain(".slice(0, 3)");
+    expect(dashboard).toContain("topProductConversions.map");
+  });
 });
