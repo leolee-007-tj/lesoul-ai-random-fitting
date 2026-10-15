@@ -13,8 +13,11 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("코디 상세 요구사항 (선택)");
     expect(manager).toContain("셔츠의 앞부분만 바지 안에 넣고");
     expect(manager).toContain("stylingRequirements: stylingRequirements.trim()");
-    expect(manager).toContain("autoCompleteMissing");
-    expect(manager).toContain("부족한 의류 자동 보완");
+    expect(manager).toContain("autoComplete");
+    expect(manager).toContain("상의 자동");
+    expect(manager).toContain("하의 자동");
+    expect(manager).toContain("외투 자동");
+    expect(manager).toContain("검정/흰색 스포츠브라");
     expect(manager).toContain("의류는 최대 3개, 액세서리는 의류 수와 상관없이");
     expect(manager).toContain("productKindKey");
     expect(manager).toContain("productKinds.map");

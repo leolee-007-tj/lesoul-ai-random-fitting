@@ -254,7 +254,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const [lookbookTitle, setLookbookTitle] = useState("");
   const [recommendationName, setRecommendationName] = useState("");
   const [stylingRequirements, setStylingRequirements] = useState("");
-  const [autoCompleteMissing, setAutoCompleteMissing] = useState(false);
+  const [autoComplete, setAutoComplete] = useState({ top: false, bottom: false, outer: false });
   const [metadataDrafts, setMetadataDrafts] = useState<Record<number, { lookbookTitle: string; recommendationName: string; recommendationReason: string }>>({});
   const [localizedDrafts, setLocalizedDrafts] = useState<Record<number, { titleKo: string; titleZh: string; titleEn: string; reasonKo: string; reasonZh: string; reasonEn: string }>>({});
   const [galleryScope, setGalleryScope] = useState<"selected" | "all">("all");
@@ -439,7 +439,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
         lookbookTitle: lookbookTitle.trim() || null,
         recommendationName: recommendationName.trim() || null,
         stylingRequirements: stylingRequirements.trim(),
-        autoCompleteMissing,
+        autoComplete,
       });
   };
   const downloadBrandedImage = async (imageUrl: string, imageId: number) => {
@@ -779,31 +779,27 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
             ))}
           </div>
         </div>
-        <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-[#e5dbcf] bg-white p-2.5 text-[10px] leading-4">
-          <input
-            type="checkbox"
-            className="mt-0.5"
-            checked={autoCompleteMissing}
-            disabled={busy}
-            onChange={event => setAutoCompleteMissing(event.target.checked)}
-          />
-          <span>
-            <span className="block font-bold">
-              {locale === "ko"
-                ? "부족한 의류 자동 보완"
-                : locale === "zh"
-                  ? "自动补全缺少的服装"
-                  : "Automatically complete missing garments"}
-            </span>
-            <span className="block text-[#897b6d]">
-              {locale === "ko"
-                ? "선택하지 않으면 외투를 고르지 않은 상의+하의는 그대로 2개만 생성합니다."
-                : locale === "zh"
-                  ? "关闭时，未选择外套的上装+下装只生成这 2 件。"
-                  : "Off by default: a top + bottom stays as exactly 2 pieces when outerwear is not selected."}
-            </span>
-          </span>
-        </label>
+        <div className="mt-3 rounded-xl border border-[#e5dbcf] bg-white p-2.5 text-[10px] leading-4">
+          <p className="font-bold">
+            {locale === "ko" ? "부분별 자동 보완" : locale === "zh" ? "按部位自动补全" : "Automatic completion by section"}
+          </p>
+          <p className="text-[#897b6d]">
+            {locale === "ko" ? "각 항목을 따로 켭니다. 모두 끄면 상의만 선택 시 검정/흰색 이너 하의, 하의만 선택 시 검정/흰색 스포츠브라만 최소로 추가합니다." : locale === "zh" ? "可分别开启。全部关闭时，仅选择上装会添加黑/白内搭下装，仅选择下装会添加黑/白运动文胸。" : "Turn each section on independently. With all toggles off, a top-only look gets a black/white inner bottom and a bottom-only look gets a black/white sports bra as the minimal base layer."}
+          </p>
+          <div className="mt-2 grid grid-cols-3 gap-1.5">
+            {(["top", "bottom", "outer"] as const).map((section) => (
+              <label key={section} className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-[#f7f3ed] px-2 py-2 font-bold">
+                <input
+                  type="checkbox"
+                  checked={autoComplete[section]}
+                  disabled={busy}
+                  onChange={event => setAutoComplete(current => ({ ...current, [section]: event.target.checked }))}
+                />
+                {section === "top" ? locale === "ko" ? "상의 자동" : locale === "zh" ? "上装自动" : "Auto top" : section === "bottom" ? locale === "ko" ? "하의 자동" : locale === "zh" ? "下装自动" : "Auto bottom" : locale === "ko" ? "외투 자동" : locale === "zh" ? "外套自动" : "Auto outer"}
+              </label>
+            ))}
+          </div>
+        </div>
         <div className="mt-3 grid gap-2 rounded-xl border border-[#e5dbcf] bg-white p-2 sm:grid-cols-2">
           {" "}
           <label className="block sm:col-span-2">

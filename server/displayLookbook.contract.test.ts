@@ -50,7 +50,7 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("generateOutfitBatch");
     expect(router).toContain("makeOutfitPlan");
     expect(router).toContain("originalImages: sources.map");
-    expect(router).toContain("Do not substitute, merge, redesign, recolor, or invent any garment.");
+    expect(router).toContain("Do not substitute, merge, redesign, recolor, or invent any supplied garment.");
     expect(router).toContain("display-lookbook/outfits/${batchId}");
   });
 
@@ -70,9 +70,12 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("catalog.products)");
   });
   it("keeps the selected two-piece outfit unless auto-completion is enabled", () => {
-    expect(router).toContain("autoCompleteMissing: z.boolean().default(false)");
-    expect(router).toContain("autoCompleteMissing ? completeOutfitWithCatalog");
-    expect(router).toContain("input.autoCompleteMissing");
+    expect(router).toContain("const autoCompleteInput = z.object");
+    expect(router).toContain("autoComplete: autoCompleteInput.default");
+    expect(router).toContain("autoComplete.top || autoComplete.bottom || autoComplete.outer");
+    expect(router).toContain("ONLY A TOP WAS SELECTED");
+    expect(router).toContain("ONLY A BOTTOM WAS SELECTED");
+    expect(router).toContain("black or white sports bra");
   });
   it("allows accessories outside the three-piece clothing limit and rejects sold-out selections", () => {
     expect(router).toContain('productIds: z.array(z.number().int().positive()).min(1).max(20)');
