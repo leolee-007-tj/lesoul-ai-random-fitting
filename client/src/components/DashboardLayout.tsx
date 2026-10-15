@@ -27,6 +27,7 @@ import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { useFastTouchScroll } from "@/hooks/useFastTouchScroll";
 
 const menuItems = [
   { icon: LayoutDashboard, labelKey: "dashboard.page1", path: "/" },
@@ -106,6 +107,7 @@ function DashboardLayoutContent({
   children,
   setSidebarWidth,
 }: DashboardLayoutContentProps) {
+  useFastTouchScroll();
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();

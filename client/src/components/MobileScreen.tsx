@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import AppHeader from "./AppHeader";
 import MobileBottomNav from "./MobileBottomNav";
 import PurchaseListFab from "./PurchaseListFab";
+import { useFastTouchScroll } from "@/hooks/useFastTouchScroll";
 
 type MobileScreenProps = {
   children: ReactNode;
@@ -12,6 +13,8 @@ type MobileScreenProps = {
 };
 
 export default function MobileScreen({ children, action, showHeader = true, showNavigation = true, className = "" }: MobileScreenProps) {
+  useFastTouchScroll();
+
   useEffect(() => {
     const viewport = window.visualViewport;
     const updateViewport = () => {
