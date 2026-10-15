@@ -227,7 +227,7 @@ export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) 
                   </div>
                 ))}
               </div>
-              <StoreInquiryQr compact className="mt-3" />
+              <StoreInquiryQr compact showThumbnail={false} className="mt-3" />
               <button onClick={() => useLook(look)} aria-pressed={isSelected} className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[11px] font-bold text-white ${isSelected ? "bg-[#29231e]" : "bg-black"}`}>
                 <ShoppingBag size={14} aria-hidden="true" />
                 {isSelected ? copy.selected : copy.choose}
