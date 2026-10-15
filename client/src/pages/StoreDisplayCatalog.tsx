@@ -95,7 +95,7 @@ function DisplayProductRow({ items, heading, copy, language, showInventoryQuanti
     const row = rowRef.current;
     if (!row || Math.abs(dragRef.current.velocity) < 0.5) { inertiaRef.current = null; return; }
     row.scrollLeft += dragRef.current.velocity;
-    dragRef.current.velocity *= 0.88;
+    dragRef.current.velocity *= 0.92;
     inertiaRef.current = window.requestAnimationFrame(runInertia);
   };
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -111,8 +111,10 @@ function DisplayProductRow({ items, heading, copy, language, showInventoryQuanti
     const delta = event.clientX - drag.lastX;
     if (Math.abs(delta) > 1) {
       drag.dragged = drag.dragged || Math.abs(delta) > 6;
-      row.scrollLeft -= delta * 2.2;
-      drag.velocity = -delta * 2.2;
+      const movement = -delta * 1.8;
+      row.scrollLeft += movement;
+      drag.velocity = drag.velocity * 0.55 + movement * 0.45;
+      drag.velocity = Math.max(-42, Math.min(42, drag.velocity));
       drag.lastX = event.clientX;
       if (drag.dragged) event.preventDefault();
     }
@@ -130,7 +132,7 @@ function DisplayProductRow({ items, heading, copy, language, showInventoryQuanti
     if (!amount) return;
     event.preventDefault();
     event.stopPropagation();
-    row.scrollLeft += amount * 2.2;
+    row.scrollLeft += amount * 1.8;
   };
 
   useEffect(() => {
