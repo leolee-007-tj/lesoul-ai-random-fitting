@@ -162,7 +162,7 @@ const presentationStyleInput = z.enum(["east_asian_female", "western_female"]).d
 const generateInput = z.object({ productId: z.number().int().positive() });
 const lookbookMetaInput = z.object({ lookbookTitle: z.string().trim().max(200).nullable().optional(), recommendationName: z.string().trim().max(200).nullable().optional() });
 const generateBatchInput = generateInput.extend(lookbookMetaInput.shape).extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, count: z.number().int().min(1).max(10).default(10) });
-const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3), stylingRequirements: z.string().trim().max(1000).optional().default("") });
+const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(3), count: z.number().int().min(1).max(10).default(3), stylingRequirements: z.string().trim().max(1000).optional().default(""), autoCompleteMissing: z.boolean().default(false) });
 const guestPreviewInput = z.object({ productId: z.number().int().positive(), hairLength: hairLengthInput, presentationStyle: presentationStyleInput, backgroundStyle: backgroundStyleInput });
 const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
@@ -303,14 +303,14 @@ async function generateBatch(productId: number, requestedCount: number, presenta
   return { batchId, productId, generated: rows.length, requested: requestedCount, durationMs: Date.now() - startedAt, images: rows };
 }
 
-async function generateOutfitBatch(productIds: number[], requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null, lookbookTitle: string | null = null, recommendationName: string | null = null, stylingRequirements = "") {
+async function generateOutfitBatch(productIds: number[], requestedCount: number, presentationStyle: "east_asian_female" | "western_female", modelProfile: ModelProfile, backgroundStyle: BackgroundStyle, origin: string | null, lookbookTitle: string | null = null, recommendationName: string | null = null, stylingRequirements = "", autoCompleteMissing = false) {
   const db = await getDb();
   if (!db) throw new Error("DATABASE_UNAVAILABLE");
   const catalog = await getCatalog();
   const selectedProducts = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
   if (selectedProducts.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
   if (selectedProducts.some((product) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) === "SOLD_OUT")) throw new Error("PRODUCT_SOLD_OUT");
-  const completed = completeOutfitWithCatalog(selectedProducts, catalog.products);
+  const completed = autoCompleteMissing ? completeOutfitWithCatalog(selectedProducts, catalog.products) : { products: selectedProducts, addedGroup: null as OutfitGroup | null, addedFromCatalog: false };
   const products = completed.products;
   const sources = products.map((product) => productImage(product)).filter(Boolean).map((url) => absoluteImageUrl(url, origin));
   if (sources.length !== products.length) throw new Error("PRODUCT_IMAGE_REQUIRED");
@@ -397,7 +397,7 @@ export const displayLookbookRouter = router({
     return db.select().from(displayLookbookImages).where(eq(displayLookbookImages.productId, input.productId)).orderBy(desc(displayLookbookImages.createdAt), displayLookbookImages.shotIndex);
   }),
   generateBatch: ownerProcedure.input(generateBatchInput).mutation(async ({ ctx, input }) => generateBatch(input.productId, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req), input.lookbookTitle ?? null, input.recommendationName ?? null)),
-  generateOutfitBatch: ownerProcedure.input(generateOutfitInput).mutation(async ({ ctx, input }) => generateOutfitBatch(input.productIds, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req), input.lookbookTitle ?? null, input.recommendationName ?? null, input.stylingRequirements)),
+  generateOutfitBatch: ownerProcedure.input(generateOutfitInput).mutation(async ({ ctx, input }) => generateOutfitBatch(input.productIds, input.count, input.presentationStyle, input.modelProfile, input.backgroundStyle, publicOrigin(ctx.req), input.lookbookTitle ?? null, input.recommendationName ?? null, input.stylingRequirements, input.autoCompleteMissing)),
   approve: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 1 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   revoke: ownerProcedure.input(imageIdInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); await db.update(displayLookbookImages).set({ isApproved: 0 }).where(eq(displayLookbookImages.id, input.id)); return { success: true }; }),
   updateMetadata: ownerProcedure.input(metadataInput).mutation(async ({ input }) => { const db = await getDb(); if (!db) throw new Error("DATABASE_UNAVAILABLE"); const row = (await db.select({ batchId: displayLookbookImages.batchId }).from(displayLookbookImages).where(eq(displayLookbookImages.id, input.id)).limit(1))[0]; if (!row) throw new Error("LOOKBOOK_NOT_FOUND"); const { id: _id, ...metadata } = input; await db.update(displayLookbookImages).set(metadata).where(eq(displayLookbookImages.batchId, row.batchId)); return { success: true }; }),

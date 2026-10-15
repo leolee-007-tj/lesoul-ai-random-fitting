@@ -69,6 +69,11 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("Registered complementary color cues available in this catalog");
     expect(router).toContain("catalog.products)");
   });
+  it("keeps the selected two-piece outfit unless auto-completion is enabled", () => {
+    expect(router).toContain("autoCompleteMissing: z.boolean().default(false)");
+    expect(router).toContain("autoCompleteMissing ? completeOutfitWithCatalog");
+    expect(router).toContain("input.autoCompleteMissing");
+  });
   it("uses 100 Western magazine studio poses with no store setting", () => {
     expect(router).toContain("const editorialPosePrompts = [");
     expect(router).toContain(' + (index + 1) + " of 100"');

@@ -13,6 +13,9 @@ describe("display AI lookbook UI", () => {
     expect(manager).toContain("코디 상세 요구사항 (선택)");
     expect(manager).toContain("셔츠의 앞부분만 바지 안에 넣고");
     expect(manager).toContain("stylingRequirements: stylingRequirements.trim()");
+    expect(manager).toContain("autoCompleteMissing");
+    expect(manager).toContain("부족한 의류 자동 보완");
+    expect(manager).toContain("선택한 상품만 입히며");
     expect(manager).toContain("장바구니 초기화");
     expect(manager).toContain("canAddToOutfitCart");
     expect(manager).toContain("isLayerBottom");

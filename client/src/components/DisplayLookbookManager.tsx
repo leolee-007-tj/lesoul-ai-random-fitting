@@ -239,6 +239,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
   const [lookbookTitle, setLookbookTitle] = useState("");
   const [recommendationName, setRecommendationName] = useState("");
   const [stylingRequirements, setStylingRequirements] = useState("");
+  const [autoCompleteMissing, setAutoCompleteMissing] = useState(false);
   const [metadataDrafts, setMetadataDrafts] = useState<Record<number, { lookbookTitle: string; recommendationName: string; recommendationReason: string }>>({});
   const [localizedDrafts, setLocalizedDrafts] = useState<Record<number, { titleKo: string; titleZh: string; titleEn: string; reasonKo: string; reasonZh: string; reasonEn: string }>>({});
   const [galleryScope, setGalleryScope] = useState<"selected" | "all">("all");
@@ -400,6 +401,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
         lookbookTitle: lookbookTitle.trim() || null,
         recommendationName: recommendationName.trim() || null,
         stylingRequirements: stylingRequirements.trim(),
+        autoCompleteMissing,
       });
   };
   const downloadBrandedImage = async (imageUrl: string, imageId: number) => {
@@ -587,10 +589,10 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
             </p>
             <p className="mt-1 text-[10px] leading-4 text-[#786e63]">
               {locale === "ko"
-                ? "상품을 눌러 담고, 다시 누르면 바로 삭제합니다. 최대 3개까지 조합할 수 있습니다."
-                : locale === "zh"
-                  ? "点击商品加入，再次点击即可删除。最多可组合 3 件。"
-                  : "Tap to add; tap again to remove. Up to 3 products can be combined."}
+                ? "상품을 눌러 담고, 다시 누르면 바로 삭제합니다. 선택한 상품만 입히며 최대 3개까지 조합할 수 있습니다."
+              : locale === "zh"
+                  ? "点击商品加入，再次点击即可删除。默认只使用已选商品，最多可组合 3 件。"
+                  : "Tap to add; tap again to remove. The model wears only selected pieces by default; up to 3 can be combined."}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -727,6 +729,31 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
             ))}
           </div>
         </div>
+        <label className="mt-3 flex cursor-pointer items-start gap-2 rounded-xl border border-[#e5dbcf] bg-white p-2.5 text-[10px] leading-4">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={autoCompleteMissing}
+            disabled={busy}
+            onChange={event => setAutoCompleteMissing(event.target.checked)}
+          />
+          <span>
+            <span className="block font-bold">
+              {locale === "ko"
+                ? "부족한 의류 자동 보완"
+                : locale === "zh"
+                  ? "自动补全缺少的服装"
+                  : "Automatically complete missing garments"}
+            </span>
+            <span className="block text-[#897b6d]">
+              {locale === "ko"
+                ? "선택하지 않으면 외투를 고르지 않은 상의+하의는 그대로 2개만 생성합니다."
+                : locale === "zh"
+                  ? "关闭时，未选择外套的上装+下装只生成这 2 件。"
+                  : "Off by default: a top + bottom stays as exactly 2 pieces when outerwear is not selected."}
+            </span>
+          </span>
+        </label>
         <div className="mt-3 grid gap-2 rounded-xl border border-[#e5dbcf] bg-white p-2 sm:grid-cols-2">
           {" "}
           <label className="block sm:col-span-2">
