@@ -74,6 +74,8 @@ describe("store display AI lookbook", () => {
     expect(router).toContain("autoComplete: autoCompleteInput.default");
     expect(router).toContain("autoComplete.top || autoComplete.bottom || autoComplete.outer");
     expect(router).toContain("ONLY A TOP WAS SELECTED");
+    expect(router).toContain("panties or briefs");
+    expect(router).toContain("Do NOT add a skirt, dress, trousers, pants, shorts, leggings, denim");
     expect(router).toContain("ONLY A BOTTOM WAS SELECTED");
     expect(router).toContain('baseLayerColor: z.enum(["black", "white"]).default("black")');
     expect(router).toContain("${baseLayerColor} sports bra");

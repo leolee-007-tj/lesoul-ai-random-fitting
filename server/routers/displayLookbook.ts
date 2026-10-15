@@ -226,7 +226,7 @@ function completeOutfitWithCatalog(selectedProducts: any[], catalogProducts: any
 }
 function missingOutfitDirection(products: any[], addedGroup: OutfitGroup | null, addedFromCatalog: boolean, baseLayerColor: "black" | "white" = "black") {
   const groups = new Set(products.map(outfitGroup));
-  if (!addedGroup && groups.has("top") && !groups.has("bottom")) return `ONLY A TOP WAS SELECTED: add a simple opaque ${baseLayerColor} inner bottom under the supplied top. It is the selected base-layer color; keep it modest and subordinate, and do not invent a visible fashion bottom garment.`;
+  if (!addedGroup && groups.has("top") && !groups.has("bottom")) return `ONLY A TOP WAS SELECTED: the model must wear only simple ${baseLayerColor} panties or briefs as the minimal lower-body base layer under the supplied top. Do NOT add a skirt, dress, trousers, pants, shorts, leggings, denim, or any other fashion bottom. Do not turn the panties into a skirt or any other garment; keep the selected top unchanged and make the simple underwear the only lower-body garment.`;
   if (!addedGroup && groups.has("bottom") && !groups.has("top")) return `ONLY A BOTTOM WAS SELECTED: add a simple ${baseLayerColor} sports bra as the minimal upper base layer. It is the selected base-layer color; keep it clean, opaque, realistic, and subordinate to the supplied bottom; do not add another fashion top.`;
   if (!addedGroup) return "The selected pieces already form a complete outfit; do not add another garment.";
   const outer = products.find((product) => outfitGroup(product) === "outer");
