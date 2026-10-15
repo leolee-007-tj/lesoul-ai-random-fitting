@@ -1,6 +1,7 @@
 import NormalizedProductImage from "@/components/NormalizedProductImage";
 import ProductPrice from "@/components/ProductPrice";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
+import HorizontalRowArrows from "@/components/HorizontalRowArrows";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { localizedProductName } from "@shared/productCommerce";
@@ -48,13 +49,19 @@ type DisplayProduct = {
 
 function DisplayAiLookbookRow({ images, heading, compositionLabel, position, language, products }: { images: ApprovedLookbookImage[]; heading: string; compositionLabel: string; position: string; language: string; products: DisplayProduct[] }) {
   if (!images.length) return null;
+  const rowRef = useRef<HTMLDivElement>(null);
+  const previousLabel = language.startsWith("ko") ? "이전 룩북" : language.startsWith("zh") ? "上一个 Lookbook" : "Previous lookbook";
+  const nextLabel = language.startsWith("ko") ? "다음 룩북" : language.startsWith("zh") ? "下一个 Lookbook" : "Next lookbook";
   return <section className="mx-auto max-w-7xl pt-6" aria-label={heading}>
     <div className="mb-3 flex items-end justify-between gap-3"><h2 className="text-sm font-bold tracking-[.12em] text-[#5e554c]">{heading} <span className="text-[10px] font-normal tracking-normal text-[#8a7d70]">· {images.length}</span></h2><span className="shrink-0 text-[10px] font-semibold tabular-nums text-[#8a7d70]">{position}</span></div>
-    <div className="lesoul-display-row gap-4" aria-label={heading}>
+    <div className="relative">
+      <HorizontalRowArrows rowRef={rowRef} previousLabel={previousLabel} nextLabel={nextLabel} />
+      <div ref={rowRef} className="lesoul-display-row gap-4" aria-label={heading}>
       {images.map((image, index) => <article key={image.id} className="w-[72vw] max-w-[360px] shrink-0 snap-start overflow-hidden rounded-[1.35rem] border border-[#d8c6b4] bg-[#fffaf4] shadow-[0_10px_26px_rgba(38,31,24,.07)]">
         <div className="aspect-[4/5] bg-[#eee9e1]"><img src={image.imageUrl} alt={image.compositionLabel || heading} className="h-full w-full object-contain" loading="lazy" /></div>
         <div className="border-t border-[#eadfd2] px-3 py-2.5"><p className="text-[9px] font-bold tracking-[.12em] text-[#8b7d6f]">AI LOOKBOOK · {index + 1}</p>{image.compositionLabel && <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-4 text-[#433a32]">{compositionLabel}: {localizedLookbookComposition(image, products, language)}</p>}{(image.lookbookTitle || image.recommendationName) && <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-4 text-[#765f51]">{image.lookbookTitle || ""}{image.lookbookTitle && image.recommendationName ? " · " : ""}{image.recommendationName || ""}</p>}<p className="mt-1 line-clamp-1 text-[10px] text-[#8a7d70]">{displaySceneCopy[language.startsWith("ko") ? "ko" : language.startsWith("zh") ? "zh" : "en"][image.sceneType as keyof typeof displaySceneCopy.en] || (language.startsWith("ko") ? "매장 장면" : language.startsWith("zh") ? "门店场景" : "Store scene")}</p></div>
       </article>)}
+      </div>
     </div>
   </section>;
 }
@@ -148,13 +155,18 @@ function DisplayProductRow({ items, heading, copy, language, showInventoryQuanti
 
   if (!items.length) return null;
   const progress = Math.max(0, Math.min(100, ((activeIndex + 1) / items.length) * 100));
+  const previousLabel = language.startsWith("ko") ? `이전 ${heading}` : language.startsWith("zh") ? `上一个${heading}` : `Previous ${heading}`;
+  const nextLabel = language.startsWith("ko") ? `다음 ${heading}` : language.startsWith("zh") ? `下一个${heading}` : `Next ${heading}`;
   return <section className="mx-auto max-w-7xl pt-6" aria-label={heading}>
     <div className="mb-3 flex items-end justify-between gap-3"><h2 className="text-sm font-bold tracking-[.12em] text-[#5e554c]">{heading} <span className="text-[10px] font-normal tracking-normal text-[#8a7d70]">· {items.length}</span></h2><span className="shrink-0 text-[10px] font-semibold tabular-nums text-[#8a7d70]" aria-live="polite">{copy.position.replace("{current}", String(activeIndex + 1)).replace("{total}", String(items.length))}</span></div>
-    <div ref={rowRef} className="lesoul-display-row gap-5" onScroll={handleScroll} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
+    <div className="relative">
+      <HorizontalRowArrows rowRef={rowRef} previousLabel={previousLabel} nextLabel={nextLabel} />
+      <div ref={rowRef} className="lesoul-display-row gap-5" onScroll={handleScroll} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
       {items.map((product, index) => <article key={product.id} data-active={index === activeIndex ? "true" : "false"} data-selected={selectedIndex === index ? "true" : "false"} aria-current={index === activeIndex ? "true" : undefined} aria-expanded={selectedIndex === index} role="button" tabIndex={0} className={`lesoul-display-card w-[78vw] max-w-[430px] shrink-0 snap-start overflow-hidden rounded-[1.5rem] border border-[#e0d9d0] bg-white shadow-[0_10px_26px_rgba(38,31,24,.06)] transition-[transform,box-shadow,border-color] duration-200 motion-reduce:transition-none ${selectedIndex === index ? "scale-[1.025] border-[#b79a7e] shadow-[0_16px_34px_rgba(38,31,24,.14)]" : ""}`} onClick={() => { if (dragRef.current.dragged) { dragRef.current.dragged = false; return; } setActiveIndex(index); setSelectedIndex((current) => current === index ? null : index); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActiveIndex(index); setSelectedIndex((current) => current === index ? null : index); } }}>
         <div className="relative"><NormalizedProductImage src={customerProductImage(product.imageViews?.front, product.imageUrl)} alt={localizedProductName(product, language)} catalogDisplay={product.catalogDisplay} className="aspect-[4/5] w-full" /><ProductStatusBadges availabilityStatus={product.availabilityStatus} legacyStatus={product.status} isNew={product.isNew} newArrivalAt={product.newArrivalAt} pricingMode={undefined} excludeNewArrivalsFromSale={undefined} showAvailability={false} /></div>
         <div className="p-4 sm:p-5"><p className="text-[10px] font-bold tracking-[.14em] text-[#8b7d6f]">{product.brand || "LESOUL"}</p><h3 className="mt-1 text-lg font-semibold leading-6 sm:text-xl">{localizedProductName(product, language)}</h3><div className="mt-3 text-xl tabular-nums sm:text-2xl"><ProductPrice product={product} revealPrice={selectedIndex === index} className="text-xl sm:text-2xl" /></div>{showInventoryQuantity && selectedIndex === index && <p className="mt-2 text-xs font-semibold text-[#685a4d]" aria-live="polite">{copy.inventory}: {Math.max(0, product.inventoryQuantity ?? 0)}</p>}<p aria-live="polite" className={`mt-3 text-[10px] font-bold tracking-[.12em] text-[#86796d] transition-opacity duration-300 ${selectedIndex === index ? "opacity-80" : "motion-safe:animate-[pulse_2.4s_ease-in-out_infinite]"}`}>{selectedIndex === index ? copy.tapToReveal : copy.tapBeforeReveal}</p></div>
       </article>)}
+      </div>
     </div>
     <div className="mt-3 flex items-center gap-3" aria-label={copy.position.replace("{current}", String(activeIndex + 1)).replace("{total}", String(items.length))}><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e4ddd4]"><div className="h-full rounded-full bg-[#2b2520] transition-[width] duration-200 motion-reduce:transition-none" style={{ width: `${progress}%` }} /></div><span className="text-[10px] tabular-nums text-[#8a7d70]">{Math.round(progress)}%</span></div>
   </section>;
