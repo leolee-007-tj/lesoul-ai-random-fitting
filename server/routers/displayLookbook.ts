@@ -4,6 +4,7 @@ import { displayLookbookImages } from "../../drizzle/schema";
 import { getCatalog, getDb } from "../db";
 import { generateImage } from "../_core/imageGeneration";
 import { customerProcedure, ownerProcedure, publicProcedure, router, storeDisplayProcedure } from "../_core/trpc";
+import { beginAiUsage, finishAiUsage } from "../aiUsageController";
 import { normaliseAvailabilityStatus } from "../../shared/productAvailability";
 
 const editorialPosePrompts = [
@@ -357,20 +358,39 @@ export const displayLookbookRouter = router({
   guestPreview: customerProcedure.input(guestPreviewInput).mutation(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new Error("DATABASE_UNAVAILABLE");
+    const visitorId = ctx.user ? `account:${ctx.user.openId}` : ctx.testAccess?.visitorId;
+    if (!visitorId) throw new Error("CUSTOMER_ACCOUNT_REQUIRED");
+    const actor = ctx.user ? { openId: ctx.user.openId, role: ctx.user.role } : null;
+    const previewUsageId = `CUSTOMER_LOOKBOOK_${crypto.randomUUID()}`;
+    const usage = await beginAiUsage({ visitorId, feature: "AI_STYLIST", provider: "gpt", model: "gpt-image-2", generationId: previewUsageId, customerLookbook: true, actor });
     const catalog = await getCatalog();
     const product = catalog.products.find((item) => item.id === input.productId);
-    if (!product) throw new Error("PRODUCT_NOT_FOUND");
+    if (!product) {
+      await finishAiUsage(usage.eventId, "FAILED", { errorMessage: "PRODUCT_NOT_FOUND" });
+      throw new Error("PRODUCT_NOT_FOUND");
+    }
     const originalPath = productImage(product);
-    if (!originalPath) throw new Error("PRODUCT_IMAGE_REQUIRED");
+    if (!originalPath) {
+      await finishAiUsage(usage.eventId, "FAILED", { errorMessage: "PRODUCT_IMAGE_REQUIRED" });
+      throw new Error("PRODUCT_IMAGE_REQUIRED");
+    }
     const originalUrl = absoluteImageUrl(originalPath, publicOrigin(ctx.req));
     const hair = input.hairLength === "short" ? "short black hair" : input.hairLength === "long" ? "long black hair" : "medium-length black hair";
     const garment = [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.details].filter(Boolean).join(", ");
     const scene = applyBackground(randomItem(editorialScenePrompts) ?? editorialScenePrompts[0], input.backgroundStyle, Math.floor(Math.random() * mirrorSelfiePosePrompts.length));
     const modelLine = `${input.presentationStyle === "east_asian_female" ? "Show one adult East Asian woman" : "Show one adult Western woman"} with ${hair} wearing the exact supplied garment reference.`;
     const batchId = `GUEST_PREVIEW_${input.productId}_${crypto.randomUUID()}`;
-    const result = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, product.lookbookPrompt ? `OWNER GARMENT NOTES (follow these factual notes exactly): ${product.lookbookPrompt}.` : "", missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
-    if (typeof result.url !== "string" || typeof result.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
+    let result: { url: string; key: string };
+    try {
+      const generated = await generateImage({ prompt: ["Create one premium, natural fashion editorial photo for a customer preview.", modelLine, `Scene: ${scene.description}.`, `Garment information: ${garment || "registered fashion garment"}.`, product.lookbookPrompt ? `OWNER GARMENT NOTES (follow these factual notes exactly): ${product.lookbookPrompt}.` : "", missingGarmentColorDirection(product, catalog.products), "Preserve the exact color, silhouette, length, sleeves, neckline, texture, construction, and visible details. Show the complete garment clearly, with no text, logo additions, collage, or cropped clothing."].join(" "), originalImages: [{ url: originalUrl, mimeType: "image/jpeg" }], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/previews/${input.productId}/${batchId}.png` });
+      if (typeof generated.url !== "string" || typeof generated.key !== "string") throw new Error("IMAGE_RESULT_INVALID");
+      result = { url: generated.url!, key: generated.key! };
+    } catch (error) {
+      await finishAiUsage(usage.eventId, "FAILED", { errorMessage: error instanceof Error ? error.message : String(error) });
+      throw error;
+    }
     await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: persistedSceneDescription(scene.description), imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
+    await finishAiUsage(usage.eventId, "SUCCESS");
     return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null, savedPublicly: true };
   }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {

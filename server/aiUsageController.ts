@@ -25,6 +25,7 @@ export type AiAccessDecision = {
   catalogTier: "beta" | "basic" | "full";
   estimatedCostFen: number;
 };
+export const CUSTOMER_LOOKBOOK_DAILY_LIMIT = 3;
 
 const imageFeatures: AiFeatureType[] = ["AI_BODY_MODEL", "AI_FITTING", "LIYING_AI", "QUICK_FIT", "REGENERATION"];
 const successfulStatus = ["SUCCESS"] as const;
@@ -120,8 +121,19 @@ async function successfulFeatureCount(visitorId: string, feature: AiFeatureType)
   const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), eq(aiUsageEvents.featureType, feature), eq(aiUsageEvents.status, "SUCCESS")));
   return rows.length;
 }
+async function successfulCustomerLookbookCount(visitorId: string) {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), eq(aiUsageEvents.featureType, "AI_STYLIST"), eq(aiUsageEvents.status, "SUCCESS"), gte(aiUsageEvents.startedAt, startOfDay()), sql`${aiUsageEvents.generationId} like 'CUSTOMER_LOOKBOOK_%'`));
+  return rows.length;
+}
+export async function getCustomerLookbookRemaining(visitorId: string, actor?: AiActor) {
+  const resolved = await resolveAiRole(visitorId, actor);
+  if (resolved.isAdmin || resolved.isVip) return null;
+  return Math.max(0, CUSTOMER_LOOKBOOK_DAILY_LIMIT - await successfulCustomerLookbookCount(visitorId));
+}
 
-export async function evaluateAiAccess(input: { visitorId: string; feature: AiFeatureType; skipQuota?: boolean; actor?: AiActor }): Promise<AiAccessDecision> {
+export async function evaluateAiAccess(input: { visitorId: string; feature: AiFeatureType; skipQuota?: boolean; customerLookbook?: boolean; actor?: AiActor }): Promise<AiAccessDecision> {
   const db = await getDb();
   if (!db) throw new Error("AI access service is temporarily unavailable.");
   const settings = await getCentralSettings();
@@ -132,7 +144,7 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   const estimatedCostFen = estimatedFeatureCost(settings, input.feature);
   const base = { releaseMode, catalogTier, isVip, isAdmin, estimatedCostFen } as const;
   const capability = featureCapability(input.feature);
-  if (input.feature === "AI_STYLIST" && !settings.normalStyleMatchEnabled && !isAdmin) return { allowed: false, reason: "style_match_disabled", remaining: 0, ...base };
+  if (input.feature === "AI_STYLIST" && !input.customerLookbook && !settings.normalStyleMatchEnabled && !isAdmin) return { allowed: false, reason: "style_match_disabled", remaining: 0, ...base };
   if (input.feature === "QUICK_FIT" && !settings.quickAiAdminOnly && resolvedRole.role !== "ADMIN") return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
   if (input.feature === "LIYING_AI" && !settings.liyingAiVipEnabled && !isAdmin) return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
   if (!ROLE_AI_PERMISSIONS[resolvedRole.role][capability]) return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
@@ -152,10 +164,11 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   if (input.feature !== "AI_STYLIST" && settings.stopAiAtBudgetLimit && settings.monthlyAiBudgetFen > 0 && monthlyEstimatedCostFen + estimatedCostFen > settings.monthlyAiBudgetFen) return { allowed: false, reason: "budget_limit", remaining: null, ...base };
   if (input.feature === "AI_STYLIST") {
     if (isAdmin || isVip || input.skipQuota) return { allowed: true, remaining: null, ...base };
-    const used = await successfulFeatureCount(input.visitorId, "AI_STYLIST");
-    const remaining = Math.max(0, settings.normalStyleMatchLimit - used);
-    if (settings.normalStyleMatchLimit > 0 && remaining <= 0) return { allowed: false, reason: "style_match_quota", remaining: 0, ...base };
-    return { allowed: true, remaining: settings.normalStyleMatchLimit > 0 ? remaining : null, ...base };
+    const limit = input.customerLookbook ? CUSTOMER_LOOKBOOK_DAILY_LIMIT : settings.normalStyleMatchLimit;
+    const used = input.customerLookbook ? await successfulCustomerLookbookCount(input.visitorId) : await successfulFeatureCount(input.visitorId, "AI_STYLIST");
+    const remaining = Math.max(0, limit - used);
+    if (limit > 0 && remaining <= 0) return { allowed: false, reason: "style_match_quota", remaining: 0, ...base };
+    return { allowed: true, remaining: limit > 0 ? remaining : null, ...base };
   }
   if (input.skipQuota || isAdmin || isVip) return { allowed: true, remaining: isVip ? null : settings.normalAiGenerationLimit, ...base };
   // Historical release modes and entitlement rows remain queryable, but access is no longer granted by redeem code.
@@ -166,8 +179,8 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   return { allowed: true, remaining, ...base };
 }
 
-export async function beginAiUsage(input: { visitorId: string; feature: AiFeatureType; generationId?: string | null; provider: string; model?: string | null; skipQuota?: boolean; actor?: AiActor }) {
-  const access = await evaluateAiAccess({ visitorId: input.visitorId, feature: input.feature, skipQuota: input.skipQuota, actor: input.actor });
+export async function beginAiUsage(input: { visitorId: string; feature: AiFeatureType; generationId?: string | null; provider: string; model?: string | null; skipQuota?: boolean; customerLookbook?: boolean; actor?: AiActor }) {
+  const access = await evaluateAiAccess({ visitorId: input.visitorId, feature: input.feature, skipQuota: input.skipQuota, customerLookbook: input.customerLookbook, actor: input.actor });
   const db = await getDb();
   if (!db) throw new Error("AI usage service is temporarily unavailable.");
   if (!access.allowed) {
