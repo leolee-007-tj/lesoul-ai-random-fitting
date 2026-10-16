@@ -44,6 +44,18 @@ async function translateProductFields(name: string, description: string) {
   return Object.fromEntries(Object.entries(translated).map(([key, value]) => [key, value.trim()])) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
 }
 
+function containsChinese(value: string | null | undefined) {
+  return /[\u3400-\u9fff]/.test(value ?? "");
+}
+
+function needsProductTranslation(product: { name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; description?: string | null; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null }) {
+  const sourceNameIsChinese = containsChinese(product.name);
+  const sourceDescriptionIsChinese = containsChinese(product.description);
+  return !product.nameEn || !product.nameKo || !product.nameZh || !product.descriptionEn || !product.descriptionKo || !product.descriptionZh
+    || (sourceNameIsChinese && product.nameKo === product.name)
+    || (sourceDescriptionIsChinese && product.descriptionKo === product.description);
+}
+
 const productInput = z.object({
   name: z.string().min(1).max(160),
   nameEn: z.string().max(160).nullable().optional(),
@@ -320,7 +332,8 @@ ${referenceText}` },
     return { nameKo, nameEn: translated.nameEn.trim(), nameZh: translated.nameZh.trim() };
   }),
   backfillProductTranslations: ownerProcedure.input(z.object({ limit: z.number().int().min(1).max(50).optional() }).optional()).mutation(async ({ input }) => {
-    const products = (await getCatalog()).products.filter((product: any) => !product.nameEn || !product.nameKo || !product.nameZh || !product.descriptionEn || !product.descriptionKo || !product.descriptionZh).slice(0, input?.limit ?? 20);
+    const batchSize = input?.limit ?? 20;
+    const products = (await getCatalog()).products.filter((product: any) => needsProductTranslation(product)).slice(0, batchSize);
     let translated = 0;
     let failed = 0;
     for (const product of products) {
@@ -330,7 +343,7 @@ ${referenceText}` },
         translated += 1;
       } catch { failed += 1; }
     }
-    return { translated, failed, processed: products.length, hasMore: products.length === (input?.limit ?? 20) };
+    return { translated, failed, processed: products.length, hasMore: products.length === batchSize };
   }),
   createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
     let translatedFields: Record<string, string> = {};
@@ -358,7 +371,7 @@ ${referenceText}` },
     const inventoryQuantity = shouldBeSoldOut ? 0 : hasInventoryUpdate ? requestedInventory : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
     let translationUpdates: Record<string, string> = {};
-    const needsTranslation = Boolean(updates.name || updates.description || !existing.nameEn || !existing.nameKo || !existing.nameZh || !existing.descriptionEn || !existing.descriptionKo || !existing.descriptionZh);
+    const needsTranslation = Boolean(updates.name || updates.description || needsProductTranslation({ ...existing, ...updates }));
     if (needsTranslation) { try { translationUpdates = await translateProductFields(updates.name ?? existing.name, updates.description ?? existing.description ?? existing.name); } catch { /* Keep existing localized content if localization is temporarily unavailable. */ } }
     const { productType: _productType, setComponents: _setComponents, ...productUpdatesRaw } = updates;
     const productUpdates = { ...productUpdatesRaw, ...translationUpdates };
