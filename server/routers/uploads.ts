@@ -18,9 +18,7 @@ export function buildProductImageEnhancementPrompt(category: "top" | "bottom" | 
     : category === "bottom"
       ? "For bottoms, preserve the exact rise, waist shape, leg width, inseam, hem, pleats, pockets, and silhouette; never turn trousers into a skirt or vice versa."
       : "Preserve the exact category, proportions, construction, hardware, seams, and silhouette of the supplied item.";
-  const displayRule = ["top", "bottom", "outer", "dress"].includes(category)
-    ? "Show a natural simple clothing hanger."
-    : "Show the item alone in a clean product-cut arrangement without a clothing hanger.";
+  const displayRule = "Lay or arrange the item neatly as a clean studio product cut with no hanger, no hook, no metal hanger neck, and no metal hardware that belongs only to the hanger. Smooth and tidy the fabric surface while preserving the garment's real construction, weave, folds, and silhouette.";
   if (view === "detail") {
     return `Edit the supplied product detail photograph as a faithful photographic enhancement only. Preserve the exact garment, crop, composition, texture, weave, stitching, color, shadows, and every visible design detail from the source. Improve faithful color rendering and material clarity under neutral light. Do not redesign, recolor, reshape, lengthen, shorten, add, remove, translate, or invent any part. Do not add a price tag, text, logo, model, hanger, mannequin, jewelry, or extra garment. The result must remain the same detail photograph, only cleaner and more color-accurate. ${garmentRule}`;
   }

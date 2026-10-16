@@ -35,7 +35,8 @@ describe("product image validation", () => {
     const front = buildProductImageEnhancementPrompt("top", "front");
     const detail = buildProductImageEnhancementPrompt("bottom", "detail");
     expect(front).toContain("seamless pure white background");
-    expect(front).toContain("simple clothing hanger");
+    expect(front).toContain("no hanger, no hook, no metal hanger neck");
+    expect(front).toContain("Smooth and tidy the fabric surface");
     expect(front).toContain("Do not invent unseen details");
     expect(detail).toContain("faithful photographic enhancement only");
     expect(detail).toContain("Do not redesign, recolor, reshape");
