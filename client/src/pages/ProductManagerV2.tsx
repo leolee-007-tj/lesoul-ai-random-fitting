@@ -164,27 +164,29 @@ export default function ProductManagerV2() {
       const result = await upload.mutateAsync({ dataUrl, category: draft.category, view, variant: "original", productKey });
       if (!result.key) throw new Error("Uploaded product image has no storage key.");
       const detailIndex = kind === "detail1" ? 0 : 1;
-      if (kind === "front") change({ frontUrl: result.url, frontStudioUrl: "" });
-      if (kind === "back") change({ backUrl: result.url, backStudioUrl: "" });
-      if (kind === "detail1" || kind === "detail2") {
-        const nextOriginal = [...draft.detailUrls];
-        const nextStudio = [...draft.detailStudioUrls];
-        nextOriginal[detailIndex] = result.url;
-        nextStudio[detailIndex] = "";
-        change({ detailUrls: nextOriginal.slice(0, 2), detailStudioUrls: nextStudio.slice(0, 2) });
-      }
       try {
         const enhanced = await enhanceProductImage.mutateAsync({ sourceKey: result.key, category: draft.category, view, productKey });
         if (!enhanced.url) throw new Error("AI product image enhancement returned no URL.");
-        if (kind === "front") change({ frontStudioUrl: enhanced.url });
-        if (kind === "back") change({ backStudioUrl: enhanced.url });
+        if (kind === "front") change({ frontUrl: enhanced.url, frontStudioUrl: enhanced.url });
+        if (kind === "back") change({ backUrl: enhanced.url, backStudioUrl: enhanced.url });
         if (kind === "detail1" || kind === "detail2") {
+          const nextOriginal = [...draft.detailUrls];
           const nextStudio = [...draft.detailStudioUrls];
+          nextOriginal[detailIndex] = enhanced.url;
           nextStudio[detailIndex] = enhanced.url;
-          change({ detailStudioUrls: nextStudio.slice(0, 2) });
+          change({ detailUrls: nextOriginal.slice(0, 2), detailStudioUrls: nextStudio.slice(0, 2) });
         }
       } catch {
-        setError(locale === "ko" ? "원본은 저장했지만 AI 상품컷 보정에 실패했습니다. 원본으로 계속 사용할 수 있습니다." : locale === "zh" ? "原图已保存，但 AI 商品图优化失败。仍可继续使用原图。" : "The original was saved, but AI product-cut enhancement failed. You can continue with the original.");
+        if (kind === "front") change({ frontUrl: result.url, frontStudioUrl: "" });
+        if (kind === "back") change({ backUrl: result.url, backStudioUrl: "" });
+        if (kind === "detail1" || kind === "detail2") {
+          const nextOriginal = [...draft.detailUrls];
+          const nextStudio = [...draft.detailStudioUrls];
+          nextOriginal[detailIndex] = result.url;
+          nextStudio[detailIndex] = "";
+          change({ detailUrls: nextOriginal.slice(0, 2), detailStudioUrls: nextStudio.slice(0, 2) });
+        }
+        setError(locale === "ko" ? "AI 보정에 실패해 원본 사진을 대신 사용합니다." : locale === "zh" ? "AI 优化失败，已改用原图。" : "AI enhancement failed, so the original photo is used instead.");
       }
     } catch { setError(copy.saveFail); throw new Error(copy.saveFail); }
   };
