@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { storagePut } from "../storage";
+import { storageGetSignedUrl, storagePut } from "../storage";
+import { generateImage } from "../_core/imageGeneration";
 import { ownerOnlyProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 
 const acceptedImage = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/;
@@ -8,6 +9,23 @@ const acceptedCareLabelImage = /^data:(image\/(?:svg\+xml|jpeg|png|webp));base64
 const acceptedPresenceAudio = /^data:(audio\/(?:mpeg|mp3|webm|mp4|ogg|wav|x-wav));base64,([A-Za-z0-9+/=]+)$/;
 export const MAX_PRODUCT_IMAGE_BYTES = 20 * 1024 * 1024;
 export const MAX_PRESENCE_AUDIO_BYTES = 12 * 1024 * 1024;
+
+export type ProductImageEnhancementView = "front" | "back" | "detail";
+
+export function buildProductImageEnhancementPrompt(category: "top" | "bottom" | "outer" | "dress" | "shoes" | "bag", view: ProductImageEnhancementView) {
+  const garmentRule = category === "top"
+    ? "For a top, preserve the exact sleeve length, shoulder width, body length, thickness, neckline, cuffs, seams, and silhouette."
+    : category === "bottom"
+      ? "For bottoms, preserve the exact rise, waist shape, leg width, inseam, hem, pleats, pockets, and silhouette; never turn trousers into a skirt or vice versa."
+      : "Preserve the exact category, proportions, construction, hardware, seams, and silhouette of the supplied item.";
+  const displayRule = ["top", "bottom", "outer", "dress"].includes(category)
+    ? "Show a natural simple clothing hanger."
+    : "Show the item alone in a clean product-cut arrangement without a clothing hanger.";
+  if (view === "detail") {
+    return `Edit the supplied product detail photograph as a faithful photographic enhancement only. Preserve the exact garment, crop, composition, texture, weave, stitching, color, shadows, and every visible design detail from the source. Improve faithful color rendering and material clarity under neutral light. Do not redesign, recolor, reshape, lengthen, shorten, add, remove, translate, or invent any part. Do not add a price tag, text, logo, model, hanger, mannequin, jewelry, or extra garment. The result must remain the same detail photograph, only cleaner and more color-accurate. ${garmentRule}`;
+  }
+  return `Create a clean ecommerce product cut from the supplied ${view} photograph on a seamless pure white background. Keep the exact supplied garment identity, color, material texture, weave, stitching, seams, pockets, hardware, pattern, and proportions. Show the entire item centered with comfortable margins, ${displayRule} Do not include a model, body, mannequin, price tag, label text, watermark, props, or extra garments. Match the source ${view} orientation exactly; do not mirror it. Use realistic studio lighting that reveals the material without changing its color. ${garmentRule} Do not invent unseen details or replace the item with a similar one.`;
+}
 
 export function decodeImageDataUrl(dataUrl: string, maxBytes: number) {
   const match = dataUrl.match(acceptedImage);
@@ -66,8 +84,21 @@ export const uploadRouter = router({
       const { buffer, mimeType, extension } = decodeImageDataUrl(input.dataUrl, MAX_PRODUCT_IMAGE_BYTES);
       const key = input.productKey?.replace(/[^a-zA-Z0-9_-]/g, "") || randomUUID();
       const category = input.category ?? "top"; const view = input.view ?? "detail"; const variant = input.variant ?? "studio";
-      const { url } = await storagePut(`lesoul/catalog/products/${category}/${key}/${view}_${variant}_${randomUUID()}.${extension}`, buffer, mimeType);
-      return { url };
+      const stored = await storagePut(`lesoul/catalog/products/${category}/${key}/${view}_${variant}_${randomUUID()}.${extension}`, buffer, mimeType);
+      return { ...stored, mimeType };
+    }),
+  enhanceProductImage: ownerOnlyProcedure
+    .input(z.object({ sourceKey: z.string().trim().min(1).max(300), category: z.enum(["top", "bottom", "outer", "dress", "shoes", "bag"]), view: z.enum(["front", "back", "detail"]), productKey: z.string().trim().min(1).max(80) }))
+    .mutation(async ({ input }) => {
+      const sourceUrl = await storageGetSignedUrl(input.sourceKey);
+      const result = await generateImage({
+        prompt: buildProductImageEnhancementPrompt(input.category, input.view),
+        originalImages: [{ url: sourceUrl, mimeType: "image/jpeg" }],
+        quality: "high",
+        storageKey: `lesoul/catalog/products/${input.category}/${input.productKey}/${input.view}_studio_ai.png`,
+      });
+      if (!result.url || !result.key) throw new Error("AI product image enhancement returned no image.");
+      return result;
     }),
   careLabelAsset: ownerOnlyProcedure
     .input(z.object({ dataUrl: z.string().min(40).max(15_000_000), kind: z.enum(["product", "symbol", "wechat"]) }))

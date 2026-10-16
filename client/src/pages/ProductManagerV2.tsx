@@ -13,7 +13,6 @@ import { buildProductGalleryUrls, normalizeProductDetailUrls } from "@shared/pro
 import { localizedSetComponentCategory, representativeSetCategory, SET_COMPONENT_CATEGORIES, sumSetComponentPrices, type SetProductComponent } from "@shared/setProducts";
 import BulkProductImageTray from "@/components/BulkProductImageTray";
 import { ProductStatusBadges } from "@/components/ProductStatusBadges";
-import { autoCorrectProductImageColorOrOriginal } from "@/lib/imageColorCorrection";
 import type { ProductImageSlotKey } from "@shared/productBulkImages";
 import { AlertTriangle, CheckCircle2, CheckSquare, ImagePlus, LoaderCircle, Pencil, Plus, Ruler, Save, ScanLine, Search, SlidersHorizontal, Square, Trash2, X } from "lucide-react";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -89,6 +88,7 @@ export default function ProductManagerV2() {
   const translate = trpc.admin.translateCustomerText.useMutation();
   const backfillTranslations = trpc.admin.backfillProductTranslations.useMutation({ onSuccess: (result) => { setSuccess(locale === "ko" ? `${result.translated}개 상품의 번역을 보완했습니다.${result.hasMore ? " 번역 보완 버튼을 다시 눌러 계속 진행하세요." : ""}` : locale === "zh" ? `已补充 ${result.translated} 件商品的翻译。${result.hasMore ? "请再次点击按钮继续。" : ""}` : `Completed translations for ${result.translated} products.${result.hasMore ? " Click again to continue." : ""}`); void utils.admin.products.invalidate(); } });
   const upload = trpc.uploads.productImage.useMutation();
+  const enhanceProductImage = trpc.uploads.enhanceProductImage.useMutation();
   const [draft, setDraft] = useState<ProductDraft | null>(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("new") === "1" ? initialDraft() : null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({});
@@ -162,17 +162,29 @@ export default function ProductManagerV2() {
       const view = kind === "front" || kind === "back" ? kind : "detail";
       const productKey = `${draft.category}-${draft.name || "new"}-${kind}-${Date.now()}`;
       const result = await upload.mutateAsync({ dataUrl, category: draft.category, view, variant: "original", productKey });
+      if (!result.key) throw new Error("Uploaded product image has no storage key.");
+      const detailIndex = kind === "detail1" ? 0 : 1;
       if (kind === "front") change({ frontUrl: result.url, frontStudioUrl: "" });
       if (kind === "back") change({ backUrl: result.url, backStudioUrl: "" });
       if (kind === "detail1" || kind === "detail2") {
-        const index = kind === "detail1" ? 0 : 1;
-        const correctedDataUrl = await autoCorrectProductImageColorOrOriginal(file);
-        const corrected = await upload.mutateAsync({ dataUrl: correctedDataUrl, category: draft.category, view: "detail", variant: "studio", productKey });
         const nextOriginal = [...draft.detailUrls];
         const nextStudio = [...draft.detailStudioUrls];
-        nextOriginal[index] = result.url;
-        nextStudio[index] = corrected.url;
+        nextOriginal[detailIndex] = result.url;
+        nextStudio[detailIndex] = "";
         change({ detailUrls: nextOriginal.slice(0, 2), detailStudioUrls: nextStudio.slice(0, 2) });
+      }
+      try {
+        const enhanced = await enhanceProductImage.mutateAsync({ sourceKey: result.key, category: draft.category, view, productKey });
+        if (!enhanced.url) throw new Error("AI product image enhancement returned no URL.");
+        if (kind === "front") change({ frontStudioUrl: enhanced.url });
+        if (kind === "back") change({ backStudioUrl: enhanced.url });
+        if (kind === "detail1" || kind === "detail2") {
+          const nextStudio = [...draft.detailStudioUrls];
+          nextStudio[detailIndex] = enhanced.url;
+          change({ detailStudioUrls: nextStudio.slice(0, 2) });
+        }
+      } catch {
+        setError(locale === "ko" ? "원본은 저장했지만 AI 상품컷 보정에 실패했습니다. 원본으로 계속 사용할 수 있습니다." : locale === "zh" ? "原图已保存，但 AI 商品图优化失败。仍可继续使用原图。" : "The original was saved, but AI product-cut enhancement failed. You can continue with the original.");
       }
     } catch { setError(copy.saveFail); throw new Error(copy.saveFail); }
   };
@@ -258,13 +270,13 @@ export default function ProductManagerV2() {
   if (catalog.isError) return <div className="min-h-screen bg-[#f8f7f4]"><AppHeader /><main className="mx-auto grid min-h-[70dvh] max-w-xl place-items-center px-5 text-center"><section className="rounded-2xl border border-[#dedbd4] bg-white p-6 shadow-sm"><p className="text-xs font-bold tracking-[.16em] text-[#777]">{copy.eyebrow}</p><h1 className="mt-2 font-serif text-3xl">{catalogFailureCopy.title}</h1><p className="mt-3 text-sm leading-6 text-[#666]">{catalogFailureCopy.body}</p><button type="button" onClick={() => void catalog.refetch()} className="mt-5 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white">{catalogFailureCopy.retry}</button></section></main><MobileBottomNav /></div>;
 
   const slots = draft ? [
-    { key: "front", label: copy.front, url: draft.frontUrl, trigger: () => frontRef.current?.click(), remove: undefined },
-    { key: "back", label: copy.back, url: draft.backUrl, trigger: () => backRef.current?.click(), remove: () => change({ backUrl: "" }) },
+    { key: "front", label: copy.front, url: draft.frontStudioUrl || draft.frontUrl, trigger: () => frontRef.current?.click(), remove: undefined },
+    { key: "back", label: copy.back, url: draft.backStudioUrl || draft.backUrl, trigger: () => backRef.current?.click(), remove: () => change({ backUrl: "", backStudioUrl: "" }) },
     { key: "detail1", label: locale === "ko" ? "디테일 1 · 조명 보정" : locale === "zh" ? "细节 1 · 光线校正" : "Detail 1 · corrected", url: draft.detailStudioUrls[0] || draft.detailUrls[0] || "", trigger: () => detail1Ref.current?.click(), remove: () => change({ detailUrls: ["", draft.detailUrls[1] ?? ""], detailStudioUrls: ["", draft.detailStudioUrls[1] ?? ""] }) },
     { key: "detail2", label: locale === "ko" ? "디테일 2 · 조명 보정" : locale === "zh" ? "细节 2 · 光线校正" : "Detail 2 · corrected", url: draft.detailStudioUrls[1] || draft.detailUrls[1] || "", trigger: () => detail2Ref.current?.click(), remove: () => change({ detailUrls: [draft.detailUrls[0] ?? "", ""], detailStudioUrls: [draft.detailStudioUrls[0] ?? "", ""] }) },
   ] : [];
   const extractPriceTag = trpc.admin.extractPriceTag.useMutation();
-  const isSaving = create.isPending || update.isPending || translate.isPending || upload.isPending || extractPriceTag.isPending;
+  const isSaving = create.isPending || update.isPending || translate.isPending || upload.isPending || enhanceProductImage.isPending || extractPriceTag.isPending;
   const isDeleting = deleteProducts.isPending || deleteAllProducts.isPending;
 
   return <div className="lesoul-app-wrapper min-h-[100dvh] bg-[#f8f7f4] text-[#171717]"><AppHeader /><main className="mx-auto max-w-6xl px-5 pb-20 pt-8 sm:px-8">

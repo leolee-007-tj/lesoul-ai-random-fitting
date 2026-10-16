@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeImageDataUrl, decodePresenceAudioDataUrl, MAX_PRESENCE_AUDIO_BYTES, MAX_PRODUCT_IMAGE_BYTES } from "./uploads";
+import { buildProductImageEnhancementPrompt, decodeImageDataUrl, decodePresenceAudioDataUrl, MAX_PRESENCE_AUDIO_BYTES, MAX_PRODUCT_IMAGE_BYTES } from "./uploads";
 
 describe("product image validation", () => {
   it("decodes permitted image data and normalizes JPEG extension", () => {
@@ -21,7 +21,7 @@ describe("product image validation", () => {
     expect(Buffer.compare(result.buffer, source)).toBe(0);
   });
 
-  it("accepts bounded MP3 uploads and browser-recorded audio for the owner presence alert", () => {
+  it("accepts bounded MP3 uploads and browser-produced audio for the owner presence alert", () => {
     const result = decodePresenceAudioDataUrl("data:audio/mpeg;base64,aGVsbG8=");
     expect(result.mimeType).toBe("audio/mpeg");
     expect(result.extension).toBe("mp3");
@@ -29,5 +29,16 @@ describe("product image validation", () => {
     expect(MAX_PRESENCE_AUDIO_BYTES).toBe(12 * 1024 * 1024);
     expect(decodePresenceAudioDataUrl("data:audio/wav;base64,aGVsbG8=").extension).toBe("wav");
     expect(() => decodePresenceAudioDataUrl("data:text/plain;base64,aGVsbG8=")).toThrow("Only MP3 uploads");
+  });
+
+  it("keeps front/back product cuts faithful and treats detail images as color-only edits", () => {
+    const front = buildProductImageEnhancementPrompt("top", "front");
+    const detail = buildProductImageEnhancementPrompt("bottom", "detail");
+    expect(front).toContain("seamless pure white background");
+    expect(front).toContain("simple clothing hanger");
+    expect(front).toContain("Do not invent unseen details");
+    expect(detail).toContain("faithful photographic enhancement only");
+    expect(detail).toContain("Do not redesign, recolor, reshape");
+    expect(detail).toContain("same detail photograph");
   });
 });
