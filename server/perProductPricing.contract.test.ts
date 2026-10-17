@@ -14,8 +14,9 @@ describe("per-product base pricing", () => {
   it("persists selections and passes them through every purchase price path", () => {
     expect(read("drizzle/schema.ts")).toContain('normalDiscountPercent: int("normalDiscountPercent")');
     expect(read("drizzle/schema.ts")).toContain('vipDiscountPercent: int("vipDiscountPercent")');
-    expect(read("client/src/pages/ProductManagerV2.tsx")).toContain('normalDiscountPercent: 17 | 20');
-    expect(read("client/src/pages/ProductManagerV2.tsx")).toContain('vipDiscountPercent: 20 | 30');
+    expect(read("client/src/pages/ProductManagerV2.tsx")).toContain('normalDiscountPercent: number');
+    expect(read("client/src/pages/ProductManagerV2.tsx")).toContain('vipDiscountPercent: number');
+    expect(read("client/src/pages/ProductManagerV2.tsx")).toContain('min={0} max={100} step={1}');
     expect(read("server/routers/purchase.ts")).toContain("normalDiscountPercent: product.normalDiscountPercent");
     expect(read("client/src/components/ProductPrice.tsx")).toContain("vipDiscountPercent: product.vipDiscountPercent");
     expect(read("client/src/pages/SaleSettings.tsx")).toContain("Select Base to restore the NORMAL and VIP discount chosen for each product.");

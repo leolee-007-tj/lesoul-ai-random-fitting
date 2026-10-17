@@ -10,6 +10,11 @@ describe("central pricing policy", () => {
     expect(resolveCentralPrice(1000, { mode: "BASE", tier: "VIP", quantity: 4, vipDiscountPercent: 30 }).unitPrice).toBe(700);
   });
 
+  it("uses manually entered discount percentages instead of only preset values", () => {
+    expect(resolvePricingDiscountPercent("BASE", "NORMAL", 1, { normalDiscountPercent: 25 })).toBe(25);
+    expect(resolveCentralPrice(1000, { mode: "BASE", tier: "VIP", vipDiscountPercent: 35 }).unitPrice).toBe(650);
+  });
+
   it("returns the original price when the owner disables central sale activity", () => {
     const pricing = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "VIP", quantity: 4, vipDiscountPercent: 30, centralSaleEnabled: 0 });
     expect(pricing.discountPercent).toBe(0);

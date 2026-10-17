@@ -31,8 +31,9 @@ export function isNewArrivalExcludedFromSale(options: { mode?: PricingMode | nul
 }
 
 function productBaseDiscount(tier: PricingTier, discounts?: ProductBaseDiscounts) {
-  if (tier === "VIP") return discounts?.vipDiscountPercent === 30 ? 30 : 20;
-  return discounts?.normalDiscountPercent === 20 ? 20 : 17;
+  const selected = tier === "VIP" ? discounts?.vipDiscountPercent : discounts?.normalDiscountPercent;
+  if (typeof selected === "number" && Number.isFinite(selected)) return Math.max(0, Math.min(100, Math.round(selected)));
+  return tier === "VIP" ? 20 : 17;
 }
 
 export function resolvePricingDiscountPercent(mode: PricingMode | null | undefined, tier: PricingTier, quantity: number, discounts?: ProductBaseDiscounts) {
