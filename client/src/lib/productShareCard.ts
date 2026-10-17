@@ -17,6 +17,7 @@ export type ProductShareCardData = {
   priceSale?: number | null;
   discountRate?: number | null;
   saleEnabled?: number | boolean | null;
+  centralSaleEnabled?: number | boolean | null;
   isNew?: number | boolean | null;
   excludeNewArrivalsFromSale?: number | boolean | null;
   pricingMode?: PricingMode | null;
@@ -28,7 +29,7 @@ function normalizeForCommerce(product: ProductShareCardData) {
 
 export function productShareCardPrice(product: ProductShareCardData, locale: Locale) {
   const normalized = normalizeForCommerce(product);
-  const price = resolveCentralPrice(getOriginalPrice(normalized), { mode: product.pricingMode, tier: "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: product.excludeNewArrivalsFromSale });
+  const price = resolveCentralPrice(getOriginalPrice(normalized), { mode: product.pricingMode, centralSaleEnabled: product.centralSaleEnabled, tier: "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: product.excludeNewArrivalsFromSale });
   const formatter = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "en-US", { style: "currency", currency: "CNY", minimumFractionDigits: 0, maximumFractionDigits: 0 });
   return { price: formatter.format(price.unitPrice), original: formatter.format(price.original), discount: formatCentralDiscount(price.discountPercent, locale) };
 }

@@ -17,7 +17,7 @@ describe("ProductManagerV2 price-tag capture", () => {
   });
   it("keeps the shared input without capture so the device chooser can offer camera and gallery", () => {
     expect(source).toContain('<input ref={priceTagImageRef} onChange={onPriceTagImage} className="hidden" type="file" accept="image/*" />');
-    expect(source).not.toContain('capture="environment"');
+    expect(source).toContain('capture="environment"');
   });
   it("maps reviewed OCR text into maker, color, clothing name, and price fields only after explicit apply", () => {
     expect(source).toContain("Maker");

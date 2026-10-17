@@ -219,6 +219,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   storeTaglineZh: varchar("storeTaglineZh", { length: 180 }).default("以更安静、更清晰的方式发现你的下一套 LOOK。").notNull(),
   /** One centralized policy replaces legacy per-product sale and coupon calculations in every customer purchase flow. */
   pricingMode: mysqlEnum("pricingMode", ["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).default("BASE").notNull(),
+  /** Master switch for all customer-facing central sale discounts. */
+  centralSaleEnabled: int("centralSaleEnabled").default(1).notNull(),
   /** Owner option: seasonal/global sale discounts do not apply to products explicitly marked NEW. */
   excludeNewArrivalsFromSale: int("excludeNewArrivalsFromSale").default(0).notNull(),
   /** Display-only option: show current inventory beside the revealed product price. */

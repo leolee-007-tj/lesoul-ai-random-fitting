@@ -9,8 +9,11 @@ describe("central pricing integration contract", () => {
   it("stores one active pricing mode and returns it to customer purchase flows", () => {
     expect(read("drizzle/schema.ts")).toContain('pricingMode: mysqlEnum("pricingMode"');
     expect(read("drizzle/schema.ts")).toContain('excludeNewArrivalsFromSale: int("excludeNewArrivalsFromSale")');
+    expect(read("drizzle/schema.ts")).toContain('centralSaleEnabled: int("centralSaleEnabled")');
     expect(read("server/routers/admin.ts")).toContain('pricingMode: z.enum(["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"])');
+    expect(read("server/routers/admin.ts")).toContain("centralSaleEnabled: z.number()");
     expect(read("server/routers/purchase.ts")).toContain("pricingMode: settings.pricingMode");
+    expect(read("server/routers/purchase.ts")).toContain("centralSaleEnabled: settings.centralSaleEnabled");
     expect(read("server/routers/purchase.ts")).toContain("excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale");
   });
 
@@ -19,6 +22,7 @@ describe("central pricing integration contract", () => {
     expect(read("client/src/components/ProductPrice.tsx")).toContain("excludeNewArrivalsFromSale");
     expect(read("client/src/pages/PurchaseList.tsx")).toContain("excludeNewArrivalsFromSale");
     expect(read("client/src/lib/productShareCard.ts")).toContain("excludeNewArrivalsFromSale");
+    expect(read("client/src/lib/productShareCard.ts")).toContain("centralSaleEnabled");
     expect(read("client/src/components/PurchaseListAddButton.tsx")).toContain("resolveCentralPrice");
     expect(read("client/src/pages/PurchaseList.tsx")).toContain("totalUnits = items.reduce");
     expect(read("client/src/components/PurchaseScreen.tsx")).not.toContain("resolveCentralPrice");

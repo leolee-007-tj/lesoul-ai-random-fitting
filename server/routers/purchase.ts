@@ -17,7 +17,7 @@ function requestNumber() {
 export const purchaseRouter = router({
   config: publicProcedure.query(async () => {
     const settings = await getReleaseSettings();
-    return { mode: settings.purchaseMode, maxItems: settings.purchaseListMaxItems, pricingMode: settings.pricingMode, excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale, showInventoryQuantity: Boolean(settings.showInventoryQuantity), adminTrialPaymentQrUrl: settings.adminTrialPaymentQrUrl, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
+    return { mode: settings.purchaseMode, maxItems: settings.purchaseListMaxItems, pricingMode: settings.pricingMode, centralSaleEnabled: settings.centralSaleEnabled, excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale, showInventoryQuantity: Boolean(settings.showInventoryQuantity), adminTrialPaymentQrUrl: settings.adminTrialPaymentQrUrl, purchaseNoticeEn: settings.purchaseNoticeEn, purchaseNoticeKo: settings.purchaseNoticeKo, purchaseNoticeZh: settings.purchaseNoticeZh };
   }),
   createRequest: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), items: requestItems, source: z.enum(["ai_fitting", "quick_fit", "catalog", "detail"]).optional(), generationId: z.string().max(96).nullable().optional(), lookId: z.string().max(96).nullable().optional() })).mutation(async ({ input, ctx }) => {
     const visitorId = resolveCustomerVisitorId(ctx, input.visitorId);
@@ -38,7 +38,7 @@ export const purchaseRouter = router({
     const totalUnits = input.items.reduce((sum, item) => sum + item.quantity, 0);
     const items = input.items.map((item) => {
       const product = current.get(item.productId)!;
-      const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: settings.pricingMode, tier: pricingTier, quantity: totalUnits, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale });
+      const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: settings.pricingMode, centralSaleEnabled: settings.centralSaleEnabled, tier: pricingTier, quantity: totalUnits, normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: settings.excludeNewArrivalsFromSale });
       return { productId: product.id, productName: product.name, nameEn: product.nameEn, nameKo: product.nameKo, nameZh: product.nameZh, productImage: product.imageViews?.front?.original ?? product.imageUrl, catalogDisplay: product.catalogDisplay, productType: product.productType, setComponents: product.setComponents, selectedSize: item.selectedSize, quantity: item.quantity, currentPrice: pricing.unitPrice, status: product.status, availabilityStatus: product.availabilityStatus, purchaseType: product.availabilityStatus === "PRE_ORDER" ? "RESERVATION" as const : "NORMAL" as const };
     });
     const referenceTotal = items.reduce((sum, item) => sum + item.currentPrice * item.quantity, 0);

@@ -43,9 +43,10 @@ export function resolvePricingDiscountPercent(mode: PricingMode | null | undefin
   return productBaseDiscount(tier, discounts);
 }
 
-export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number } & ProductBaseDiscounts & NewArrivalSalePolicy) {
+export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number; centralSaleEnabled?: number | boolean | null } & ProductBaseDiscounts & NewArrivalSalePolicy) {
   const original = roundCny(originalPrice);
   const quantity = safeQuantity(options.quantity ?? 1);
+  if (!isEnabled(options.centralSaleEnabled ?? 1)) return { original, quantity, discountPercent: 0, unitPrice: original, total: original * quantity, mode: options.mode ?? "BASE" as PricingMode, excludedNewArrival: false };
   const excludedNewArrival = isNewArrivalExcludedFromSale(options);
   const discountPercent = excludedNewArrival
     ? resolvePricingDiscountPercent("BASE", options.tier, quantity, options)
