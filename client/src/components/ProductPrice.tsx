@@ -17,7 +17,7 @@ export default function ProductPrice({ product, className = "", detail = false, 
   const canSeePrice = revealPrice || isPriceVisibleToRole(user?.role);
   const config = trpc.purchase.config.useQuery(undefined, { enabled: canSeePrice, staleTime: 60_000 });
   if (!canSeePrice) return hideInquiry ? null : <StoreInquiryQr productId={detail ? product.id : undefined} compact={compactInquiry} showThumbnail={!detail} className={className} />;
-  const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, centralSaleEnabled: config.data?.centralSaleEnabled, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale });
+  const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, centralSaleEnabled: config.data?.centralSaleEnabled, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale, saleEndsAt: config.data?.saleEndsAt });
   const unavailable = product.availabilityStatus === "SOLD_OUT" || product.status === "sold_out";
   if (unavailable || pricing.discountPercent <= 0) return <span className={`font-semibold text-[#25211d] ${className}`}>{cny(pricing.original)}</span>;
   const saleLabel = formatCentralDiscount(pricing.discountPercent, toProductLocale(i18n.language));

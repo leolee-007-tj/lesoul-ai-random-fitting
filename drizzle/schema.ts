@@ -221,6 +221,8 @@ export const releaseSettings = mysqlTable("releaseSettings", {
   pricingMode: mysqlEnum("pricingMode", ["BASE", "SEASON_FORMAT_1", "SEASON_FORMAT_2", "SEASON_FORMAT_3"]).default("BASE").notNull(),
   /** Master switch for all customer-facing central sale discounts. */
   centralSaleEnabled: int("centralSaleEnabled").default(1).notNull(),
+  /** Optional UTC end time for the customer-facing central sale and countdown. */
+  saleEndsAt: timestamp("saleEndsAt"),
   /** Owner option: seasonal/global sale discounts do not apply to products explicitly marked NEW. */
   excludeNewArrivalsFromSale: int("excludeNewArrivalsFromSale").default(0).notNull(),
   /** Display-only option: show current inventory beside the revealed product price. */

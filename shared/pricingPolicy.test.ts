@@ -22,6 +22,12 @@ describe("central pricing policy", () => {
     expect(pricing.total).toBe(4000);
   });
 
+  it("returns the original price after the configured sale end time", () => {
+    const expired = resolveCentralPrice(1000, { mode: "SEASON_FORMAT_3", tier: "NORMAL", centralSaleEnabled: 1, saleEndsAt: new Date(Date.now() - 1_000) });
+    expect(expired.discountPercent).toBe(0);
+    expect(expired.unitPrice).toBe(1000);
+  });
+
   it("overrides base discounts with each seasonal format", () => {
     expect([1, 2, 3, 4].map((quantity) => resolvePricingDiscountPercent("SEASON_FORMAT_1", "VIP", quantity))).toEqual([20, 30, 40, 45]);
     expect([1, 2, 3, 4].map((quantity) => resolvePricingDiscountPercent("SEASON_FORMAT_2", "NORMAL", quantity))).toEqual([30, 40, 45, 45]);

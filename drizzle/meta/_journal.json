@@ -498,6 +498,13 @@
       "when": 1792238168685,
       "tag": "0070_puzzling_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "5",
+      "when": 1792308890311,
+      "tag": "0071_light_gateway",
+      "breakpoints": true
     }
   ]
 }

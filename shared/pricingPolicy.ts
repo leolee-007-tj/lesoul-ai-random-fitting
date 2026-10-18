@@ -22,6 +22,8 @@ export type NewArrivalSalePolicy = {
   excludeNewArrivalsFromSale?: number | boolean | null;
 };
 
+export type SaleSchedule = { saleEndsAt?: Date | string | null };
+
 function isEnabled(value: number | boolean | null | undefined) {
   return value === true || value === 1;
 }
@@ -44,10 +46,12 @@ export function resolvePricingDiscountPercent(mode: PricingMode | null | undefin
   return productBaseDiscount(tier, discounts);
 }
 
-export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number; centralSaleEnabled?: number | boolean | null } & ProductBaseDiscounts & NewArrivalSalePolicy) {
+export function resolveCentralPrice(originalPrice: number, options: { mode?: PricingMode | null; tier: PricingTier; quantity?: number; centralSaleEnabled?: number | boolean | null } & ProductBaseDiscounts & NewArrivalSalePolicy & SaleSchedule) {
   const original = roundCny(originalPrice);
   const quantity = safeQuantity(options.quantity ?? 1);
-  if (!isEnabled(options.centralSaleEnabled ?? 1)) return { original, quantity, discountPercent: 0, unitPrice: original, total: original * quantity, mode: options.mode ?? "BASE" as PricingMode, excludedNewArrival: false };
+  const endTime = options.saleEndsAt ? new Date(options.saleEndsAt).getTime() : null;
+  const saleExpired = endTime !== null && Number.isFinite(endTime) && endTime <= Date.now();
+  if (!isEnabled(options.centralSaleEnabled ?? 1) || saleExpired) return { original, quantity, discountPercent: 0, unitPrice: original, total: original * quantity, mode: options.mode ?? "BASE" as PricingMode, excludedNewArrival: false };
   const excludedNewArrival = isNewArrivalExcludedFromSale(options);
   const discountPercent = excludedNewArrival
     ? resolvePricingDiscountPercent("BASE", options.tier, quantity, options)
