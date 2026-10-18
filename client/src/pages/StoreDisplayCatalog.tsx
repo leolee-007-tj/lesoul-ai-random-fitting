@@ -48,10 +48,10 @@ type DisplayProduct = {
 };
 
 function DisplayAiLookbookRow({ images, heading, compositionLabel, position, language, products }: { images: ApprovedLookbookImage[]; heading: string; compositionLabel: string; position: string; language: string; products: DisplayProduct[] }) {
-  if (!images.length) return null;
   const rowRef = useRef<HTMLDivElement>(null);
   const previousLabel = language.startsWith("ko") ? "이전 룩북" : language.startsWith("zh") ? "上一个 Lookbook" : "Previous lookbook";
   const nextLabel = language.startsWith("ko") ? "다음 룩북" : language.startsWith("zh") ? "下一个 Lookbook" : "Next lookbook";
+  if (!images.length) return null;
   return <section className="mx-auto max-w-7xl pt-6" aria-label={heading}>
     <div className="mb-3 flex items-end justify-between gap-3"><h2 className="text-sm font-bold tracking-[.12em] text-[#5e554c]">{heading} <span className="text-[10px] font-normal tracking-normal text-[#8a7d70]">· {images.length}</span></h2><span className="shrink-0 text-[10px] font-semibold tabular-nums text-[#8a7d70]">{position}</span></div>
     <div className="relative">
