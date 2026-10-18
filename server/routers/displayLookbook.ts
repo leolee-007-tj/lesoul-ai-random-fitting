@@ -166,6 +166,18 @@ const generateBatchInput = generateInput.extend(lookbookMetaInput.shape).extend(
 const autoCompleteInput = z.object({ top: z.boolean().default(false), bottom: z.boolean().default(false), outer: z.boolean().default(false) });
 const generateOutfitInput = lookbookMetaInput.extend({ presentationStyle: presentationStyleInput, modelProfile: modelProfileInput, backgroundStyle: backgroundStyleInput, productIds: z.array(z.number().int().positive()).min(1).max(20), count: z.number().int().min(1).max(10).default(3), stylingRequirements: z.string().trim().max(1000).optional().default(""), autoComplete: autoCompleteInput.default({ top: false, bottom: false, outer: false }), baseLayerColor: z.enum(["black", "white"]).default("black") });
 const guestPreviewInput = z.object({ productId: z.number().int().positive(), hairLength: hairLengthInput, presentationStyle: presentationStyleInput, backgroundStyle: backgroundStyleInput });
+const displayCustomerLookbookInput = z.object({
+  photoDataUrl: z.string().regex(/^data:image\/(?:jpeg|png|webp);base64,/, "Only camera image data is supported.").max(10_000_000),
+  productIds: z.array(z.number().int().positive()).min(1).max(8),
+  height: z.number().min(80).max(240).nullable().optional(),
+  weight: z.number().min(20).max(250).nullable().optional(),
+  shoulderWidth: z.number().min(20).max(80).nullable().optional(),
+  chest: z.number().min(40).max(180).nullable().optional(),
+  waist: z.number().min(40).max(180).nullable().optional(),
+  hip: z.number().min(40).max(200).nullable().optional(),
+  bodyType: z.enum(["slim", "balanced", "curvy", "plus", "unknown"]).default("unknown"),
+  usualSize: z.string().trim().max(32).optional(),
+});
 const outfitPlanInput = z.object({ mode: z.enum(["separates", "dress", "top", "bottom", "outer", "top_bottom", "top_outer", "bottom_outer", "top_bottom_outer", "dress_outer"]).default("top_bottom_outer") });
 const imageIdInput = z.object({ id: z.number().int().positive() });
 const metadataInput = imageIdInput.extend({ lookbookTitle: z.string().trim().max(200).nullable(), recommendationName: z.string().trim().max(200).nullable(), recommendationReason: z.string().trim().max(500).nullable(), lookbookTitleKo: z.string().trim().max(200).nullable().optional(), lookbookTitleZh: z.string().trim().max(200).nullable().optional(), lookbookTitleEn: z.string().trim().max(200).nullable().optional(), recommendationReasonKo: z.string().trim().max(500).nullable().optional(), recommendationReasonZh: z.string().trim().max(500).nullable().optional(), recommendationReasonEn: z.string().trim().max(500).nullable().optional() });
@@ -186,6 +198,11 @@ function absoluteImageUrl(url: string, origin: string | null) {
   if (/^https?:\/\//i.test(url)) return url;
   if (url.startsWith("/") && origin) return new URL(url, origin).toString();
   throw new Error("PRODUCT_IMAGE_URL_NOT_PUBLIC");
+}
+function dataUrlReference(dataUrl: string) {
+  const match = dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+  if (!match) throw new Error("CUSTOMER_PHOTO_INVALID");
+  return { b64Json: match[2], mimeType: match[1] };
 }
 function outfitGroup(product: any): OutfitGroup {
   const text = [product.category, product.productType, product.displayCategory?.name, product.displayCategory?.nameKo, product.displayCategory?.nameEn, product.name].filter(Boolean).join(" ").toLowerCase();
@@ -392,6 +409,35 @@ export const displayLookbookRouter = router({
     await db.insert(displayLookbookImages).values({ productId: input.productId, compositionLabel: product.name || product.nameKo || product.nameEn || `#${product.id}`, batchId, shotIndex: 1, sceneType: scene.type, sceneDescription: persistedSceneDescription(scene.description), imageUrl: result.url, storageKey: result.key, isApproved: 1, isActive: 1 });
     await finishAiUsage(usage.eventId, "SUCCESS");
     return { imageUrl: result.url, productId: input.productId, visitorId: ctx.user?.openId ?? null, savedPublicly: true };
+  }),
+  generateCustomerRecommendation: storeDisplayProcedure.input(displayCustomerLookbookInput).mutation(async ({ ctx, input }) => {
+    const catalog = await getCatalog();
+    const selectedProducts = input.productIds.map((id) => catalog.products.find((product) => product.id === id)).filter(Boolean) as any[];
+    if (selectedProducts.length !== input.productIds.length) throw new Error("PRODUCT_NOT_FOUND");
+    if (selectedProducts.some((product) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) === "SOLD_OUT" || Number(product.inventoryQuantity ?? 1) <= 0)) throw new Error("PRODUCT_SOLD_OUT");
+    const garmentCount = selectedProducts.filter((product) => outfitGroup(product) !== "accessory").length;
+    if (garmentCount > 3) throw new Error("OUTFIT_TOO_MANY_CLOTHING_ITEMS");
+    const origin = publicOrigin(ctx.req);
+    const garmentReferences = selectedProducts.map((product) => {
+      const imagePath = productImage(product);
+      if (!imagePath) throw new Error("PRODUCT_IMAGE_REQUIRED");
+      return { url: absoluteImageUrl(imagePath, origin), mimeType: "image/jpeg" as const };
+    });
+    const productFacts = selectedProducts.map((product) => [product.brand, product.name, product.color, product.style, product.fabric, product.fit, product.length, product.lookbookPrompt].filter(Boolean).join(", ")).join(" | ");
+    const measurementFacts = [input.height && `height ${input.height} cm`, input.weight && `weight ${input.weight} kg`, input.shoulderWidth && `shoulder ${input.shoulderWidth} cm`, input.chest && `bust ${input.chest} cm`, input.waist && `waist ${input.waist} cm`, input.hip && `hip ${input.hip} cm`, input.usualSize && `usual size ${input.usualSize}`, input.bodyType !== "unknown" && `body profile ${input.bodyType}`].filter(Boolean).join(", ");
+    const generationId = crypto.randomUUID();
+    const prompt = [
+      "Create one realistic, respectful vertical 9:16 fashion fitting recommendation image using the supplied adult customer's photo as the identity, face, body proportions, pose context, and lighting reference.",
+      "Keep the person recognizable and natural; do not change their face, body shape, skin tone, age, or identity. Do not infer or expose sensitive traits. Do not sexualize the person.",
+      "Dress the customer in the exact supplied LESOUL catalog garments. Preserve each garment's real color, silhouette, length, material texture, seams, neckline, sleeves, and construction. Do not invent a different garment, replace a selected item, add a logo, add text, or create a collage.",
+      "Use the supplied measurements only to make the garment fit plausibly. Keep every selected product visible in one complete head-to-toe or three-quarter fitting image. Use a clean, neutral fitting-room or soft studio background.",
+      measurementFacts ? `Customer fit data: ${measurementFacts}.` : "No reliable numeric fit data was provided; use the visible proportions from the customer photo only.",
+      `Catalog garment facts: ${productFacts || "registered LESOUL garments"}.`,
+      "This is a store-display recommendation preview. Do not retain or reproduce the original camera background beyond what is needed for the fitting reference.",
+    ].join(" ");
+    const generated = await generateImage({ prompt, originalImages: [dataUrlReference(input.photoDataUrl), ...garmentReferences], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/customer-recommendations/${ctx.user.id}/${generationId}.png` });
+    if (typeof generated.url !== "string") throw new Error("IMAGE_RESULT_INVALID");
+    return { imageUrl: generated.url, productIds: selectedProducts.map((product) => product.id), productNames: selectedProducts.map((product) => product.name || `#${product.id}`), vertical: true };
   }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {
     const catalog = await getCatalog();
