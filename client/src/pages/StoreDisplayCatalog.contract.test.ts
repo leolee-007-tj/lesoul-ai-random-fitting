@@ -5,7 +5,7 @@ const display = readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.ur
 
 describe("store display catalog redesign", () => {
   it("keeps category filtering and adds brand search", () => {
-    expect(display).toContain("trpc.catalog.storeDisplayProducts.useQuery()");
+    expect(display).toContain("trpc.catalog.storeDisplayProducts.useQuery(undefined, liveDisplayQueryOptions)");
     expect(display).toContain("trpc.catalog.productCategories.useQuery");
     expect(display).toContain("managedCategories.data");
     expect(display).toContain("displayCategory?.id");
