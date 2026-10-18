@@ -70,6 +70,8 @@ describe("store display catalog redesign", () => {
 
   it("uses a rear-camera-only portrait capture for iPad recommendations", () => {
     expect(display).toContain("aspect-[9/16]");
+    expect(display).toContain("h-[min(52svh,32rem)]");
+    expect(display).toContain("flex shrink-0 flex-wrap items-center justify-center gap-2");
     expect(display).toContain('facingMode: { exact: cameraFacingMode }');
     expect(display).toContain("canvas.width = 720; canvas.height = 1280");
     expect(display).not.toContain("onClick={switchCamera}");
