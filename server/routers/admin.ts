@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import { createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
+import { clearAdminNewArrivals, createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { ownerProcedure, router } from "../_core/trpc";
 import { redeemCodes, releaseSettings } from "../../drizzle/schema";
@@ -384,6 +384,9 @@ ${referenceText}` },
     const sale = touchesSale ? resolveSaleFields({ ...productUpdates, ...setFields }, existing) : {};
     await updateAdminProduct(id, { ...productUpdates, ...setFields, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(inventoryQuantity !== undefined ? { inventoryQuantity } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
     return { success: true };
+  }),
+  clearNewArrivals: ownerProcedure.input(z.object({ ids: z.array(z.number().int().positive()).max(1000).optional() }).optional()).mutation(async ({ input }) => {
+    return clearAdminNewArrivals(input?.ids);
   }),
   deleteProduct: ownerProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const result = await deleteAdminProduct(input.id);

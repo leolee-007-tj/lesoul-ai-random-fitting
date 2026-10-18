@@ -537,6 +537,18 @@ export async function updateAdminProduct(id: number, input: Partial<Omit<typeof 
   await db.update(products).set(input).where(eq(products.id, id));
 }
 
+export async function clearAdminNewArrivals(ids?: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("The admin dashboard is temporarily unavailable.");
+  const uniqueIds = ids ? Array.from(new Set(ids)) : [];
+  const condition = uniqueIds.length ? inArray(products.id, uniqueIds) : eq(products.isNew, 1);
+  const existing = await db.select({ id: products.id }).from(products).where(condition);
+  if (!existing.length) return { clearedCount: 0 };
+  const targetIds = existing.map((item) => item.id);
+  await db.update(products).set({ isNew: 0, newArrivalAt: null }).where(inArray(products.id, targetIds));
+  return { clearedCount: targetIds.length };
+}
+
 export async function deleteAdminProduct(id: number) {
   return deleteAdminProducts([id]);
 }
