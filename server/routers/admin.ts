@@ -30,28 +30,30 @@ const setComponentInput = z.object({
 
 const priceTagOcrInput = z.object({ dataUrl: z.string().regex(/^data:image\/(?:jpeg|png|webp);base64,/, "Only JPEG, PNG, or WebP images are supported.").max(12_000_000) });
 
-async function translateProductFields(name: string, description: string) {
+type ProductTranslationFields = { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string; seasonEn: string; seasonKo: string; seasonZh: string; colorEn: string; colorKo: string; colorZh: string; styleEn: string; styleKo: string; styleZh: string };
+
+async function translateProductFields(name: string, description: string, metadata?: { season?: string; color?: string; style?: string }): Promise<ProductTranslationFields> {
   const response = await invokeLLM({
     messages: [
-      { role: "system", content: "You are a professional fashion-commerce localization service. Detect the source language and translate the product name and description into natural English, Korean, and Simplified Chinese. Preserve brand names, garment terms, measurements, prices, and factual meaning. Do not invent claims. Return only JSON." },
-      { role: "user", content: JSON.stringify({ name, description }) },
+      { role: "system", content: "You are a professional fashion-commerce localization service. Detect the source language and translate the product name, description, season, color, and style into natural English, Korean, and Simplified Chinese. Preserve brand names, garment terms, measurements, prices, and factual meaning. Do not invent claims. Keep empty optional metadata empty. Return only JSON." },
+      { role: "user", content: JSON.stringify({ name, description, season: metadata?.season ?? "", color: metadata?.color ?? "", style: metadata?.style ?? "" }) },
     ],
-    response_format: { type: "json_schema", json_schema: { name: "product_localization", strict: true, schema: { type: "object", properties: { nameEn: { type: "string" }, nameKo: { type: "string" }, nameZh: { type: "string" }, descriptionEn: { type: "string" }, descriptionKo: { type: "string" }, descriptionZh: { type: "string" } }, required: ["nameEn", "nameKo", "nameZh", "descriptionEn", "descriptionKo", "descriptionZh"], additionalProperties: false } } },
+    response_format: { type: "json_schema", json_schema: { name: "product_localization", strict: true, schema: { type: "object", properties: { nameEn: { type: "string" }, nameKo: { type: "string" }, nameZh: { type: "string" }, descriptionEn: { type: "string" }, descriptionKo: { type: "string" }, descriptionZh: { type: "string" }, seasonEn: { type: "string" }, seasonKo: { type: "string" }, seasonZh: { type: "string" }, colorEn: { type: "string" }, colorKo: { type: "string" }, colorZh: { type: "string" }, styleEn: { type: "string" }, styleKo: { type: "string" }, styleZh: { type: "string" } }, required: ["nameEn", "nameKo", "nameZh", "descriptionEn", "descriptionKo", "descriptionZh", "seasonEn", "seasonKo", "seasonZh", "colorEn", "colorKo", "colorZh", "styleEn", "styleKo", "styleZh"], additionalProperties: false } } },
   });
   const content = response.choices?.[0]?.message?.content;
   if (typeof content !== "string") throw new Error("Translation response was empty.");
   const translated = JSON.parse(content) as Record<string, string>;
-  return Object.fromEntries(Object.entries(translated).map(([key, value]) => [key, value.trim()])) as { nameEn: string; nameKo: string; nameZh: string; descriptionEn: string; descriptionKo: string; descriptionZh: string };
+    return Object.fromEntries(Object.entries(translated).map(([key, value]) => [key, value.trim()])) as ProductTranslationFields;
 }
 
 function containsChinese(value: string | null | undefined) {
   return /[\u3400-\u9fff]/.test(value ?? "");
 }
 
-function needsProductTranslation(product: { name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; description?: string | null; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null }) {
+function needsProductTranslation(product: { name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; description?: string | null; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null; season?: string; seasonEn?: string | null; seasonKo?: string | null; seasonZh?: string | null; color?: string; colorEn?: string | null; colorKo?: string | null; colorZh?: string | null; style?: string; styleEn?: string | null; styleKo?: string | null; styleZh?: string | null }) {
   const sourceNameIsChinese = containsChinese(product.name);
   const sourceDescriptionIsChinese = containsChinese(product.description);
-  return !product.nameEn || !product.nameKo || !product.nameZh || !product.descriptionEn || !product.descriptionKo || !product.descriptionZh
+  return !product.nameEn || !product.nameKo || !product.nameZh || !product.descriptionEn || !product.descriptionKo || !product.descriptionZh || !product.seasonEn || !product.seasonKo || !product.seasonZh || !product.colorEn || !product.colorKo || !product.colorZh || !product.styleEn || !product.styleKo || !product.styleZh
     || (sourceNameIsChinese && product.nameKo === product.name)
     || (sourceDescriptionIsChinese && product.descriptionKo === product.description);
 }
@@ -61,6 +63,9 @@ const productInput = z.object({
   nameEn: z.string().max(160).nullable().optional(),
   nameKo: z.string().max(160).nullable().optional(),
   nameZh: z.string().max(160).nullable().optional(),
+  seasonEn: z.string().max(120).nullable().optional(), seasonKo: z.string().max(120).nullable().optional(), seasonZh: z.string().max(120).nullable().optional(),
+  colorEn: z.string().max(80).nullable().optional(), colorKo: z.string().max(80).nullable().optional(), colorZh: z.string().max(80).nullable().optional(),
+  styleEn: z.string().max(200).nullable().optional(), styleKo: z.string().max(200).nullable().optional(), styleZh: z.string().max(200).nullable().optional(),
   brand: z.string().max(120).nullable().optional(),
   displayCategoryId: z.number().int().positive().nullable().optional(),
   category: z.enum(["top", "bottom", "outer", "dress", "shoes", "bag"]),
@@ -279,7 +284,7 @@ ${referenceText}` },
     const translated = JSON.parse(content) as { sourceLanguage: "en" | "ko" | "zh"; titleEn: string; titleKo: string; titleZh: string; bodyEn: string; bodyKo: string; bodyZh: string };
     return { sourceLanguage: translated.sourceLanguage, titleEn: translated.titleEn.trim(), titleKo: translated.titleKo.trim(), titleZh: translated.titleZh.trim(), bodyEn: translated.bodyEn.trim(), bodyKo: translated.bodyKo.trim(), bodyZh: translated.bodyZh.trim() };
   }),
-  translateProduct: ownerProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000) })).mutation(async ({ input }) => translateProductFields(input.name, input.description)),
+  translateProduct: ownerProcedure.input(z.object({ sourceLanguage: z.enum(["en", "ko", "zh"]), name: z.string().min(1).max(160), description: z.string().min(1).max(4000), season: z.string().max(120).optional(), color: z.string().max(80).optional(), style: z.string().max(200).optional() })).mutation(async ({ input }) => translateProductFields(input.name, input.description, input)),
   translatePurchaseNotice: ownerProcedure.input(z.object({ noticeKo: z.string().trim().min(1).max(1200) })).mutation(async ({ input }) => {
     const response = await invokeLLM({
       messages: [
@@ -338,7 +343,7 @@ ${referenceText}` },
     let failed = 0;
     for (const product of products) {
       try {
-        const fields = await translateProductFields(product.name, product.description || product.name);
+        const fields = await translateProductFields(product.name, product.description || product.name, { season: product.season, color: product.color, style: product.style });
         await updateAdminProduct(product.id, fields);
         translated += 1;
       } catch { failed += 1; }
@@ -347,7 +352,7 @@ ${referenceText}` },
   }),
   createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
     let translatedFields: Record<string, string> = {};
-    try { translatedFields = await translateProductFields(input.name, input.description); } catch { /* Keep the owner's source text if localization is temporarily unavailable. */ }
+    try { translatedFields = await translateProductFields(input.name, input.description, { season: input.season, color: input.color, style: input.style }); } catch { /* Keep the owner's source text if localization is temporarily unavailable. */ }
     const inputWithTranslations = { ...input, ...translatedFields };
     const availabilityStatus = normaliseAvailabilityStatus(inputWithTranslations.availabilityStatus, inputWithTranslations.status);
     const inventoryQuantity = availabilityStatus === "SOLD_OUT" ? 0 : input.inventoryQuantity ?? 1;
@@ -372,7 +377,7 @@ ${referenceText}` },
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
     let translationUpdates: Record<string, string> = {};
     const needsTranslation = Boolean(updates.name || updates.description || needsProductTranslation({ ...existing, ...updates }));
-    if (needsTranslation) { try { translationUpdates = await translateProductFields(updates.name ?? existing.name, updates.description ?? existing.description ?? existing.name); } catch { /* Keep existing localized content if localization is temporarily unavailable. */ } }
+    if (needsTranslation) { try { translationUpdates = await translateProductFields(updates.name ?? existing.name, updates.description ?? existing.description ?? existing.name, { season: updates.season ?? existing.season, color: updates.color ?? existing.color, style: updates.style ?? existing.style }); } catch { /* Keep existing localized content if localization is temporarily unavailable. */ } }
     const { productType: _productType, setComponents: _setComponents, ...productUpdatesRaw } = updates;
     const productUpdates = { ...productUpdatesRaw, ...translationUpdates };
     const setFields = resolveSetFields(updates, existing);

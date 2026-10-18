@@ -9,6 +9,18 @@ export type LocalizedProduct = {
   descriptionEn?: string | null;
   descriptionKo?: string | null;
   descriptionZh?: string | null;
+  season?: string | null;
+  seasonEn?: string | null;
+  seasonKo?: string | null;
+  seasonZh?: string | null;
+  color?: string | null;
+  colorEn?: string | null;
+  colorKo?: string | null;
+  colorZh?: string | null;
+  style?: string | null;
+  styleEn?: string | null;
+  styleKo?: string | null;
+  styleZh?: string | null;
   price?: number;
   priceOriginal?: number | null;
   discountRate?: number | null;
@@ -66,6 +78,14 @@ export function localizedProductMeta(value: string | null | undefined, language:
   const source = value?.trim() ?? "";
   if (!source || ["color", "season", "style"].includes(source.toLowerCase())) return "";
   return productMetaTranslations[source]?.[toProductLocale(language)] ?? source;
+}
+
+export function localizedProductMerchandising(product: LocalizedProduct, field: "season" | "color" | "style", language: string) {
+  const locale = toProductLocale(language);
+  const suffix = locale === "ko" ? "Ko" : locale === "zh" ? "Zh" : "En";
+  const translated = product[`${field}${suffix}` as keyof LocalizedProduct];
+  const source = typeof translated === "string" && translated.trim() ? translated : product[field];
+  return localizedProductMeta(source, language);
 }
 
 /** Dark merchandise needs an explicit photography-lighting colour notice. */
