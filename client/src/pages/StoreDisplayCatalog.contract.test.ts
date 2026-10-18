@@ -62,9 +62,17 @@ describe("store display catalog redesign", () => {
 
   it("exposes session-only camera capture without the old visitor-detection controls", () => {
     expect(display).toContain("getUserMedia");
-    expect(display).toContain("cameraStreamRef");
+    expect(display).toContain("cameraFacingMode");
     expect(display).toContain("setCapturedPhoto");
     expect(display).not.toContain("runPreflight");
     expect(display).not.toContain("START DETECTION");
+  });
+
+  it("uses a rear-camera-only portrait capture for iPad recommendations", () => {
+    expect(display).toContain("aspect-[9/16]");
+    expect(display).toContain('facingMode: { exact: cameraFacingMode }');
+    expect(display).toContain("canvas.width = 720; canvas.height = 1280");
+    expect(display).not.toContain("onClick={switchCamera}");
+    expect(display).not.toContain("<SwitchCamera");
   });
 });
