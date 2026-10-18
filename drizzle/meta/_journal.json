@@ -505,6 +505,13 @@
       "when": 1792308890311,
       "tag": "0071_light_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "5",
+      "when": 1792340707533,
+      "tag": "0072_early_sunset_bain",
+      "breakpoints": true
     }
   ]
 }
