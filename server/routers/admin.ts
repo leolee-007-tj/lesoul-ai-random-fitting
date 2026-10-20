@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { clearAdminNewArrivals, createAdminProduct, createCuratedOutfit, createProductCategory, deleteAdminProduct, deleteAdminProducts, deleteAllAdminProducts, getAdminStats, getCatalog, getDb, listCuratedOutfits, listProductCategories, resolveDisplayCategoryId, updateAdminProduct, updateCuratedOutfit, updateProductCategory } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { ownerProcedure, router } from "../_core/trpc";
-import { redeemCodes, releaseSettings } from "../../drizzle/schema";
+import { products, redeemCodes, releaseSettings } from "../../drizzle/schema";
 import { getReleaseSettings } from "../access";
 import { createHash, randomBytes } from "node:crypto";
 import { legacyStatusForAvailability, normaliseAvailabilityStatus } from "../../shared/productAvailability";
@@ -351,6 +351,10 @@ ${referenceText}` },
     return { translated, failed, processed: products.length, hasMore: products.length === batchSize };
   }),
   createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
+    const db = await getDb();
+    if (!db) throw new Error("The admin dashboard is temporarily unavailable.");
+    const duplicate = (await db.select({ id: products.id }).from(products).where(eq(products.name, input.name.trim())).limit(1))[0];
+    if (duplicate) throw new Error("PRODUCT_NAME_EXISTS");
     let translatedFields: Record<string, string> = {};
     try { translatedFields = await translateProductFields(input.name, input.description, { season: input.season, color: input.color, style: input.style }); } catch { /* Keep the owner's source text if localization is temporarily unavailable. */ }
     const inputWithTranslations = { ...input, ...translatedFields };
