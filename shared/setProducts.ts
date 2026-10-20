@@ -13,6 +13,8 @@ export type SetProductComponent = {
   nameKo?: string | null;
   nameZh?: string | null;
   price: number;
+  /** Optional component-level product image used when uploading a set. */
+  imageUrl?: string | null;
   garmentMeasurements?: GarmentMeasurements | null;
   stretchLevel?: StretchLevel | null;
 };

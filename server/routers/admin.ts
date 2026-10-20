@@ -24,6 +24,7 @@ const setComponentInput = z.object({
   nameKo: z.string().trim().max(160).nullable().optional(),
   nameZh: z.string().trim().max(160).nullable().optional(),
   price: z.number().int().min(1).max(10_000_000),
+  imageUrl: z.string().min(1).max(2000).nullable().optional(),
   garmentMeasurements: z.object({ shoulderCm: z.number().min(0).max(300).nullable().optional(), bustCm: z.number().min(0).max(300).nullable().optional(), waistCm: z.number().min(0).max(300).nullable().optional(), hipCm: z.number().min(0).max(300).nullable().optional(), sleeveCm: z.number().min(0).max(200).nullable().optional(), totalLengthCm: z.number().min(0).max(300).nullable().optional(), riseCm: z.number().min(0).max(100).nullable().optional(), thighCm: z.number().min(0).max(200).nullable().optional(), inseamCm: z.number().min(0).max(200).nullable().optional() }).nullable().optional(),
   stretchLevel: z.enum(["none", "low", "medium", "high"]).nullable().optional(),
 });
@@ -158,6 +159,7 @@ function normalizeSetComponents(components: SetComponentDraft[]): SetProductComp
       nameKo: component.nameKo?.trim() || null,
       nameZh: component.nameZh?.trim() || null,
       price: Math.round(component.price),
+      imageUrl: component.imageUrl?.trim() || null,
       garmentMeasurements: component.garmentMeasurements ?? null,
       stretchLevel: component.stretchLevel ?? null,
     } satisfies SetProductComponent;
