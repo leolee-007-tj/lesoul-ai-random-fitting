@@ -1,0 +1,12 @@
+{
+  "name": "LESOUL LOOK",
+  "short_name": "LESOUL",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f2eb",
+  "theme_color": "#3f342d",
+  "description": "AI fashion editorial experience by LESOUL LOOK",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

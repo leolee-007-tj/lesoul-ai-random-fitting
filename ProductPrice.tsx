@@ -1,0 +1,25 @@
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { getOriginalPrice, toProductLocale, type LocalizedProduct } from "@shared/productCommerce";
+import { formatCentralDiscount, resolveCentralPrice } from "@shared/pricingPolicy";
+import { useTranslation } from "react-i18next";
+import StoreInquiryQr, { isPriceVisibleToRole } from "@/components/StoreInquiryQr";
+
+type PriceProduct = LocalizedProduct & { id: number; price: number; normalDiscountPercent?: number | null; vipDiscountPercent?: number | null; isNew?: number | boolean | null; availabilityStatus?: string | null; status?: string | null };
+
+function cny(value: number) {
+  return `¥${Math.max(0, Math.round(value)).toLocaleString("en-US")}`;
+}
+
+export default function ProductPrice({ product, className = "", detail = false, revealPrice = false, compactInquiry = false, hideInquiry = false }: { product: PriceProduct; className?: string; detail?: boolean; revealPrice?: boolean; compactInquiry?: boolean; hideInquiry?: boolean }) {
+  const { i18n } = useTranslation();
+  const { user } = useAuth();
+  const canSeePrice = revealPrice || isPriceVisibleToRole(user?.role);
+  const config = trpc.purchase.config.useQuery(undefined, { enabled: canSeePrice, staleTime: 60_000 });
+  if (!canSeePrice) return hideInquiry ? null : <StoreInquiryQr productId={detail ? product.id : undefined} compact={compactInquiry} showThumbnail={!detail} className={className} />;
+  const pricing = resolveCentralPrice(getOriginalPrice(product), { mode: config.data?.pricingMode, centralSaleEnabled: config.data?.centralSaleEnabled, tier: user?.role === "vip" ? "VIP" : "NORMAL", normalDiscountPercent: product.normalDiscountPercent, vipDiscountPercent: product.vipDiscountPercent, isNew: product.isNew, excludeNewArrivalsFromSale: config.data?.excludeNewArrivalsFromSale, saleEndsAt: config.data?.saleEndsAt });
+  const unavailable = product.availabilityStatus === "SOLD_OUT" || product.status === "sold_out";
+  if (unavailable || pricing.discountPercent <= 0) return <span className={`font-semibold text-[#25211d] ${className}`}>{cny(pricing.original)}</span>;
+  const saleLabel = formatCentralDiscount(pricing.discountPercent, toProductLocale(i18n.language));
+  return <span className={`inline-flex flex-wrap items-center gap-1.5 ${className}`}><span className="text-[#8b847a] line-through decoration-[#8b847a]">{cny(pricing.original)}</span><span className="text-[#9a332c]">→</span><b className="font-bold text-[#8f2f28]">{cny(pricing.unitPrice)}</b><span className="rounded-full bg-[#f4e3df] px-2 py-0.5 text-[10px] font-bold tracking-[.08em] text-[#8f2f28]">{saleLabel}</span></span>;
+}

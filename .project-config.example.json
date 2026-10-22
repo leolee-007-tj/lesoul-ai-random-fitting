@@ -1,0 +1,21 @@
+{
+  "name": "lesoul-ai-random-fitting",
+  "path": "/path/to/lesoul-ai-random-fitting",
+  "port": 3000,
+  "build_command": "pnpm run build",
+  "dev_command": "pnpm run dev",
+  "test_command": "pnpm test",
+  "capabilities": ["db", "server", "user"],
+  "experiments": ["no_db_push"],
+  "env_vars": {
+    "DATABASE_URL": "<set-in-secret-manager>"
+  },
+  "secrets": {
+    "JWT_SECRET": "<set-in-secret-manager>",
+    "OAUTH_SERVER_URL": "<set-in-secret-manager>",
+    "OWNER_OPEN_ID": "<set-in-secret-manager>",
+    "BUILT_IN_FORGE_API_URL": "<set-in-secret-manager>",
+    "BUILT_IN_FORGE_API_KEY": "<set-in-secret-manager>"
+  },
+  "template_id": "web-db-user"
+}
