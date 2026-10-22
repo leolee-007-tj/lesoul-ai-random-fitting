@@ -1,0 +1,2 @@
+ALTER TABLE `releaseSettings` ADD `purchaseMode` enum('PURCHASE_LIST','QR','DISABLED') DEFAULT 'PURCHASE_LIST' NOT NULL;--> statement-breakpoint
+ALTER TABLE `releaseSettings` ADD `purchaseListMaxItems` int DEFAULT 10 NOT NULL;

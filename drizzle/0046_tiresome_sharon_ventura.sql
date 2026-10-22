@@ -1,0 +1,1 @@
+ALTER TABLE `releaseSettings` ADD `liyingReferenceImageUrls` json;

@@ -1,0 +1,20 @@
+export const MIN_PRESENCE_ALERT_REPEATS = 1;
+export const MAX_PRESENCE_ALERT_REPEATS = 5;
+
+// Short in-app fallback tone. It is not uploaded or persisted; it only lets the
+// owner verify camera detection before uploading a custom MP3 or recording.
+export const DEFAULT_PRESENCE_ALERT_SOUND = "data:audio/wav;base64,UklGRqQHAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YYAHAAAAAEkA4QAtAakAT/+7/eT8jP2//6ICxgTdBHsCcf6Q+tn4c/r9/pAEhQi/CL8EEv639830Bve8/QsGFAzIDHEHNP459czwUfP9+w8HZw/sEIgK2f4f8+PsW+/F+ZYHcxIfFf4NAABw8R7pMusY950HLxVVGckRqQEz8Ijl3ub88yEHjxeCHeEV0QNw7y3ibeJ28CEGixmZITwadwYr7xjf6t2O7JsEGxuOJc4elQlo71TcYtlN6I8CNxxWKY4jJw0r8OzZ4NS74wAA1xzjLG8oJxF38ejXctDh3u/89xwqMGYtjhVN81LWI8zL2WD5kRwhM/wx5hnt9ZTWPsqU1u315hn8MSEzzhxD+dDYWcqC1KHy5BakMBI0mR+g/DPbqsqc0mPvyhMcL840RCIAALzdMsvk0DbsnRBkLVY1zSRgA2fg7stczxzpXw1+K6c1MCe9BjLj38wEzhrmEwpsKcI1bCkTChrmBM7fzDLjvQYwJ6c1fitfDRzpXM/uy2fgYAPNJFY1ZC2dEDbs5NAyy7zdAABEIs40HC/KE2PvnNKqyjPboPyZHxI0pDDkFqHygtRZytDYQ/nOHCEz/DHmGe31lNY+ypTW7fXmGfwxITPOHEP50NhZyoLUofLkFqQwEjSZH6D8M9uqypzSY+/KExwvzjREIgAAvN0yy+TQNuydEGQtVjXNJGADZ+Duy1zPHOlfDX4rpzUwJ70GMuPfzATOGuYTCmwpwjVsKRMKGuYEzt/MMuO9BjAnpzV+K18NHOlcz+7LZ+BgA80kVjVkLZ0QNuzk0DLLvN0AAEQizjQcL8oTY++c0qrKM9ug/JkfEjSkMOQWofKC1FnK0NhD+c4cITP8MeYZ7fWU1j7KlNbt9eYZ/DEhM84cQ/nQ2FnKgtSh8uQWpDASNJkfoPwz26rKnNJj78oTHC/ONEQiAAC83TLL5NA27J0QZC1WNc0kYANn4O7LXM8c6V8NfiunNTAnvQYy49/MBM4a5hMKbCnCNWwpEwoa5gTO38wy470GMCenNX4rXw0c6VzP7stn4GADzSRWNWQtnRA27OTQMsu83QAARCLONBwvyhNj75zSqsoz26D8mR8SNKQw5Bah8oLUWcrQ2EP5zhwhM/wx5hnt9ZTWPsqU1u315hn8MSEzzhxD+dDYWcqC1KHy5BakMBI0mR+k/InbZctw08TvQBOcLeMy3SAAAHLfE86t03jtew8XKjcxyiEWA0bj59A51IHr6QuNJlAvYSLhBf7m2NMP1d7pkAgFIzUtpSJhCJPq4dYr1pDodAWHH+wqmCKTCgDu+dmH15XnmAIaHHwoQCJ2DD/xGd0e2ezmAADEGO0lniEIDkz0OuDp2pPmr/2LFUQjuSBLDyH3VuPi3Ifmp/t2EokglR8/ELr5ZeYD38Xm6fmKD8MdNh7kEBT8YelG4Urnd/jMDPkaoxw8ES3+Q+yj4xHoUfdBCjIY4hpKEQAABu8U5hfpd/buB3UV+BgQEY0Bo/GS6FXq6PXVBcgS7RaRENECFvQW68jrpPX8AzEQxRTRD80DWfaZ7WntqPVkArcNiRLUDn8EaPgV8DLv8vUPAWALPhCeDegEPvqC8h7xgPYAADEJ7A01DAoF2fvc9CfzTfc4/y4HmQudCuQENP0b90X1V/i3/l4FTAncCHkETv45+XP3mfl9/sQDCwf5BswDJP8x+6n5D/uL/mUC3QT4BN8Ctf/9/OH7s/ze/kIByQLhArcBAACZ/hT+gP52/2EA0wC6AFYABAA=";
+
+export function normalizePresenceAlertRepeats(value: unknown) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return MIN_PRESENCE_ALERT_REPEATS;
+  return Math.min(MAX_PRESENCE_ALERT_REPEATS, Math.max(MIN_PRESENCE_ALERT_REPEATS, Math.trunc(parsed)));
+}
+
+export function shouldStartPresencePlayback(input: { personDetected: boolean; isPlaying: boolean; hasSound: boolean }) {
+  return input.personDetected && !input.isPlaying && input.hasSound;
+}
+
+export function shouldContinuePresencePlayback(input: { completedPlays: number; repeatCount: number }) {
+  return input.completedPlays < normalizePresenceAlertRepeats(input.repeatCount);
+}

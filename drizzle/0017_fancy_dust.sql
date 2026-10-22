@@ -1,0 +1,1 @@
+ALTER TABLE `generationLogs` ADD `generationMode` enum('AI_FITTING','QUICK_FIT') DEFAULT 'AI_FITTING' NOT NULL;

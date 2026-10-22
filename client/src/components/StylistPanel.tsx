@@ -1,0 +1,282 @@
+import { trpc } from "@/lib/trpc";
+import NormalizedProductImage from "@/components/NormalizedProductImage";
+import StoreInquiryQr from "@/components/StoreInquiryQr";
+import { LoaderCircle, ShoppingBag, Sparkles, X } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+export type StylistProduct = {
+  id: number;
+  name: string;
+  nameEn?: string | null;
+  nameKo?: string | null;
+  nameZh?: string | null;
+  imageUrl: string;
+  category: string;
+  brand?: string | null;
+  color?: string | null;
+  style?: string | null;
+  fit?: string | null;
+  description?: string;
+  status: string;
+  price: number;
+  priceOriginal?: number | null;
+  discountRate?: number | null;
+  priceSale?: number | null;
+  saleEnabled?: number | boolean | null;
+  availabilityStatus?: "AVAILABLE" | "PREORDER" | "IN_STOCK" | "PRE_ORDER" | "SOLD_OUT" | null;
+  isActive?: number | boolean | null;
+  isNew?: number | boolean | null;
+  garmentMeasurements?: import("@shared/fitEngine").GarmentMeasurements | null;
+  sizeOptions?: Array<{ label?: string }> | null;
+  catalogDisplay?: import("@shared/catalogDisplay").CatalogDisplaySettings & { effectiveScale?: number | null };
+};
+
+export type StylistRecommendation = {
+  lookId: string;
+  productIds: number[];
+  score: number;
+  reason: string;
+  scoreBreakdown: { style: number; color: number; silhouette: number; season: number; material: number; formality: number; fit: number };
+};
+
+export function stylistErrorMessage(_message: string | undefined, locale: "en" | "ko" | "zh") {
+  return locale === "ko" ? "관리자 추천 코디를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." : locale === "zh" ? "暂时无法加载店主精选搭配，请稍后重试。" : "We could not load administrator-curated looks. Please try again shortly.";
+}
+
+export function shouldRetryStylistRecommendation(failureCount: number) {
+  return failureCount < 1;
+}
+
+export function shouldShowStylistStatusBadge(surface: "picker" | "recommendation") {
+  return surface === "recommendation";
+}
+
+export function stylistGridClass(columns: number) {
+  const safeColumns = Math.min(4, Math.max(1, Math.round(columns || 2)));
+  return safeColumns === 1 ? "grid-cols-1" : safeColumns === 2 ? "grid-cols-2" : safeColumns === 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-4";
+}
+
+export function shortLookbookReason(reason: string | null | undefined, fallback: string, maxLength = 96) {
+  const text = reason?.trim() || fallback;
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
+}
+
+type PublishedLook = {
+  lookId: string;
+  imageUrl?: string | null;
+  name: string | null;
+  reason: string | null;
+  nameKo?: string | null;
+  nameZh?: string | null;
+  nameEn?: string | null;
+  reasonKo?: string | null;
+  reasonZh?: string | null;
+  reasonEn?: string | null;
+  stylePresetKey: string;
+  products: StylistProduct[];
+};
+
+type StylistPanelProps = {
+  onUseLook: (selection: { products: StylistProduct[]; styleName: string; styleKey: string; selectedLookId: string; recommendations: StylistRecommendation[] }) => void;
+  onError: (message: string) => void;
+};
+
+export default function StylistPanel({ onUseLook, onError }: StylistPanelProps) {
+  const { i18n } = useTranslation();
+  const [selectedLookId, setSelectedLookId] = useState<string | null>(null);
+  const [previewLook, setPreviewLook] = useState<PublishedLook | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<StylistProduct | null>(null);
+  const locale = i18n.language.startsWith("ko") ? "ko" : i18n.language.startsWith("zh") ? "zh" : "en";
+  const copy = {
+    en: {
+      title: "ADMINISTRATOR-CURATED LOOKS",
+      intro: "Only looks saved and published by the LESOUL administrator appear here.",
+      empty: "No administrator-curated looks are published yet.",
+      loading: "Loading administrator-curated looks…",
+      retry: "TRY AGAIN",
+      choose: "ADD TO CART",
+      selected: "ADDED",
+      defaultReason: "A complete look selected by the LESOUL administrator.",
+      productCount: "products",
+      selectedTitle: "SELECTED CURATED LOOK",
+      selectedPhoto: "Selected look photo",
+      detail: "PRODUCT DETAILS",
+      brand: "Brand",
+      color: "Color",
+      style: "Style",
+      fit: "Fit",
+      description: "Description",
+    },
+    ko: {
+      title: "관리자 추천 코디",
+      intro: "이곳에는 LESOUL 관리자가 저장하고 공개한 코디만 표시됩니다.",
+      empty: "아직 공개된 관리자 추천 코디가 없습니다.",
+      loading: "관리자 추천 코디를 불러오는 중…",
+      retry: "다시 시도",
+      choose: "담기",
+      selected: "담김",
+      defaultReason: "LESOUL 관리자가 선택한 완성 코디입니다.",
+      productCount: "개 상품",
+      selectedTitle: "선택한 관리자 추천 코디",
+      selectedPhoto: "선택한 추천 코디 사진",
+      detail: "상품 상세",
+      brand: "브랜드",
+      color: "색상",
+      style: "스타일",
+      fit: "핏",
+      description: "상품 설명",
+    },
+    zh: {
+      title: "店主精选搭配",
+      intro: "这里只显示 LESOUL 店主保存并公开的搭配。",
+      empty: "暂时没有已公开的店主精选搭配。",
+      loading: "正在加载店主精选搭配…",
+      retry: "重试",
+      choose: "加入",
+      selected: "已加入",
+      defaultReason: "这是由 LESOUL 店主精选的完整搭配。",
+      productCount: "件商品",
+      selectedTitle: "已选择的店主精选搭配",
+      selectedPhoto: "已选择的精选搭配图片",
+      detail: "商品详情",
+      brand: "品牌",
+      color: "颜色",
+      style: "款式",
+      fit: "版型",
+      description: "商品说明",
+    },
+  }[locale];
+
+  const published = trpc.stylist.published.useQuery(
+    { locale },
+    { retry: shouldRetryStylistRecommendation },
+  );
+  const publishedData = published.data as { gridColumns?: number; outfits?: PublishedLook[] } | undefined;
+  const looks = publishedData?.outfits ?? [];
+  const gridColumns = Math.min(4, Math.max(1, publishedData?.gridColumns ?? 2));
+  const gridColumnClass = stylistGridClass(gridColumns);
+  const selectedLook = looks.find((look) => look.lookId === selectedLookId) ?? null;
+  const productTitle = (product: StylistProduct) => locale === "ko" ? product.nameKo || product.name : locale === "zh" ? product.nameZh || product.name : product.nameEn || product.name;
+  const lookTitle = (look: PublishedLook) => locale === "ko" ? look.nameKo || look.name || copy.title : locale === "zh" ? look.nameZh || look.name || copy.title : look.nameEn || look.name || copy.title;
+  const lookReason = (look: PublishedLook) => shortLookbookReason(locale === "ko" ? look.reasonKo || look.reason : locale === "zh" ? look.reasonZh || look.reason : look.reasonEn || look.reason, copy.defaultReason);
+
+  const useLook = (look: PublishedLook) => {
+    const products = look.products.filter(Boolean);
+    if (products.length < 1) {
+      onError(stylistErrorMessage("incomplete", locale));
+      return;
+    }
+    setSelectedLookId(look.lookId);
+    onUseLook({
+      products,
+      styleName: lookTitle(look),
+      styleKey: look.stylePresetKey,
+      selectedLookId: look.lookId,
+      recommendations: [],
+    });
+  };
+
+  return (
+    <section className="mt-5" aria-labelledby="curated-look-title">
+      <div className="rounded-[1.2rem] border border-[#e2ddd5] bg-[#fbfaf8] p-4">
+        <div className="flex items-center gap-2">
+          <Sparkles size={15} aria-hidden="true" />
+          <p id="curated-look-title" className="text-[10px] font-bold tracking-[.14em] text-[#6e655c]">{copy.title}</p>
+        </div>
+        <p className="mt-2 text-xs leading-5 text-[#71685f]">{copy.intro}</p>
+      </div>
+
+      {published.isLoading && (
+        <div className="mt-4 grid min-h-32 place-items-center rounded-xl border border-dashed border-[#d8d1c7] bg-white">
+          <LoaderCircle className="animate-spin" size={20} aria-label={copy.loading} />
+          <span className="sr-only">{copy.loading}</span>
+        </div>
+      )}
+
+      {published.isError && (
+        <div className="mt-4 rounded-xl border border-[#d8d1c7] bg-[#fbfaf8] p-4 text-center" role="alert">
+          <p className="text-[11px] leading-5 text-[#70675e]">{stylistErrorMessage(published.error.message, locale)}</p>
+          <button onClick={() => void published.refetch()} className="mt-3 rounded-full border border-[#cfc6ba] bg-white px-3 py-2 text-[10px] font-bold">{copy.retry}</button>
+        </div>
+      )}
+
+      {!published.isLoading && !published.isError && looks.length === 0 && (
+        <div className="mt-4 rounded-xl border border-dashed border-[#d8d1c7] bg-white p-6 text-center text-xs leading-5 text-[#70675e]">{copy.empty}</div>
+      )}
+
+      <div className={`mt-4 grid gap-4 ${gridColumnClass}`}>
+        {looks.map((look) => {
+          const isSelected = selectedLookId === look.lookId;
+          return (
+            <article key={look.lookId} className={`rounded-[1.2rem] border-2 bg-white p-3 transition ${isSelected ? "border-black ring-2 ring-black/20 shadow-[0_10px_24px_rgba(31,26,21,.12)]" : "border-[#dedbd4]"}`}>
+              {look.imageUrl && <button type="button" onClick={() => setPreviewLook(look)} className="mt-3 block w-full cursor-zoom-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"><img src={look.imageUrl} alt={copy.selectedPhoto} className="aspect-[3/4] w-full rounded-xl object-cover" loading="lazy" /></button>}
+              <div className="mt-3 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-5 text-[#302a25]">{lookTitle(look)}</p>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-[#71685f]">{lookReason(look)}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-[#f1ede7] px-2 py-1 text-[9px] font-bold text-[#665c52]">{look.products.length}{copy.productCount}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {look.products.slice(0, 3).map((product) => (
+                  <div key={product.id} className="min-w-0">
+                    <button type="button" onClick={() => setPreviewProduct(product)} className="group relative block w-full overflow-hidden rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black" aria-label={`${productTitle(product)} · ${locale === "ko" ? "크게 보기" : locale === "zh" ? "放大查看" : "View larger"}`}>
+                      <NormalizedProductImage src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full transition duration-200 group-hover:scale-[1.03] group-active:scale-95" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <StoreInquiryQr compact showThumbnail={false} className="mt-3" />
+              <button onClick={() => useLook(look)} aria-pressed={isSelected} className={`mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[11px] font-bold text-white ${isSelected ? "bg-[#29231e]" : "bg-black"}`}>
+                <ShoppingBag size={14} aria-hidden="true" />
+                {isSelected ? copy.selected : copy.choose}
+              </button>
+            </article>
+          );
+        })}
+      </div>
+
+      {selectedLook && (
+        <section className="mt-5 rounded-[1.2rem] border border-[#ded8cf] bg-white p-3 shadow-[0_12px_28px_rgba(31,26,21,.08)]" aria-labelledby="selected-curated-look-title">
+          <div className="flex items-center justify-between gap-3">
+            <p id="selected-curated-look-title" className="text-[10px] font-bold tracking-[.14em] text-[#6e655c]">{copy.selectedTitle}</p>
+            <span className="rounded-full bg-[#f1ede7] px-2 py-1 text-[9px] font-bold text-[#665c52]">{selectedLook.products.length}{copy.productCount}</span>
+          </div>
+          {selectedLook.products[0] && <NormalizedProductImage src={selectedLook.products[0].imageUrl} alt={copy.selectedPhoto} catalogDisplay={selectedLook.products[0].catalogDisplay} className="mt-3 aspect-[4/5] w-full rounded-xl" />}
+          <h2 className="mt-4 font-serif text-2xl text-[#2d2722]">{lookTitle(selectedLook)}</h2>
+          <p className="mt-2 text-sm leading-6 text-[#71685f]">{lookReason(selectedLook)}</p>
+          {selectedLook.products.length > 1 && <div className="mt-4 grid grid-cols-4 gap-2">{selectedLook.products.slice(1).map((product) => <NormalizedProductImage key={product.id} src={product.imageUrl} alt={productTitle(product)} catalogDisplay={product.catalogDisplay} className="aspect-square w-full rounded-lg" />)}</div>}
+        </section>
+      )}
+      {previewLook?.imageUrl && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4" role="dialog" aria-modal="true" aria-label={copy.selectedPhoto} onClick={() => setPreviewLook(null)}>
+          <div className="relative flex max-h-[94svh] w-full max-w-3xl flex-col items-center" onClick={(event) => event.stopPropagation()}>
+            <button type="button" onClick={() => setPreviewLook(null)} className="absolute right-0 top-0 z-10 grid size-10 place-items-center rounded-full bg-white text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={20} /></button>
+            <img src={previewLook.imageUrl} alt={copy.selectedPhoto} className="max-h-[84svh] w-full rounded-2xl object-contain" />
+            <div className="mt-3 rounded-full bg-white/95 px-4 py-2 text-center text-sm font-semibold text-[#2d2722]">{lookTitle(previewLook)}</div>
+          </div>
+        </div>
+      )}
+      {previewProduct && (
+        <div className="fixed inset-0 z-[110] grid place-items-center bg-black/75 p-4" role="dialog" aria-modal="true" aria-label={productTitle(previewProduct)} onClick={() => setPreviewProduct(null)}>
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-3 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button type="button" onClick={() => setPreviewProduct(null)} className="absolute right-3 top-3 z-10 grid size-9 place-items-center rounded-full bg-white/95 text-black shadow" aria-label={locale === "ko" ? "닫기" : locale === "zh" ? "关闭" : "Close"}><X size={18} /></button>
+            <NormalizedProductImage src={previewProduct.imageUrl} alt={productTitle(previewProduct)} catalogDisplay={previewProduct.catalogDisplay} className="aspect-[4/5] w-full rounded-xl" />
+            <div className="px-1 pb-1 pt-3">
+              <p className="text-[10px] font-bold tracking-[.12em] text-[#766b60]">{copy.detail}</p>
+              <p className="mt-1 text-base font-bold text-[#302a25]">{productTitle(previewProduct)}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] leading-4 text-[#655b52]">
+                {previewProduct.brand && <><dt className="font-semibold text-[#93877b]">{copy.brand}</dt><dd className="truncate">{previewProduct.brand}</dd></>}
+                {previewProduct.color && <><dt className="font-semibold text-[#93877b]">{copy.color}</dt><dd className="truncate">{previewProduct.color}</dd></>}
+                {previewProduct.style && <><dt className="font-semibold text-[#93877b]">{copy.style}</dt><dd className="truncate">{previewProduct.style}</dd></>}
+                {previewProduct.fit && <><dt className="font-semibold text-[#93877b]">{copy.fit}</dt><dd className="truncate">{previewProduct.fit}</dd></>}
+              </dl>
+              {previewProduct.description && <p className="mt-3 text-xs leading-5 text-[#71685f]">{previewProduct.description}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}

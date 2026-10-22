@@ -1,0 +1,5 @@
+# Administrator-only trial verification
+
+The active administrator view was opened twice after the trial gate was added. Each fresh capture occurred during the new status-query loading state, so the release form was not yet rendered in the screenshot. The network trace confirmed that `adminTrial.status` returned an **active** state with the localized manual-renewal payload in approximately 720 ms. The server process and TypeScript checks remained healthy.
+
+The server-side trial window unit tests pass. The two-day boundary is calculated deterministically at request time and does not depend on a background scheduler. The current status helper reads and initializes `users.adminTrialStartedAt` for the requesting administrator account, rather than the legacy shared setting, so newly created password-admin accounts begin their own independent two-day period on first protected-console access. Customer procedures remain outside the administrator-trial middleware. The expiry payload now contains separately configurable manual-renewal and usage-guide QR references.

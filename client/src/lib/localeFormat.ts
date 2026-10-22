@@ -1,0 +1,3 @@
+export function normalizeLocale(language: string) { return language.startsWith("ko") ? "ko-KR" : language.startsWith("zh") ? "zh-CN" : "en-US"; }
+export function formatPrice(cny: number, language: string) { return new Intl.NumberFormat(normalizeLocale(language), { style: "currency", currency: "CNY", maximumFractionDigits: 0 }).format(cny); }
+export function formatLookDate(value: string | Date, language: string) { return new Intl.DateTimeFormat(normalizeLocale(language), { year: "numeric", month: language.startsWith("ko") || language.startsWith("zh") ? "numeric" : "short", day: "numeric" }).format(new Date(value)); }

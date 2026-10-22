@@ -1,0 +1,54 @@
+import { describe, expect, it } from "vitest";
+import {
+  CARE_LABEL_GRADES,
+  CARE_LABEL_MATERIALS,
+  CARE_LABEL_PUBLIC_FIELD_OPTIONS,
+  CARE_LABEL_SAFETY_CATEGORIES,
+  CARE_LABEL_STANDARDS,
+  defaultPublicFields,
+  recommendedCareLabelSettings,
+} from "./careLabels";
+
+describe("Care Labels Chinese apparel standard controls", () => {
+  it("provides the requested execution standards, safety classes, grades, and common materials", () => {
+    expect(CARE_LABEL_STANDARDS.some((item) => item.key === "GB_T_22849_2014")).toBe(true);
+    expect(CARE_LABEL_STANDARDS.some((item) => item.key === "GB_T_14272_2021")).toBe(true);
+    expect(CARE_LABEL_STANDARDS.map((item) => item.key)).toEqual(expect.arrayContaining(["QB_T_1618_2018", "QB_T_1002_2015", "QB_T_1333_2018", "FZ_T_63005_2019", "ACCESSORY_MATERIAL_CONFIRM"]));
+    expect(CARE_LABEL_STANDARDS.some((item) => item.key === "GB_T_2665_2017")).toBe(true);
+    expect(CARE_LABEL_SAFETY_CATEGORIES.map((item) => item.key)).toEqual(expect.arrayContaining(["A", "B", "C"]));
+    expect(CARE_LABEL_GRADES.map((item) => item.nameZh)).toEqual(expect.arrayContaining(["优等品", "合格品", "一等品", "待确认"]));
+    expect(CARE_LABEL_MATERIALS.map((item) => item.key)).toEqual(expect.arrayContaining(["cotton", "cotton_canvas", "polyester", "wool", "cashmere", "leather", "pu", "synthetic_leather", "down", "spandex"]));
+  });
+
+  it("recommends a standard without overwriting source text automatically", () => {
+    const result = recommendedCareLabelSettings({ name: "黑色羽绒服", category: "上装", composition: "聚酯纤维", filling: "羽绒" });
+    expect(result.executionStandardKey).toBe("GB_T_14272_2021");
+    expect(result.safetyCategoryKey).toBe("C");
+    expect(result.grade).toBe("合格品");
+  });
+  it("recognizes accessory keywords for QB/T standards", () => {
+    expect(recommendedCareLabelSettings({ name: "真皮腰带", category: "腰带", composition: "天然皮革", filling: "" }).executionStandardKey).toBe("QB_T_1618_2018");
+    expect(recommendedCareLabelSettings({ name: "棉织腰带", category: "腰带", composition: "棉", filling: "" }).executionStandardKey).toBe("FZ_T_63005_2019");
+    expect(recommendedCareLabelSettings({ name: "腰带", category: "腰带", composition: "", filling: "" }).executionStandardKey).toBe("ACCESSORY_MATERIAL_CONFIRM");
+    expect(recommendedCareLabelSettings({ name: "帆布包", category: "箱包", composition: "棉帆布", filling: "" }).executionStandardKey).toBe("QB_T_1333_2018");
+  });
+  it("recognizes women's formal jackets and trousers", () => {
+    expect(recommendedCareLabelSettings({ name: "여성 정장자켓", category: "자켓", composition: "폴리에스터", filling: "" }).executionStandardKey).toBe("GB_T_2665_2017");
+    expect(recommendedCareLabelSettings({ name: "정장바지", category: "바지", composition: "폴리에스터", filling: "" }).executionStandardKey).toBe("GB_T_2666_2017");
+  });
+
+  it("defaults old products to a useful checked public subset and honors explicit choices", () => {
+    const oldProduct = { id: "LS-0001", name: "商品" } as any;
+    expect(defaultPublicFields(oldProduct)).toEqual(expect.arrayContaining(["brand", "name", "origin", "dealer", "address", "phone", "standard"]));
+    expect(CARE_LABEL_PUBLIC_FIELD_OPTIONS.length).toBeGreaterThan(10);
+    expect(defaultPublicFields({ ...oldProduct, publicFields: ["name", "composition"] } as any)).toEqual(["name", "composition"]);
+  });
+
+  it("rejects saved material metadata unless the total is exactly 100%", async () => {
+    const { normalizeCareLabelData } = await import("./careLabels");
+    const base = { id: "LS-0001", materialComposition: [{ key: "cotton", nameZh: "棉", nameKo: "면", percentage: 60 }] };
+    expect(() => normalizeCareLabelData(base)).toThrow("CARE_LABEL_MATERIAL_TOTAL_MUST_BE_100");
+    expect(() => normalizeCareLabelData({ ...base, materialComposition: [{ ...base.materialComposition[0], percentage: 101 }] })).toThrow("CARE_LABEL_MATERIAL_PERCENTAGE_INVALID");
+    expect(normalizeCareLabelData({ ...base, materialComposition: [{ ...base.materialComposition[0], percentage: 100 }] }).materialComposition?.[0]?.percentage).toBe(100);
+  });
+});

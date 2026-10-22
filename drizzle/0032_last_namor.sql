@@ -1,0 +1,1 @@
+ALTER TABLE `productCategories` ADD `measurementFields` json;

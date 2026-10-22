@@ -1,0 +1,1 @@
+ALTER TABLE `generationLogs` MODIFY COLUMN `tryOnMode` enum('my_photo','ai_body_model','quick_fit') NOT NULL DEFAULT 'my_photo';

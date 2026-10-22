@@ -1,0 +1,7 @@
+# Tencent Cloud domain check
+
+2026-09-01: Tencent Cloud official registration guide states that availability must be queried before registration, and the purchase page is https://buy.tencentcloud.com/domain/buy. The official guide was reachable from the sandbox. The purchase page itself navigated successfully but did not expose interactive elements or a price in the unauthenticated browser session; no login, order, or payment was attempted.
+
+Candidate: lesoullook.com. Availability and final price remain unconfirmed until the Tencent Cloud account is logged in and the domain search/order page returns live results. The official pricing search result indicated ordinary `.com` pricing can be shown in Tencent's Chinese console, but the final checkout price must be trusted over cached snippets and promotions.
+
+Additional browser QA, 2026-09-01: The active Tencent Cloud page shows the candidate input as `lesoullook` and the default suffix list does not include `.cn`; the visible result is `lesoullook.com` with a displayed international-style price of $12.99 and an empty selection list. Entering `lesoullook.cn` through the search input did not change the displayed result in this browser session. No domain was added to the cart and no purchase action was taken. The user's supplied screenshot separately showed `lesoullook.cn` selected at 33 CNY/year, but that state is not present in the sandbox browser session, so the screenshot must be treated as the current source for the user's own page, not as a live state I can safely click.

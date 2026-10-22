@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `inventoryQuantity` int DEFAULT 0 NOT NULL;

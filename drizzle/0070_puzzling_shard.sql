@@ -1,0 +1,1 @@
+ALTER TABLE `releaseSettings` ADD `centralSaleEnabled` int DEFAULT 1 NOT NULL;

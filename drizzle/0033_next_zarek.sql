@@ -1,0 +1,2 @@
+ALTER TABLE `releaseSettings` ADD `aiImageProviderPreference` enum('FORGE','QWEN') DEFAULT 'FORGE' NOT NULL;--> statement-breakpoint
+ALTER TABLE `releaseSettings` ADD `aiTextProviderPreference` enum('FORGE','QWEN') DEFAULT 'FORGE' NOT NULL;

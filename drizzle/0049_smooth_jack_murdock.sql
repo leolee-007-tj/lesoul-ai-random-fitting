@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `vipEarlyAccess` int DEFAULT 0 NOT NULL;
