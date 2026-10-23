@@ -4,12 +4,14 @@ import fs from "node:fs";
 const source = fs.readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.url), "utf8");
 
 describe("store display camera recommendations", () => {
-  it("keeps camera controls inside the store display page and supports both cameras", () => {
+  it("keeps rear-camera-only portrait capture consistent with the iPad display contract", () => {
     expect(source).toContain("navigator.mediaDevices?.getUserMedia");
-    expect(source).toContain("facingMode: { ideal: requestedFacingMode }");
-    expect(source).toContain('useState<"environment" | "user">("environment")');
-    expect(source).toContain("switchCamera");
-    expect(source).toContain("SwitchCamera");
+    // The store display uses a fixed rear camera; the broader display contract owns this requirement.
+    expect(source).toContain('const cameraFacingMode = "environment" as const;');
+    expect(source).toContain("facingMode: { exact: cameraFacingMode }");
+    expect(source).toContain("aspectRatio: { ideal: 9 / 16 }");
+    expect(source).not.toContain("onClick={switchCamera}");
+    expect(source).not.toContain("<SwitchCamera");
     expect(source).toContain("audio: false");
     expect(source).toContain("cameraStreamRef.current?.getTracks().forEach");
   });
