@@ -241,6 +241,7 @@ export default function StoreDisplayCatalog() {
   const [customerLookbookExpanded, setCustomerLookbookExpanded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
+  const cameraRequestRef = useRef(0);
   const curatedRecommendations = trpc.stylist.published.useQuery({ locale });
   const [customerProfile, setCustomerProfile] = useState({ height: "", weight: "", shoulderWidth: "", chest: "", waist: "", hip: "", usualSize: "", bodyType: "unknown" as "slim" | "balanced" | "curvy" | "plus" | "unknown", intentText: "", detailText: "" });
   const displayRecommendationInput = { visitorId: "display-session", locale, intentText: customerProfile.intentText, detailText: customerProfile.detailText, height: customerProfile.height ? Number(customerProfile.height) : null, weight: customerProfile.weight ? Number(customerProfile.weight) : null, shoulderWidth: customerProfile.shoulderWidth ? Number(customerProfile.shoulderWidth) : null, chest: customerProfile.chest ? Number(customerProfile.chest) : null, waist: customerProfile.waist ? Number(customerProfile.waist) : null, hip: customerProfile.hip ? Number(customerProfile.hip) : null, bodyType: customerProfile.bodyType, usualSize: customerProfile.usualSize, photoDataUrl: capturedPhoto };
@@ -277,16 +278,29 @@ export default function StoreDisplayCatalog() {
       usualSize: customerProfile.usualSize || undefined,
     });
   };
-  const stopCamera = () => { cameraStreamRef.current?.getTracks().forEach((track) => track.stop()); cameraStreamRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; };
+  const stopCamera = () => { cameraRequestRef.current += 1; cameraStreamRef.current?.getTracks().forEach((track) => track.stop()); cameraStreamRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; };
   const closeCamera = () => { stopCamera(); setCameraOpen(false); setCameraError(""); setCustomerLookbookUrl(null); setCustomerLookbookExpanded(false); customerLookbook.reset(); };
   const openCamera = async () => {
     setCameraOpen(true); setCameraError(""); setCapturedPhoto(null); stopCamera();
+    const requestId = cameraRequestRef.current;
     if (!navigator.mediaDevices?.getUserMedia) { setCameraError(copy.cameraUnsupported); return; }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: cameraFacingMode }, width: { ideal: 720 }, height: { ideal: 1280 }, aspectRatio: { ideal: 9 / 16 } }, audio: false });
+      // Permission may resolve after close, unmount, or a newer request.
+      if (requestId !== cameraRequestRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       cameraStreamRef.current = stream;
-      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
-    } catch { setCameraError(copy.cameraPermission); }
+      const video = videoRef.current;
+      if (!video) { stopCamera(); return; }
+      video.srcObject = stream;
+      await video.play();
+    } catch {
+      if (requestId !== cameraRequestRef.current) return;
+      stopCamera();
+      setCameraError(copy.cameraPermission);
+    }
   };
   const capturePhoto = () => {
     const video = videoRef.current;
