@@ -11,6 +11,7 @@ function setup() {
   const state = { error: "", open: false };
   const refs = { cameraStreamRef: { current: null as unknown }, cameraRequestRef: { current: 0 }, videoRef: { current: video as typeof video | null } };
   const context = vm.createContext({
+    resetRecommendationSession: vi.fn(),
     ...refs, cameraFacingMode: "environment", copy: { cameraPermission: "permission", cameraUnsupported: "unsupported" },
     navigator: { mediaDevices: { getUserMedia: vi.fn(() => new Promise((resolve, reject) => calls.push({ resolve, reject }))) } },
     setCameraOpen: (value: boolean) => { state.open = value; },
