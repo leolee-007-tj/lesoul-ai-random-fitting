@@ -8,10 +8,11 @@ const source = fs.readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.
 function setup() {
   const calls: { resolve: (value: unknown) => void; reject: (reason: Error) => void }[] = [];
   const video = { srcObject: null as unknown, play: vi.fn(async () => {}) };
-  const state = { error: "", open: false };
+  const state = { error: "", open: false, profile: { height: "synthetic-height", weight: "synthetic-weight", intentText: "synthetic-intent" } };
   const refs = { cameraStreamRef: { current: null as unknown }, cameraRequestRef: { current: 0 }, videoRef: { current: video as typeof video | null } };
   const context = vm.createContext({
     resetRecommendationSession: vi.fn(),
+    setCustomerProfile: (value: typeof state.profile) => { state.profile = value; },
     ...refs, cameraFacingMode: "environment", copy: { cameraPermission: "permission", cameraUnsupported: "unsupported" },
     navigator: { mediaDevices: { getUserMedia: vi.fn(() => new Promise((resolve, reject) => calls.push({ resolve, reject }))) } },
     setCameraOpen: (value: boolean) => { state.open = value; },
@@ -32,6 +33,7 @@ function media() {
 describe("store camera request lifecycle", () => {
   it("stops a grant arriving after close without attaching it", async () => {
     const h = setup(); const pending = h.openCamera(); h.closeCamera(); const m = media();
+    expect(h.state.profile).toMatchObject({ height: "", weight: "", intentText: "", bodyType: "unknown" });
     h.calls[0].resolve(m.stream); await pending;
     expect(m.stop).toHaveBeenCalledOnce(); expect(h.cameraStreamRef.current).toBeNull(); expect(h.video.srcObject).toBeNull(); expect(h.video.play).not.toHaveBeenCalled();
   });
@@ -42,6 +44,7 @@ describe("store camera request lifecycle", () => {
   });
   it("keeps the newer stream when an older request resolves later", async () => {
     const h = setup(); const old = h.openCamera(); const latest = h.openCamera(); const a = media(); const b = media();
+    expect(h.state.profile.height).toBe("synthetic-height");
     h.calls[1].resolve(b.stream); await latest; h.calls[0].resolve(a.stream); await old;
     expect(a.stop).toHaveBeenCalledOnce(); expect(b.stop).not.toHaveBeenCalled(); expect(h.cameraStreamRef.current).toBe(b.stream); expect(h.video.srcObject).toBe(b.stream);
   });

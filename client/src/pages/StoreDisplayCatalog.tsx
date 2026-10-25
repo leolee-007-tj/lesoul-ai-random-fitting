@@ -317,7 +317,8 @@ export default function StoreDisplayCatalog() {
     setCustomerLookbookUrl(result.imageUrl); setCustomerLookbookExpanded(true);
   };
   const stopCamera = () => { cameraRequestRef.current += 1; cameraStreamRef.current?.getTracks().forEach((track) => track.stop()); cameraStreamRef.current = null; if (videoRef.current) videoRef.current.srcObject = null; };
-  const closeCamera = () => { resetRecommendationSession(); stopCamera(); setCameraOpen(false); setCameraError(""); setCustomerLookbookUrl(null); setCustomerLookbookExpanded(false); customerLookbook.reset(); };
+  const resetCustomerProfile = () => setCustomerProfile({ height: "", weight: "", shoulderWidth: "", chest: "", waist: "", hip: "", usualSize: "", bodyType: "unknown", intentText: "", detailText: "" });
+  const closeCamera = () => { resetRecommendationSession(); resetCustomerProfile(); stopCamera(); setCameraOpen(false); setCameraError(""); setCustomerLookbookUrl(null); setCustomerLookbookExpanded(false); customerLookbook.reset(); };
   const openCamera = async () => {
     resetRecommendationSession();
     setCameraOpen(true); setCameraError(""); setCapturedPhoto(null); stopCamera();
