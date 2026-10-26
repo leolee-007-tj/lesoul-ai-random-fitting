@@ -6,7 +6,7 @@ const manager = readFileSync(new URL("../client/src/pages/ProductManagerV2.tsx",
 
 describe("product localization coverage", () => {
   it("translates product content during create and update without blocking the save fallback", () => {
-    expect(router).toContain("translateProductFields(input.name, input.description)");
+    expect(router).toContain("translateProductFields(input.name, input.description, { season: input.season, color: input.color, style: input.style })");
     expect(router).toContain("translateProductFields(updates.name ?? existing.name");
     expect(router).toContain("nameEn");
     expect(router).toContain("descriptionZh");

@@ -1,0 +1,52 @@
+{
+  "task": "Camera recommendation stalls before fitting image",
+  "base_sha": "1bf35792a82bbacb8411fc07fb38d283b8bd0316",
+  "branch": "codex/lesoul-camera-contract",
+  "reproduced_transport_before": {
+    "method": "GET",
+    "synthetic_photo_characters": 100000,
+    "url_characters": 100213,
+    "photo_in_url": true,
+    "external_network_sent": false
+  },
+  "changes": [
+    "Move photo recommendations to POST mutation; keep the existing authentication gate.",
+    "Run recommendation and image generation as one awaited flow with visible stages and failure feedback.",
+    "Block duplicate clicks and ignore superseded results after close/retake/unmount.",
+    "Reset session photo and mutations on close/retake; disclose generated-image server storage."
+  ],
+  "validation": {
+    "related_tests_passed": 66,
+    "failed": 0,
+    "new_behavioral_tests": 8,
+    "typescript": "PASS",
+    "frontend_build": "PASS with existing analytics/chunk-size warnings"
+  },
+  "new_test_cases": [
+    "recommendations to generated image",
+    "recommendation failure",
+    "empty products",
+    "image provider failure",
+    "duplicate clicks",
+    "close during recommendations",
+    "close during generation",
+    "synthetic photo stays in POST body"
+  ],
+  "limitations": [
+    "Test providers and transport are fixtures; no real camera or paid model invocation.",
+    "Production Manus deployment and its provider credentials/quota were not inspected or changed.",
+    "Existing LLM provider retries and fetch timeouts were not changed; no claim that every upstream stall is resolved.",
+    "No generated-image expiry policy added."
+  ],
+  "files_sha256": {
+    "server/routers/stylist.ts": "edab38a7d47e30c33490c505f11b6c0997a30c817471e976ee7e511b497b480e",
+    "client/src/pages/StoreDisplayCatalog.tsx": "ed5fbc811ecda0c544ecf15258ae3008ce59d4a83bff0845c990edcbfd19e852",
+    "client/src/pages/StoreDisplayCatalog.recommendationFlow.test.ts": "3a4a582f56f8b25225de3b83fcf30840acbad02efd488e510ccf7a9fa3659a3a",
+    "client/src/pages/StoreDisplayCatalog.cameraLifecycle.contract.test.ts": "4f0fa478db344a787f4fd7f45aa41a042f028d3cf895a28be0adeb32cd0268f9"
+  },
+  "real_model_calls": 0,
+  "deployed": false,
+  "remote_push": false,
+  "production_data_changed": false,
+  "preserved_local_changes": "Earlier product deletion fix remains present and is separately documented under docs/product-deletion-fix."
+}

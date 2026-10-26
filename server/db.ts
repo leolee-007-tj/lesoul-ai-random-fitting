@@ -568,6 +568,11 @@ export async function deleteAdminProducts(ids: number[]) {
     await tx.update(generations).set({ dressProductId: null }).where(inArray(generations.dressProductId, existingIds));
     await tx.update(stylistFeedback).set({ anchorProductId: null }).where(inArray(stylistFeedback.anchorProductId, existingIds));
     await tx.delete(curatedOutfitItems).where(inArray(curatedOutfitItems.productId, existingIds));
+    // Remove catalogue-owned references before the product. Saved LOOK snapshots
+    // remain intact; no object-storage images are deleted by this transaction.
+    await tx.delete(displayLookbookImages).where(inArray(displayLookbookImages.productId, existingIds));
+    await tx.delete(productShareVisits).where(inArray(productShareVisits.productId, existingIds));
+    await tx.delete(productEngagementEvents).where(inArray(productEngagementEvents.productId, existingIds));
     await tx.delete(products).where(inArray(products.id, existingIds));
     await tx.insert(releaseSettings).values({ id: 1, catalogInitialized: 1 }).onDuplicateKeyUpdate({ set: { catalogInitialized: 1 } });
   });

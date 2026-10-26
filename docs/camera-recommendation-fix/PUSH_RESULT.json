@@ -1,0 +1,27 @@
+{
+  "state": "PUSHED_AND_REMOTE_VERIFIED",
+  "repository": "https://github.com/leolee-007-tj/lesoul-ai-random-fitting",
+  "branch": "codex/lesoul-camera-contract",
+  "verified_code_sha": "d5a31e5351c336fac160108b34d4d4256fe11b7b",
+  "repairs": [
+    "Replace disabled push URL with the explicitly approved repository URL.",
+    "Connect repository-local Git credential helper to the existing authenticated GitHub CLI using its absolute executable path.",
+    "Add the exact development branch fetch mapping and upstream tracking."
+  ],
+  "authentication_correction": "Existing GitHub CLI authentication was valid. Earlier Git HTTPS and SSH failures did not establish that no GitHub authentication existed.",
+  "verification": [
+    "Actual branch push succeeded.",
+    "Normal origin push dry-run succeeded through saved local settings.",
+    "GitHub API branch SHA matched the code commit."
+  ],
+  "prior_failures_preserved": [
+    "HTTPS Git credential lookup could not read Username with terminal prompts disabled.",
+    "SSH had no matching authenticated public-key identity.",
+    "Sparse fetch mapping initially prevented upstream tracking configuration."
+  ],
+  "source_verification": "66 related tests plus TypeScript check and frontend build passed before the code commit.",
+  "credentials_copied_or_recorded": false,
+  "main_merged": false,
+  "manus_deployed": false,
+  "note": "Earlier verification reports describe pre-push state and remain unchanged."
+}
