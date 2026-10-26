@@ -78,7 +78,8 @@ export const stylistRouter = router({
     const [outfits, settings] = await Promise.all([getPublishedLookbookOutfits({ role: ctx.user?.role, limit: 12, locale: input.locale }), getReleaseSettings()]);
     return { gridColumns: Math.min(4, Math.max(1, settings.lookbookGridColumns ?? 2)), outfits: outfits.map((outfit) => ({ ...outfit, name: outfit.name || (input.locale === "ko" ? "관리자 추천 코디" : input.locale === "zh" ? "店主精选搭配" : "Administrator-curated look") })) };
   }),
-  displayRecommend: customerReadProcedure.input(displayRecommendationInput).query(async ({ input, ctx }) => {
+  // The input contains a camera photo: send it in a POST body, never a query URL.
+  displayRecommend: customerReadProcedure.input(displayRecommendationInput).mutation(async ({ input, ctx }) => {
     const settings = await getReleaseSettings();
     const [intent, skinPalette] = await Promise.all([understandDisplayIntent(`${input.intentText}\n${input.detailText}`.trim()), analyseDisplaySkinTone(input.photoDataUrl)]);
     const activeProducts = (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));

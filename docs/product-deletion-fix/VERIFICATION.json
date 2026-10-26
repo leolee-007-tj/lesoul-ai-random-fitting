@@ -1,0 +1,33 @@
+{
+  "task": "LESOUL product deletion fix",
+  "base_sha": "1bf35792a82bbacb8411fc07fb38d283b8bd0316",
+  "branch": "codex/lesoul-camera-contract",
+  "changes": [
+    "Delete catalogue-owned lookbook, referral and engagement references inside the existing transaction before deleting products.",
+    "Render generic failure feedback within the deletion dialog and clear it on retry.",
+    "Preserve saved LOOK snapshots and object storage files."
+  ],
+  "validation": {
+    "baseline_regression": {
+      "passed": 1,
+      "failed": 3
+    },
+    "modified_related_tests": {
+      "passed": 22,
+      "failed": 0
+    },
+    "typescript": "PASS",
+    "vite_build": "PASS; existing analytics configuration and chunk-size warnings"
+  },
+  "test_scope": "Fake database operations plus existing contracts; no real database or browser deletion exercised.",
+  "environment_repair": "Sparse checkout omitted two tracked files. Materialized client/index.html and drizzle/0034_strange_miracleman.sql using exact HEAD bytes without changing sparse checkout policy.",
+  "files_sha256": {
+    "server/db.ts": "bb503b9716c898e4ab1e3118c41e72c81f41279204fd1ddb884bbcc04c543aef",
+    "client/src/pages/ProductManagerV2.tsx": "57d382bfc70329c680ce82667cf278367a0d66165cf2ee14c4898778e0f8ba0e",
+    "server/productDeletion.test.ts": "a52535f6eba4b0f3350a1c0f810b3205f8ca56fbe981dba9e35fd7f958e4b6e9"
+  },
+  "production_deletions": 0,
+  "database_migrations": 0,
+  "remote_push": false,
+  "deployed": false
+}
