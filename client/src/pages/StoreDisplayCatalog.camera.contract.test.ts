@@ -4,14 +4,15 @@ import fs from "node:fs";
 const source = fs.readFileSync(new URL("./StoreDisplayCatalog.tsx", import.meta.url), "utf8");
 
 describe("store display camera recommendations", () => {
-  it("keeps camera controls inside the store display page and supports both cameras", () => {
+  it("keeps the portrait rear-camera controls inside the store display page", () => {
     expect(source).toContain("navigator.mediaDevices?.getUserMedia");
-    expect(source).toContain("facingMode: { ideal: requestedFacingMode }");
-    expect(source).toContain('useState<"environment" | "user">("environment")');
-    expect(source).toContain("switchCamera");
-    expect(source).toContain("SwitchCamera");
+    expect(source).toContain('const cameraFacingMode = "environment" as const');
+    expect(source).toContain("facingMode: { exact: cameraFacingMode }");
+    expect(source).toContain("aspectRatio: { ideal: 9 / 16 }");
     expect(source).toContain("audio: false");
     expect(source).toContain("cameraStreamRef.current?.getTracks().forEach");
+    expect(source).not.toContain("onClick={switchCamera}");
+    expect(source).not.toContain("<SwitchCamera");
   });
 
   it("captures a session-only photo without uploading it", () => {
