@@ -1,3 +1,4 @@
+import { recommendationFailureMessage } from "../lib/recommendationErrors";
 import { describe, expect, it, vi } from "vitest";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -18,7 +19,7 @@ function setup() {
   const imageReset = vi.fn();
   const setCapturedPhoto = vi.fn();
   const context = vm.createContext({
-    ...refs, capturedPhoto: "data:image/jpeg;base64,FIXTURE", displayRecommendationInput: { photoDataUrl: "fixture" }, customerProfile: {}, customerMeasurements: { values: {}, errors: [] },
+    ...refs, recommendationFailureMessage, locale:"ko", capturedPhoto: "data:image/jpeg;base64,FIXTURE", displayRecommendationInput: { photoDataUrl: "fixture" }, customerProfile: {}, customerMeasurements: { values: {}, errors: [] },
     personalizedRecommendations: { mutateAsync: recommend, reset: recommendReset }, customerLookbook: { mutateAsync: generate, reset: imageReset },
     recommendationCopy: { noProducts: "no-products", recommendFailed: "recommend-failed", imageFailed: "image-failed" },
     setRecommendationStage: (value: string) => { state.stage = value; },

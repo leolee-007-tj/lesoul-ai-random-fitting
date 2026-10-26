@@ -1,3 +1,4 @@
+import { recommendationFailureMessage } from "@/lib/recommendationErrors";
 import CatalogAvailabilityFilter from "@/components/CatalogAvailabilityFilter";
 import { parseCustomerMeasurements } from "@shared/customerMeasurements";
 import NormalizedProductImage from "@/components/NormalizedProductImage";
@@ -284,9 +285,9 @@ export default function StoreDisplayCatalog() {
       failedStage = "generating";
       setRecommendationStage("generating");
       await generateCustomerLookbook(result.products, requestId);
-    } catch {
+    } catch (error) {
       if (requestId === recommendationRequestRef.current) {
-        setRecommendationError(failedStage === "generating" ? recommendationCopy.imageFailed : recommendationCopy.recommendFailed);
+        setRecommendationError(recommendationFailureMessage(error,locale) ?? (failedStage === "generating" ? recommendationCopy.imageFailed : recommendationCopy.recommendFailed));
       }
     } finally {
       if (requestId === recommendationRequestRef.current) {

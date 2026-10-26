@@ -435,9 +435,18 @@ export const displayLookbookRouter = router({
       `Catalog garment facts: ${productFacts || "registered LESOUL garments"}.`,
       "This is a store-display recommendation preview. Do not retain or reproduce the original camera background beyond what is needed for the fitting reference.",
     ].join(" ");
-    const generated = await generateImage({ prompt, originalImages: [dataUrlReference(input.photoDataUrl), ...garmentReferences], model: "MODEL_GPT_IMAGE_2", quality: "medium", storageKey: `display-lookbook/customer-recommendations/${ctx.user.id}/${generationId}.png` });
-    if (typeof generated.url !== "string") throw new Error("IMAGE_RESULT_INVALID");
-    return { imageUrl: generated.url, productIds: selectedProducts.map((product) => product.id), productNames: selectedProducts.map((product) => product.name || `#${product.id}`), vertical: true };
+    const visitorId = `account:${ctx.user.openId}`;
+    const usage = await beginAiUsage({visitorId, feature:"AI_STYLIST", customerLookbook:true, generationId:`CUSTOMER_LOOKBOOK_${generationId}`,provider:"gpt",model:"gpt-image-2",actor:{openId:ctx.user.openId,role:ctx.user.role}});
+    const startedAt=Date.now();
+    try {
+      const generated = await generateImage({ prompt, originalImages: [dataUrlReference(input.photoDataUrl), ...garmentReferences], model: "MODEL_GPT_IMAGE_2", quality: "medium", signal:AbortSignal.timeout(90_000), storageKey: `display-lookbook/customer-recommendations/${ctx.user.id}/${generationId}.png` });
+      if (typeof generated.url !== "string" || !generated.url) throw new Error("IMAGE_RESULT_INVALID");
+      await finishAiUsage(usage.eventId,"SUCCESS",{durationMs:Date.now()-startedAt});
+      return { imageUrl: generated.url, productIds: selectedProducts.map((product) => product.id), productNames: selectedProducts.map((product) => product.name || `#${product.id}`), vertical: true };
+    } catch(error) {
+      await finishAiUsage(usage.eventId,"FAILED",{durationMs:Date.now()-startedAt,errorMessage:error instanceof Error && /timeout|abort/i.test(error.name) ? "IMAGE_GENERATION_TIMEOUT" : "IMAGE_GENERATION_FAILED"});
+      throw error;
+    }
   }),
   randomOutfitPlan: ownerProcedure.input(outfitPlanInput).query(async ({ input }) => {
     const catalog = await getCatalog();

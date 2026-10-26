@@ -1,0 +1,18 @@
+{
+  "baseline_sha": "0ad828432902c1f17f2e697c2adb6f035243320e",
+  "state": "OWNER_TESTS_PASSED",
+  "tests": 432,
+  "test_files": 133,
+  "duration_seconds": 8.58,
+  "failures": 0,
+  "skips": 0,
+  "typecheck": "passed",
+  "client_build": "passed",
+  "server_build": "passed",
+  "same_uid_diagnostic": true,
+  "candidate_verified": false,
+  "actual_model_calls": 0,
+  "root_requests": 0,
+  "live_database_writes": 0,
+  "manus_runtime_verified": false
+}

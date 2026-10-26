@@ -36,7 +36,7 @@ export default function BrowseProducts() {
     ko: { eyebrow: "LESOUL 컬렉션", title: "상품 둘러보기", body: "활성 LESOUL 상품을 종류별로 둘러보세요. 이미지 생성 횟수를 모두 사용한 뒤에도 상품 조회는 계속 이용할 수 있습니다.", back: "홈", all: "전체", newArrivals: "신상품", allProducts: "전체 상품", empty: "이 종류에는 아직 등록된 상품이 없습니다.", loading: "상품을 불러오는 중…", loadingMore: "다음 상품을 불러오는 중…", measurements: "실측 사이즈 보기", categories: { top: "상의", bottom: "하의", outer: "아우터", dress: "원피스", shoes: "신발", bag: "가방" } },
     zh: { eyebrow: "LESOUL 系列", title: "浏览商品", body: "按品类浏览全部在售 LESOUL 商品。即使图像生成次数用完，仍可继续浏览商品。", back: "首页", all: "全部", newArrivals: "新品", allProducts: "全部商品", empty: "该分类暂未上架商品。", loading: "正在加载商品…", loadingMore: "正在加载更多商品…", measurements: "查看实测尺寸", categories: { top: "上装", bottom: "下装", outer: "外套", dress: "连衣裙", shoes: "鞋履", bag: "包袋" } },
   }[locale];
-  const catalog = trpc.catalog.browseProducts.useQuery();
+  const catalog = trpc.catalog.browseProducts.useQuery(undefined, { refetchInterval: 10_000, refetchOnWindowFocus: true, refetchOnReconnect: true });
   const managedCategories = trpc.catalog.productCategories.useQuery(undefined, { refetchInterval: 5000, refetchOnWindowFocus: true });
   const purchaseConfig = trpc.purchase.config.useQuery();
   const [category, setCategory] = useState("all");

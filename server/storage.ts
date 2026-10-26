@@ -41,6 +41,7 @@ export async function storagePut(
   presignUrl.searchParams.set("path", key);
 
   const presignResp = await fetch(presignUrl, {
+    signal: AbortSignal.timeout(20_000),
     headers: { Authorization: `Bearer ${forgeKey}` },
   });
 
@@ -59,6 +60,7 @@ export async function storagePut(
       : new Blob([data as any], { type: contentType });
 
   const uploadResp = await fetch(s3Url, {
+    signal: AbortSignal.timeout(30_000),
     method: "PUT",
     headers: { "Content-Type": contentType },
     body: blob,
@@ -84,6 +86,7 @@ export async function storageGetSignedUrl(relKey: string): Promise<string> {
   getUrl.searchParams.set("path", key);
 
   const resp = await fetch(getUrl, {
+    signal: AbortSignal.timeout(20_000),
     headers: { Authorization: `Bearer ${forgeKey}` },
   });
 

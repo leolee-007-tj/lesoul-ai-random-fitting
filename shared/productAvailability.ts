@@ -16,10 +16,10 @@ export function isNewArrival(product: { isNew?: number | boolean | null }): bool
   return Boolean(product.isNew);
 }
 
-export function isStylistEligible(product: { isActive?: number | boolean | null; availabilityStatus?: AvailabilityStatus | null; status?: string | null }, includePreorder = false): boolean {
+export function isStylistEligible(product: { isActive?: number | boolean | null; availabilityStatus?: AvailabilityStatus | null; status?: string | null; inventoryQuantity?: number | null }, includePreorder = false): boolean {
   const active = product.isActive ?? 1;
   const availability = normaliseAvailabilityStatus(product.availabilityStatus, product.status);
-  return Boolean(active) && (availability === "IN_STOCK" || (includePreorder && availability === "PRE_ORDER"));
+  return Boolean(active) && (product.inventoryQuantity == null || product.inventoryQuantity > 0) && (availability === "IN_STOCK" || (includePreorder && availability === "PRE_ORDER"));
 }
 
 export type CatalogAvailabilityView = "available" | "sold_out";

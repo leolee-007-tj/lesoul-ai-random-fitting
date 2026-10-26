@@ -15,7 +15,7 @@
  *     }]
  *   });
  */
-import { storagePut } from "server/storage";
+import { storagePut } from "../storage";
 import { ENV } from "./env";
 
 // Default model for generated sites. "MODEL_GPT_IMAGE_2" is the forge images.v1
@@ -36,6 +36,7 @@ export type GenerateImageOptions = {
   quality?: string;
   /** Optional feature-specific storage path. */
   storageKey?: string;
+  signal?: AbortSignal;
 };
 
 export type GenerateImageResponse = {
@@ -67,6 +68,7 @@ export async function generateImage(
     options.quality ?? (model === DEFAULT_IMAGE_MODEL ? DEFAULT_IMAGE_QUALITY : undefined);
 
   const response = await fetch(fullUrl, {
+    signal: options.signal ?? AbortSignal.timeout(90_000),
     method: "POST",
     headers: {
       accept: "application/json",
@@ -142,6 +144,7 @@ export async function listImageModels(): Promise<ListImageModelsResponse> {
   ).toString();
 
   const response = await fetch(fullUrl, {
+    signal: AbortSignal.timeout(90_000),
     method: "POST",
     headers: {
       accept: "application/json",

@@ -1,3 +1,4 @@
+import { displayFit } from "../displayFit";
 import { z } from "zod";
 import { getActiveStylePresets, getActiveStylistProducts, getEligibleCuratedOutfits, getPublishedLookbookOutfits, saveStylistFeedback } from "../db";
 import { canViewVipEarlyAccess, getReleaseSettings } from "../access";
@@ -85,16 +86,17 @@ export const stylistRouter = router({
     const activeProducts = (await getActiveStylistProducts(Boolean(settings.stylistIncludePreorder))).filter((product) => canViewVipEarlyAccess(product, ctx.user?.role));
     const keywords = [...intent.keywords.split(/[,、，\s]+/).map((value: string) => value.trim()).filter((value: string) => value.length >= 2), ...(input.usualSize ? [input.usualSize] : [])].slice(0, 12);
     const measurements: BodyMeasurements | null = input.height && input.shoulderWidth ? { height: input.height, shoulderWidth: input.shoulderWidth, chest: input.chest, waist: input.waist, hip: input.hip, gender: "other", unit: "cm" } : null;
+    const fitBody={bustCm:input.chest,waistCm:input.waist,hipCm:input.hip,shoulderCm:input.shoulderWidth};
     const candidates = activeProducts.filter((product) => {
       if (intent.categoryFocus === "dress" && product.category !== "dress") return false;
       if (intent.categoryFocus === "separates" && product.category === "dress") return false;
       if (input.bodyType === "plus" && product.fit?.toLowerCase().includes("slim")) return false;
       return true;
-    }).map((product) => ({ product, score: displayScore(product, keywords, skinPalette.tone) + (intent.wantsOuter && product.category === "outer" ? 8 : 0) + (intent.categoryFocus === "dress" && product.category === "dress" ? 8 : 0) })).sort((a, b) => b.score - a.score).slice(0, 12);
+    }).map((product) => ({ product, fit:displayFit(fitBody,product), score: displayFit(fitBody,product).rankBonus + displayScore(product, keywords, skinPalette.tone) + (intent.wantsOuter && product.category === "outer" ? 8 : 0) + (intent.categoryFocus === "dress" && product.category === "dress" ? 8 : 0) })).filter(item=>!item.fit.measured || !item.fit.assessment.mayNotFit).sort((a, b) => b.score - a.score).slice(0, 12);
     const selected = candidates.filter(({ product }) => product.category !== "shoes" && product.category !== "bag");
     const grouped = { tops: selected.filter(({ product }) => product.category === "top").slice(0, 3), bottoms: selected.filter(({ product }) => product.category === "bottom").slice(0, 3), outers: selected.filter(({ product }) => product.category === "outer").slice(0, 2), dresses: selected.filter(({ product }) => product.category === "dress").slice(0, 2) };
     const products = (intent.categoryFocus === "dress" ? grouped.dresses : [...grouped.tops, ...grouped.bottoms, ...(intent.wantsOuter ? grouped.outers : [])]).slice(0, 8);
-    return { intent, skinTone: skinPalette, bodyType: input.bodyType, usualSize: input.usualSize ?? null, products: products.map(({ product }) => ({ ...product, recommendedSize: measurements ? recommendSize(product, measurements) : null })), groups: { tops: grouped.tops.map(({ product }) => product), bottoms: grouped.bottoms.map(({ product }) => product), outers: grouped.outers.map(({ product }) => product), dresses: grouped.dresses.map(({ product }) => product) } };
+    return { intent, skinTone: skinPalette, bodyType: input.bodyType, usualSize: input.usualSize ?? null, products: products.map(({ product, fit }) => ({ ...product, fitAssessment:fit.measured ? fit.assessment : null, recommendedSize:fit.recommendedSize ? {size:fit.recommendedSize,reason:fit.assessment.reason,fitStatus:fit.assessment.status} : measurements ? recommendSize(product, measurements) : null })), groups: { tops: grouped.tops.map(({ product }) => product), bottoms: grouped.bottoms.map(({ product }) => product), outers: grouped.outers.map(({ product }) => product), dresses: grouped.dresses.map(({ product }) => product) } };
   }),
   recommend: customerProcedure.input(z.object({ visitorId: z.string().min(1).max(96), styleKey, anchorProductId: z.number().int().positive().nullable().optional(), locale: z.enum(["en", "ko", "zh"]).default("en") })).query(async ({ input, ctx }) => {
     const [settings, presets] = await Promise.all([getReleaseSettings(), getActiveStylePresets()]);
