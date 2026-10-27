@@ -14,5 +14,15 @@
   "full_passed": 456,
   "failures": 0,
   "skipped": 0,
-  "full_seconds": 11.57
+  "full_seconds": 11.57,
+  "remote_integration": {
+    "remote_manus_commit_preserved": "1749902ce8a0f6b338f7bbd7cbada158b7399b73",
+    "normal_push_rejected_on_divergence": true,
+    "force_push": false,
+    "merge": "0d7f4b0",
+    "first_merged_validation": "2 suites could not load scripts excluded by existing sparse checkout; 441 test bodies passed",
+    "recovery": "Added scripts to local sparse checkout; committed source and test scope unchanged",
+    "final_regression": "456 PASS, 135 suites, 9.94 seconds"
+  },
+  "merged_typecheck_passed": true
 }
