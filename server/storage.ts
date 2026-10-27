@@ -46,12 +46,10 @@ export async function storagePut(
   });
 
   if (!presignResp.ok) {
-    const msg = await presignResp.text().catch(() => presignResp.statusText);
-    throw new Error(`Storage presign failed (${presignResp.status}): ${msg}`);
+    throw new Error(`Storage presign failed (${presignResp.status})`);
   }
 
-  const { url: s3Url } = (await presignResp.json()) as { url: string };
-  if (!s3Url) throw new Error("Forge returned empty presign URL");
+  const s3Url = await readPresignedUrl(presignResp);
 
   // 2. PUT file directly to S3
   const blob =
@@ -91,10 +89,23 @@ export async function storageGetSignedUrl(relKey: string): Promise<string> {
   });
 
   if (!resp.ok) {
-    const msg = await resp.text().catch(() => resp.statusText);
-    throw new Error(`Storage signed URL failed (${resp.status}): ${msg}`);
+    throw new Error(`Storage signed URL failed (${resp.status})`);
   }
 
-  const { url } = (await resp.json()) as { url: string };
-  return url;
+  return readPresignedUrl(resp);
+}
+
+// Provider responses can contain credentials or temporary signed links. Never
+// include their bodies in errors, and accept only usable HTTPS object URLs.
+async function readPresignedUrl(response: Response): Promise<string> {
+  try {
+    const value: unknown = await response.json();
+    const raw = value && typeof value === "object" && "url" in value ? value.url : undefined;
+    if (typeof raw !== "string" || !raw.trim()) throw new Error();
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.username || url.password) throw new Error();
+    return url.href;
+  } catch {
+    throw new Error("Storage backend returned an invalid signed URL");
+  }
 }

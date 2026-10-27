@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTestAccessToken, isValidVisitorId, readPersistedVisitorId, verifyTestLogin, VISITOR_ID_COOKIE } from "./testAccess";
+
+// Isolated test configuration; never depend on a real Manus signing secret.
+vi.mock("./_core/env", async (importOriginal) => {
+  const original = await importOriginal<typeof import("./_core/env")>();
+  return { ...original, ENV: { ...original.ENV, cookieSecret: "local-unit-test-signing-value", appId: "local-unit-test-app" } };
+});
 
 describe("shared test access", () => {
   it("validates the configured shared credential on the server and rejects invalid credentials", () => {
