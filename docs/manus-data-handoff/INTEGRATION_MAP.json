@@ -1,0 +1,40 @@
+{
+  "source": "User-provided Manus read-only handoff, 2026-10-27",
+  "provided_map_sha256": "94d2341df9a65834bfe2726f0d8fccfb0f2e6581c705b25246eea4d349c94553",
+  "provided_commit": "171cba183e2eeb0e5f8f40e78295d0a4f604d5c7",
+  "provided_commit_locally_verified": false,
+  "active_repository": "https://github.com/leolee-007-tj/lesoul-ai-fitting",
+  "active_branch": "main",
+  "local_base_commit": "e307182",
+  "legacy_repository": "https://github.com/leolee-007-tj/lesoul-ai-random-fitting.git",
+  "manus_project_id": "XABHv8QdBoCpfYVqBJuXsY",
+  "manus_project_path": "/home/ubuntu/lesoul-ai-random-fitting",
+  "public_url": "https://lesoulai-xabhv8qd.manus.space/",
+  "database": {
+    "engine": "MySQL/TiDB-compatible",
+    "connection_environment_name": "DATABASE_URL",
+    "schema": "drizzle/schema.ts",
+    "migration_auto_applied": false,
+    "supplied_row_counts_not_requeried": {
+      "releaseSettings": 1,
+      "products": 187,
+      "careLabelProducts": 391,
+      "generations": 0,
+      "siteVisitSummaries": 443
+    }
+  },
+  "storage": {
+    "backend": "Manus Forge presign API plus S3-compatible object storage",
+    "proxy_path": "/manus-storage/{key}",
+    "environment_names": [
+      "BUILT_IN_FORGE_API_URL",
+      "BUILT_IN_FORGE_API_KEY"
+    ],
+    "persist_temporary_signed_urls": false,
+    "local_folder_rename_changes_object_keys": false
+  },
+  "live_database_access_performed": false,
+  "live_storage_access_performed": false,
+  "model_calls": 0,
+  "deployment_performed": false
+}

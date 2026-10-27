@@ -15,7 +15,7 @@ describe("complete product image presentation", () => {
   });
 
   it("places new arrivals in a separate top row for every catalog viewer", () => {
-    expect(browse).toContain("showNewArrivalRow = true");
+    expect(browse).toContain('showNewArrivalRow = availabilityView === "available"');
     expect(browse).toContain("newArrivals");
     expect(browse).toContain("right.newArrivalAt ?? right.createdAt");
     expect(browse).toContain("NEW ARRIVALS");
@@ -38,6 +38,7 @@ describe("complete product image presentation", () => {
     expect(browse).toContain('rootMargin: "480px 0px"');
     expect(browse).toContain("newArrivalPages.slice(0, visibleArrivalPageCount)");
     expect(browse).toContain("regularProductPages.slice(0, visibleRegularPageCount)");
+    expect(browse).toContain("chunkProducts(regularProducts, CUSTOMER_CATALOG_PAGE_SIZE), [regularProducts]");
     expect(browse).toContain("loadingMore");
   });
 

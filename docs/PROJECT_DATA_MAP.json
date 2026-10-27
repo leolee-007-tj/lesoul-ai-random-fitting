@@ -1,0 +1,190 @@
+{
+  "기준커밋": {
+    "sha": "171cba183e2eeb0e5f8f40e78295d0a4f604d5c7",
+    "short": "171cba1",
+    "message": "Merge Manus stability fixes with CI/CD pipeline"
+  },
+  "프로젝트": {
+    "name": "lesoul-ai-random-fitting",
+    "title": "LESOUL AI Random Fitting",
+    "webdevProjectId": "XABHv8QdBoCpfYVqBJuXsY",
+    "publicUrl": "https://lesoulai-xabhv8qd.manus.space/",
+    "absolutePath": "/home/ubuntu/lesoul-ai-random-fitting",
+    "github": {
+      "repository": "https://github.com/leolee-007-tj/lesoul-ai-random-fitting.git",
+      "branch": "main",
+      "syncMode": "manual review; not confirmed as automatic bidirectional sync"
+    },
+    "commands": {
+      "dev": "pnpm dev",
+      "check": "pnpm check",
+      "test": "pnpm test -- --run",
+      "build": "pnpm build",
+      "start": "pnpm start"
+    }
+  },
+  "database": {
+    "type": "MySQL/TiDB-compatible",
+    "orm": "Drizzle ORM",
+    "schemaPath": "drizzle/schema.ts",
+    "migrationPath": "drizzle/*.sql",
+    "connectionEnvName": "DATABASE_URL",
+    "connectionReadOnlyCheck": "success",
+    "rowCountsObserved": {
+      "releaseSettings": 1,
+      "products": 187,
+      "careLabelProducts": 391,
+      "generations": 0,
+      "siteVisitSummaries": 443
+    },
+    "representativeReadOnlyCheck": {
+      "products": "one existing row read; imageUrl referenced /manus-storage path",
+      "personalDataExposed": false
+    },
+    "migrationProcedure": [
+      "edit drizzle/schema.ts",
+      "run pnpm drizzle-kit generate",
+      "review generated SQL for destructive statements",
+      "backup/approve",
+      "apply migration separately",
+      "verify row counts and IDs",
+      "run pnpm check, pnpm test -- --run, pnpm build"
+    ],
+    "codeImportDoesNotApplyMigrations": true,
+    "sameDatabaseAcrossEnvironments": "not assumed; verify DATABASE_URL per environment"
+  },
+  "tables": {
+    "users": "OAuth accounts and role/access state",
+    "products": "catalog, pricing, inventory, multilingual metadata, image references",
+    "productCategories": "categories and measurement fields",
+    "careLabelProducts": "fixed IDs and Chinese care-label JSON",
+    "careLabelPrivatePrices": "admin-only care-label prices",
+    "careLabelSymbols": "care symbols and object-storage image references",
+    "careLabelProductSymbols": "product-symbol links and order",
+    "careLabelSettings": "public care-label settings and WeChat QR reference",
+    "releaseSettings": "store, sale, AI, display and release controls",
+    "generations": "customer AI generation requests/results",
+    "generationLogs": "generation audit/status/quality logs",
+    "bodyProfiles": "optional body measurements and consent metadata",
+    "aiBodyModels": "approved generated model image references",
+    "savedLooks": "saved looks",
+    "curatedOutfits": "admin-curated recommendations",
+    "curatedOutfitItems": "products in curated recommendations",
+    "displayLookbookImages": "approved store-display lookbook images",
+    "siteVisitSummaries": "anonymous daily visitor summaries",
+    "productShareVisits": "anonymous product share visits",
+    "productEngagementEvents": "anonymous product engagement events",
+    "visitorEntitlements": "guest AI allowance and catalog tier",
+    "redeemCodes": "redeem code hashes and allowance",
+    "aiAccessBlocks": "AI access blocks",
+    "trialStores": "trial-store workspaces",
+    "trialStoreProducts": "trial-store catalog"
+  },
+  "storage": {
+    "backend": "Manus Forge presign API plus S3-compatible object storage",
+    "dbStoresBytes": false,
+    "dbStoresReferences": true,
+    "proxyPath": "/manus-storage/{key}",
+    "uploadImplementation": "server/storage.ts",
+    "proxyImplementation": "server/_core/storageProxy.ts",
+    "presignEnvNames": [
+      "BUILT_IN_FORGE_API_URL",
+      "BUILT_IN_FORGE_API_KEY"
+    ],
+    "referenceFields": [
+      "products.imageUrl",
+      "products.images",
+      "products.imageViews",
+      "careLabelSymbols.imageUrl",
+      "trialStoreProducts.imageUrls",
+      "generations.userPhotoUrl",
+      "generations.resultImageUrl",
+      "aiBodyModels.imageUrl",
+      "displayLookbookImages.imageUrl",
+      "displayLookbookImages.storageKey"
+    ],
+    "signedUrlPolicy": "storageGetSignedUrl returns temporary URLs; do not persist or publish them",
+    "readOnlyFileReferenceCheck": "one existing product imageUrl reference confirmed",
+    "objectIntegrityAndRetention": "not verified"
+  },
+  "authAndExternalServices": {
+    "auth": [
+      "Manus OAuth",
+      "VIP/admin/store-display sessions",
+      "test access sessions"
+    ],
+    "environmentNamesOnly": [
+      "VITE_APP_ID",
+      "JWT_SECRET",
+      "OAUTH_SERVER_URL",
+      "VITE_OAUTH_PORTAL_URL",
+      "OWNER_OPEN_ID",
+      "OWNER_NAME",
+      "LESOUL_OWNER_BOOTSTRAP_SECRET",
+      "BUILT_IN_FORGE_API_URL",
+      "BUILT_IN_FORGE_API_KEY",
+      "VITE_FRONTEND_FORGE_API_URL",
+      "VITE_FRONTEND_FORGE_API_KEY",
+      "VITE_ANALYTICS_ENDPOINT",
+      "VITE_ANALYTICS_WEBSITE_ID",
+      "VITE_APP_TITLE",
+      "VITE_APP_LOGO"
+    ],
+    "services": [
+      "Manus Forge LLM for translation/text generation",
+      "Manus Forge ImageService with GPT Image 2 default",
+      "Manus Forge/S3 object storage",
+      "Manus Analytics",
+      "MediaPipe Tasks Vision in browser",
+      "Web Share API",
+      "QR/PDF/XLSX generation scripts and admin downloads"
+    ],
+    "paidAiCallsDuringInvestigation": false
+  },
+  "githubPreservation": {
+    "neverCommit": [
+      ".env*",
+      ".project-config.json",
+      "DB URLs",
+      "API keys",
+      "OAuth tokens",
+      "JWT secrets",
+      "admin bootstrap secrets",
+      "node_modules",
+      "dist",
+      "logs",
+      "temporary signed URLs",
+      "customer photos or private documents"
+    ],
+    "preserveSeparately": [
+      "production DB backup",
+      "Manus object-storage objects and key manifest",
+      "Care Label JSON backup",
+      "QR PNG/SVG/PDF/XLSX outputs"
+    ],
+    "safeSyncOrder": [
+      "git fetch github main",
+      "git status and rev-list comparison",
+      "preserve local changes on a branch",
+      "fast-forward or reviewed rebase/merge",
+      "pnpm install --frozen-lockfile",
+      "pnpm check",
+      "pnpm test -- --run",
+      "pnpm build",
+      "review Manus preview and publish separately"
+    ],
+    "remoteLatestEquality": "not verified in this read-only document pass",
+    "automaticManusDeploymentHook": "not verified; workflow skips deployment when MANUS_DEPLOY_HOOK_URL is absent"
+  },
+  "verificationStatus": {
+    "codeModifiedForThisReport": false,
+    "databaseChangedForThisReport": false,
+    "dataMovedOrDeleted": false,
+    "filesUploaded": false,
+    "publishedOrDeployed": false,
+    "chinaMainlandNetworkTest": false,
+    "realPhoneOrWeChatScan": false,
+    "dbBackupCreated": false
+  },
+  "조사시각": "2026-10-27T09:40:00+08:00"
+}

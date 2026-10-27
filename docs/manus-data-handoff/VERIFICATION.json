@@ -1,0 +1,32 @@
+{
+  "state": "LOCAL_VERIFIED_CODE_PUSH_CONFIRMED",
+  "base_commit": "e307182a46c32bdb9bbfe9d8123008fa5a46d249",
+  "repository": "https://github.com/leolee-007-tj/lesoul-ai-fitting",
+  "branch": "main",
+  "baseline_tests": 432,
+  "baseline_passed": 430,
+  "baseline_failed": 2,
+  "baseline_failure_reason": "Two session tests depended on absent real signing configuration; fixed with test-only environment mocks",
+  "final_tests": 446,
+  "test_files": 134,
+  "passed": 446,
+  "failures": 0,
+  "skipped": 0,
+  "test_seconds": 16.46,
+  "typecheck": "PASS",
+  "production_build": "PASS",
+  "existing_test_count_preserved": 432,
+  "targeted_tests": 21,
+  "schema_migrations": 0,
+  "operational_data_mutations": 0,
+  "live_db_access": false,
+  "live_storage_access": false,
+  "model_calls": 0,
+  "manus_deployment": false,
+  "known_warnings": [
+    "Existing large bundle warning",
+    "Installed pnpm reports legacy pnpm config keys ignored"
+  ],
+  "source_map_sha256": "94d2341df9a65834bfe2726f0d8fccfb0f2e6581c705b25246eea4d349c94553",
+  "tested_code_commit": "87417f6ee8f66d350eef879638771f2b4a8a4b10"
+}

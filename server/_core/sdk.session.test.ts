@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { sdk } from "./sdk";
+
+// Isolated test configuration; never depend on a real Manus signing secret.
+vi.mock("./env", async (importOriginal) => {
+  const original = await importOriginal<typeof import("./env")>();
+  return { ...original, ENV: { ...original.ENV, cookieSecret: "local-unit-test-signing-value", appId: "local-unit-test-app" } };
+});
 
 describe("OAuth session verification", () => {
   it("accepts a valid OAuth identity when the provider does not supply a display name", async () => {
