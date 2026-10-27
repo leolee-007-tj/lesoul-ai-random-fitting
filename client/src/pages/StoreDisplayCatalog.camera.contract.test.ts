@@ -10,10 +10,10 @@ describe("store display camera recommendations", () => {
     expect(source).toContain('const cameraFacingMode = "environment" as const;');
     expect(source).toContain("facingMode: { exact: cameraFacingMode }");
     expect(source).toContain("aspectRatio: { ideal: 9 / 16 }");
-    expect(source).not.toContain("onClick={switchCamera}");
-    expect(source).not.toContain("<SwitchCamera");
     expect(source).toContain("audio: false");
     expect(source).toContain("cameraStreamRef.current?.getTracks().forEach");
+    expect(source).not.toContain("onClick={switchCamera}");
+    expect(source).not.toContain("<SwitchCamera");
   });
 
   it("captures a session-only photo without uploading it", () => {

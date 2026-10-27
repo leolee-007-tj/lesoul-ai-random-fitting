@@ -1,0 +1,78 @@
+name: CI and Manus deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Typecheck, test, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Run tests
+        run: pnpm test -- --run
+
+      - name: Build production bundle
+        run: pnpm build
+
+  deploy-to-manus:
+    name: Trigger Manus deployment
+    needs: validate
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call Manus deployment hook when configured
+        env:
+          MANUS_DEPLOY_HOOK_URL: ${{ secrets.MANUS_DEPLOY_HOOK_URL }}
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_REF: ${{ github.ref }}
+          DEPLOY_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "$MANUS_DEPLOY_HOOK_URL" ]; then
+            echo "::notice::MANUS_DEPLOY_HOOK_URL is not configured; CI passed, but no automatic Manus deployment was requested."
+            exit 0
+          fi
+
+          payload=$(printf '{"repository":"%s","ref":"%s","sha":"%s"}' \
+            "$DEPLOY_REPOSITORY" "$DEPLOY_REF" "$DEPLOY_SHA")
+
+          curl --fail-with-body --silent --show-error --retry 3 \
+            -X POST "$MANUS_DEPLOY_HOOK_URL" \
+            -H 'Content-Type: application/json' \
+            --data "$payload"
+
+          echo "Manus deployment hook accepted commit $DEPLOY_SHA."
