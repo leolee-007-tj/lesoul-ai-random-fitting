@@ -1,0 +1,12 @@
+{
+  "tests": 474,
+  "passed": 474,
+  "failed": 0,
+  "skipped": 0,
+  "seconds": 13.24,
+  "typecheck_passed": true,
+  "build_passed": true,
+  "model_calls": 0,
+  "production_db_writes": 0,
+  "deployed": false
+}

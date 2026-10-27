@@ -26,3 +26,11 @@ describe("product availability and new-arrival policy", () => {
     expect(isStylistEligible({ isActive: 0, availabilityStatus: "IN_STOCK" })).toBe(false);
   });
 });
+
+
+it("excludes stale zero-stock and hidden products from lookbook selection while preserving legacy unknown stock",()=>{
+ expect(isStylistEligible({isActive:1,availabilityStatus:"IN_STOCK",inventoryQuantity:0},true)).toBe(false);
+ expect(isStylistEligible({isActive:1,availabilityStatus:"SOLD_OUT",inventoryQuantity:5},true)).toBe(false);
+ expect(isStylistEligible({isActive:0,availabilityStatus:"IN_STOCK",inventoryQuantity:5},true)).toBe(false);
+ expect(isStylistEligible({isActive:1,availabilityStatus:"IN_STOCK",inventoryQuantity:null},true)).toBe(true);
+});
