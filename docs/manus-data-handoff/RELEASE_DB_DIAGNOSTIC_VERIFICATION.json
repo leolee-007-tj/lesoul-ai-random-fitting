@@ -1,0 +1,18 @@
+{
+  "state": "DIAGNOSTIC_VALIDATED_PRODUCTION_REPAIR_PENDING",
+  "scope": "Read-only schema diagnostics; no production DB repair claimed",
+  "prior_check_gap": "releaseSettings probe selected only id; now all Drizzle column names are checked",
+  "new_targeted_tests": 15,
+  "targeted_passed": 15,
+  "typecheck_passed": true,
+  "production_db_access": false,
+  "schema_writes": 0,
+  "model_calls": 0,
+  "initial_targeted_and_full_failure": "Installed Vitest lacks toHaveBeenCalledExactlyOnceWith; new test assertion corrected to supported once and argument assertions. Initial full run 455 passed, 1 failed.",
+  "restored_production": false,
+  "full_tests": 456,
+  "full_passed": 456,
+  "failures": 0,
+  "skipped": 0,
+  "full_seconds": 11.57
+}

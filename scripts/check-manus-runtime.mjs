@@ -2,6 +2,7 @@ import "dotenv/config";
 import mysql from "mysql2/promise";
 import {pathToFileURL} from "node:url";
 // Metadata-only checks: never export product rows, photo URLs or credentials.
+export const releaseSettingsColumns = ["id", "storeName", "storeTaglineEn", "storeTaglineKo", "storeTaglineZh", "pricingMode", "centralSaleEnabled", "saleEndsAt", "excludeNewArrivalsFromSale", "showInventoryQuantity", "presenceAlertEnabled", "presenceAlertSoundUrl", "presenceAlertRepeatCount", "adminTrialStartedAt", "adminTrialDurationHours", "adminTrialPaymentQrUrl", "adminTrialUsageGuideQrUrl", "adminTrialPaymentNoticeEn", "adminTrialPaymentNoticeKo", "adminTrialPaymentNoticeZh", "adminTrialUsageGuideNoticeEn", "adminTrialUsageGuideNoticeKo", "adminTrialUsageGuideNoticeZh", "trialStoreResetCronTaskUid", "catalogInitialized", "releaseMode", "betaCatalogLimit", "betaDailyVisitorLimit", "betaFreeGenerationAllowance", "globalDailyGenerationLimit", "monthlyGenerationLimit", "lookbookGridColumns", "generationEnabled", "studioImageProcessingEnabled", "normalAiGenerationLimit", "dailyAiRequestLimit", "monthlyAiBudgetFen", "stopAiAtBudgetLimit", "monthlyActualAiCostFen", "aiBodyModelEstimatedCostFen", "aiFittingEstimatedCostFen", "quickFitEstimatedCostFen", "regenerationEstimatedCostFen", "quickAiAdminOnly", "liyingAiVipEnabled", "liyingReferenceImageUrls", "normalStyleMatchEnabled", "normalStyleMatchLimit", "purchaseMode", "purchaseListMaxItems", "purchaseQrEnabled", "purchaseNoticeEn", "purchaseNoticeKo", "purchaseNoticeZh", "stylistIncludePreorder", "curatedOutfitsPriority", "aiImageProviderPreference", "aiTextProviderPreference", "updatedAt"];
 export const probes = [
   ["products", "SELECT id, availabilityStatus, inventoryQuantity, garmentMeasurements, imageUrl, images, imageViews FROM products LIMIT 0"],
   ["aiUsageEvents", "SELECT id, requestType, providerUsageMetadata FROM aiUsageEvents LIMIT 0"],
@@ -12,7 +13,7 @@ export const probes = [
   ["generations", "SELECT id, userPhotoUrl, resultImageUrl FROM generations LIMIT 0"],
   ["aiBodyModels", "SELECT id, imageUrl FROM aiBodyModels LIMIT 0"],
   ["trialStoreProducts", "SELECT id, imageUrls FROM trialStoreProducts LIMIT 0"],
-  ["releaseSettings", "SELECT id FROM releaseSettings LIMIT 0"],
+  ["releaseSettings", "SELECT " + releaseSettingsColumns.map(name=>"`"+name+"`").join(", ") + " FROM releaseSettings LIMIT 0"],
 ];
 export async function checkRuntime(env, connect) {
   const result={database:[], configuration:{}, modelInference:"NOT_EXECUTED", storageRead:"NOT_EXECUTED", schemaWrites:0};
