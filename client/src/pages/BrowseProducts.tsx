@@ -1,3 +1,4 @@
+import CatalogAvailabilityFilter from "@/components/CatalogAvailabilityFilter";
 import MobileScreen from "@/components/MobileScreen";
 import ProductDetailScreen from "@/components/ProductDetailScreen";
 import NormalizedProductImage from "@/components/NormalizedProductImage";
@@ -10,7 +11,7 @@ import { localizedProductName } from "@shared/productCommerce";
 import { customerProductImage } from "@shared/productImages";
 import { formatKeyMeasurement } from "@shared/catalogDisplay";
 import { localizedCategoryName } from "@shared/productCategories";
-import { isNewArrival } from "@shared/productAvailability";
+import { filterCatalogAvailability, type CatalogAvailabilityView, isNewArrival } from "@shared/productAvailability";
 import { isSetProduct } from "@shared/setProducts";
 import { usePinchCompactTabs } from "@/hooks/usePinchCompactTabs";
 import { ChevronLeft, LoaderCircle, ShoppingBag } from "lucide-react";
@@ -35,10 +36,11 @@ export default function BrowseProducts() {
     ko: { eyebrow: "LESOUL 컬렉션", title: "상품 둘러보기", body: "활성 LESOUL 상품을 종류별로 둘러보세요. 이미지 생성 횟수를 모두 사용한 뒤에도 상품 조회는 계속 이용할 수 있습니다.", back: "홈", all: "전체", newArrivals: "신상품", allProducts: "전체 상품", empty: "이 종류에는 아직 등록된 상품이 없습니다.", loading: "상품을 불러오는 중…", loadingMore: "다음 상품을 불러오는 중…", measurements: "실측 사이즈 보기", categories: { top: "상의", bottom: "하의", outer: "아우터", dress: "원피스", shoes: "신발", bag: "가방" } },
     zh: { eyebrow: "LESOUL 系列", title: "浏览商品", body: "按品类浏览全部在售 LESOUL 商品。即使图像生成次数用完，仍可继续浏览商品。", back: "首页", all: "全部", newArrivals: "新品", allProducts: "全部商品", empty: "该分类暂未上架商品。", loading: "正在加载商品…", loadingMore: "正在加载更多商品…", measurements: "查看实测尺寸", categories: { top: "上装", bottom: "下装", outer: "外套", dress: "连衣裙", shoes: "鞋履", bag: "包袋" } },
   }[locale];
-  const catalog = trpc.catalog.browseProducts.useQuery();
+  const catalog = trpc.catalog.browseProducts.useQuery(undefined, { refetchInterval: 10_000, refetchOnWindowFocus: true, refetchOnReconnect: true });
   const managedCategories = trpc.catalog.productCategories.useQuery(undefined, { refetchInterval: 5000, refetchOnWindowFocus: true });
   const purchaseConfig = trpc.purchase.config.useQuery();
   const [category, setCategory] = useState("all");
+  const [availabilityView, setAvailabilityView] = useState<CatalogAvailabilityView>("available");
   const { ref: categoryTabsRef, compact: compactCategoryTabs } = usePinchCompactTabs();
   const [detailId, setDetailId] = useState<number | null>(null);
   const trackShareVisit = trpc.catalog.trackWeChatShareVisit.useMutation();
@@ -46,14 +48,15 @@ export default function BrowseProducts() {
   const categoryOptions = managedCategories.data ?? [];
   const detailInput = (productId: number) => ({ productId, visitorId: getVisitorId(), browseAll: true });
   const prefetchDetail = (productId: number) => void utils.catalog.productDetail.prefetch(detailInput(productId), { staleTime: 60_000 });
-  const showNewArrivalRow = true;
+  const showNewArrivalRow = availabilityView === "available";
   const { visible, newArrivals, regularProducts } = useMemo(() => {
-    const filtered = category === "all" ? products : products.filter((product) => String(product.displayCategory?.id ?? product.category) === category);
+    const stockProducts = filterCatalogAvailability(products, availabilityView);
+    const filtered = category === "all" ? stockProducts : stockProducts.filter((product) => String(product.displayCategory?.id ?? product.category) === category);
     const arrivals = filtered.filter((product) => isNewArrival(product)).sort((left, right) => Number(new Date(right.newArrivalAt ?? right.createdAt ?? 0)) - Number(new Date(left.newArrivalAt ?? left.createdAt ?? 0)));
     return { visible: filtered, newArrivals: arrivals, regularProducts: showNewArrivalRow ? filtered.filter((product) => !isNewArrival(product)) : filtered };
-  }, [category, products, showNewArrivalRow]);
+  }, [category, products, showNewArrivalRow, availabilityView]);
   const newArrivalPages = useMemo(() => showNewArrivalRow ? chunkProducts(newArrivals, CUSTOMER_CATALOG_PAGE_SIZE) : [], [newArrivals, showNewArrivalRow]);
-  const regularProductPages = useMemo(() => showNewArrivalRow ? chunkProducts(regularProducts, CUSTOMER_CATALOG_PAGE_SIZE) : [regularProducts], [regularProducts, showNewArrivalRow]);
+  const regularProductPages = useMemo(() => chunkProducts(regularProducts, CUSTOMER_CATALOG_PAGE_SIZE), [regularProducts]);
   const [visibleArrivalPageCount, setVisibleArrivalPageCount] = useState(1);
   const [visibleRegularPageCount, setVisibleRegularPageCount] = useState(1);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -62,7 +65,7 @@ export default function BrowseProducts() {
   useEffect(() => {
     setVisibleArrivalPageCount(1);
     setVisibleRegularPageCount(1);
-  }, [category, products.length]);
+  }, [category, products.length, availabilityView]);
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -96,5 +99,5 @@ export default function BrowseProducts() {
   };
 
   const initialDetailProduct = detailId ? products.find((product) => product.id === detailId) : undefined;
-  return <MobileScreen><main className="lesoul-mobile-frame px-4 pb-7 pt-4 sm:px-6"><header className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#7a7065]">{copy.eyebrow}</p><h1 className="mt-1 font-serif text-3xl">{copy.title}</h1><p className="mt-2 max-w-md text-sm leading-5 text-[#71685f]">{copy.body}</p></div><button onClick={() => navigate("/")} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-[#ddd6cc] bg-white px-3 text-[10px] font-bold"><ChevronLeft size={14} />{copy.back}</button></header><nav ref={categoryTabsRef} data-compact={compactCategoryTabs ? "true" : "false"} className={`mt-5 flex overflow-x-auto pb-1 transition-[gap] duration-200 ${compactCategoryTabs ? "gap-1" : "gap-2"}`} aria-label={copy.title}><button onClick={() => setCategory("all")} className={`shrink-0 rounded-full font-bold transition-[padding,font-size] duration-200 ${compactCategoryTabs ? "px-2 py-1.5 text-[9px]" : "px-3 py-2 text-[10px]"} ${category === "all" ? "bg-black text-white" : "border border-[#ded8cf] bg-white text-[#635b52]"}`}>{copy.all}</button>{categoryOptions.map((item) => <button key={item.id} onClick={() => setCategory(String(item.id))} className={`shrink-0 rounded-full font-bold transition-[padding,font-size] duration-200 ${compactCategoryTabs ? "px-2 py-1.5 text-[9px]" : "px-3 py-2 text-[10px]"} ${category === String(item.id) ? "bg-black text-white" : "border border-[#ded8cf] bg-white text-[#635b52]"}`}>{localizedCategoryName(item, language)}</button>)}</nav>{catalog.isLoading ? <div className="grid min-h-64 place-items-center"><LoaderCircle className="animate-spin" aria-label={copy.loading} /><span className="sr-only">{copy.loading}</span></div> : visible.length ? <div className="mt-5 space-y-7">{showNewArrivalRow && newArrivals.length > 0 && <section aria-labelledby="new-arrivals-heading"><div className="mb-3"><h2 id="new-arrivals-heading" className="text-sm font-bold tracking-[.14em] text-[#2b2723]">{copy.newArrivals}</h2></div><div className="space-y-4">{newArrivalPages.slice(0, visibleArrivalPageCount).map((page, index) => <div key={`new-arrivals-page-${index}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}>{page.map(renderProductCard)}</div>)}</div></section>}{regularProducts.length > 0 && <section aria-labelledby="all-products-heading">{showNewArrivalRow && newArrivals.length > 0 && <h2 id="all-products-heading" className="mb-3 text-sm font-bold tracking-[.14em] text-[#2b2723]">{copy.allProducts}</h2>}<div className="space-y-4">{regularProductPages.slice(0, visibleRegularPageCount).map((page, index) => <div key={`all-products-page-${index}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}>{page.map(renderProductCard)}</div>)}</div></section>}<div ref={loadMoreRef} className="flex min-h-12 items-center justify-center py-4" aria-live="polite">{hasMorePages && <><LoaderCircle size={16} className="animate-spin text-[#8b7d6f]" /><span className="ml-2 text-[10px] text-[#756b61]">{copy.loadingMore}</span></>}</div></div> : <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c7] bg-white p-8 text-center"><ShoppingBag className="mx-auto text-[#86796d]" size={26} /><p className="mt-3 text-sm text-[#71675e]">{copy.empty}</p></div>}{detailId && <ProductDetailScreen productId={detailId} initialProduct={initialDetailProduct} browseAll onClose={() => setDetailId(null)} />}</main></MobileScreen>;
+  return <MobileScreen><main className="lesoul-mobile-frame px-4 pb-7 pt-4 sm:px-6"><header className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#7a7065]">{copy.eyebrow}</p><h1 className="mt-1 font-serif text-3xl">{copy.title}</h1><p className="mt-2 max-w-md text-sm leading-5 text-[#71685f]">{copy.body}</p></div><button onClick={() => navigate("/")} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-[#ddd6cc] bg-white px-3 text-[10px] font-bold"><ChevronLeft size={14} />{copy.back}</button></header><CatalogAvailabilityFilter value={availabilityView} onChange={setAvailabilityView} locale={locale} /><nav ref={categoryTabsRef} data-compact={compactCategoryTabs ? "true" : "false"} className={`mt-5 flex overflow-x-auto pb-1 transition-[gap] duration-200 ${compactCategoryTabs ? "gap-1" : "gap-2"}`} aria-label={copy.title}><button onClick={() => setCategory("all")} className={`shrink-0 rounded-full font-bold transition-[padding,font-size] duration-200 ${compactCategoryTabs ? "px-2 py-1.5 text-[9px]" : "px-3 py-2 text-[10px]"} ${category === "all" ? "bg-black text-white" : "border border-[#ded8cf] bg-white text-[#635b52]"}`}>{copy.all}</button>{categoryOptions.map((item) => <button key={item.id} onClick={() => setCategory(String(item.id))} className={`shrink-0 rounded-full font-bold transition-[padding,font-size] duration-200 ${compactCategoryTabs ? "px-2 py-1.5 text-[9px]" : "px-3 py-2 text-[10px]"} ${category === String(item.id) ? "bg-black text-white" : "border border-[#ded8cf] bg-white text-[#635b52]"}`}>{localizedCategoryName(item, language)}</button>)}</nav>{catalog.isLoading ? <div className="grid min-h-64 place-items-center"><LoaderCircle className="animate-spin" aria-label={copy.loading} /><span className="sr-only">{copy.loading}</span></div> : visible.length ? <div className="mt-5 space-y-7">{showNewArrivalRow && newArrivals.length > 0 && <section aria-labelledby="new-arrivals-heading"><div className="mb-3"><h2 id="new-arrivals-heading" className="text-sm font-bold tracking-[.14em] text-[#2b2723]">{copy.newArrivals}</h2></div><div className="space-y-4">{newArrivalPages.slice(0, visibleArrivalPageCount).map((page, index) => <div key={`new-arrivals-page-${index}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}>{page.map(renderProductCard)}</div>)}</div></section>}{regularProducts.length > 0 && <section aria-labelledby="all-products-heading">{showNewArrivalRow && newArrivals.length > 0 && <h2 id="all-products-heading" className="mb-3 text-sm font-bold tracking-[.14em] text-[#2b2723]">{copy.allProducts}</h2>}<div className="space-y-4">{regularProductPages.slice(0, visibleRegularPageCount).map((page, index) => <div key={`all-products-page-${index}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}>{page.map(renderProductCard)}</div>)}</div></section>}<div ref={loadMoreRef} className="flex min-h-12 items-center justify-center py-4" aria-live="polite">{hasMorePages && <><LoaderCircle size={16} className="animate-spin text-[#8b7d6f]" /><span className="ml-2 text-[10px] text-[#756b61]">{copy.loadingMore}</span></>}</div></div> : <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c7] bg-white p-8 text-center"><ShoppingBag className="mx-auto text-[#86796d]" size={26} /><p className="mt-3 text-sm text-[#71675e]">{copy.empty}</p></div>}{detailId && <ProductDetailScreen productId={detailId} initialProduct={initialDetailProduct} browseAll onClose={() => setDetailId(null)} />}</main></MobileScreen>;
 }

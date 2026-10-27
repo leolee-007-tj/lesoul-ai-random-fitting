@@ -1,0 +1,17 @@
+vite v7.1.9 building for production...
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /index.html. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /index.html. Is the variable mistyped?
+<script src="%VITE_ANALYTICS_ENDPOINT%/umami"> in "/index.html" can't be bundled without type="module" attribute
+transforming...
+✓ 1863 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                   368.41 kB │ gzip: 105.44 kB
+../dist/public/assets/index-BZpVkNyj.css    180.48 kB │ gzip:  29.82 kB
+../dist/public/assets/index-DICQ8K1O.js   1,231.22 kB │ gzip: 344.69 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.27s

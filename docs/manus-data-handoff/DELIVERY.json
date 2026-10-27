@@ -1,0 +1,11 @@
+{
+  "state": "CODE_PUSH_VERIFIED",
+  "repository": "https://github.com/leolee-007-tj/lesoul-ai-fitting",
+  "branch": "main",
+  "code_commit": "87417f6ee8f66d350eef879638771f2b4a8a4b10",
+  "remote_main_at_verification": "87417f6ee8f66d350eef879638771f2b4a8a4b10",
+  "force_push": false,
+  "source_tests": 446,
+  "manus_deployment_verified": false,
+  "live_db_or_storage_changed": false
+}

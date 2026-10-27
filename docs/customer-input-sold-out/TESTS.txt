@@ -1,0 +1,144 @@
+
+ RUN  v2.1.9 /Users/LEO/Documents/lesoul-ai-fitting
+
+ ✓ server/fashionProvider.test.ts (10 tests) 8ms
+ ✓ client/src/pages/SetProductManagement.contract.test.ts (14 tests) 12ms
+ ✓ server/displayLookbook.contract.test.ts (9 tests) 7ms
+ ✓ client/src/pages/StoreDisplayCatalog.cameraLifecycle.contract.test.ts (9 tests) 14ms
+ ✓ server/stylistEngine.test.ts (7 tests) 78ms
+ ✓ client/src/pages/Login.contract.test.ts (9 tests) 4ms
+ ✓ client/src/pages/CareLabelAdmin.contract.test.ts (1 test) 3ms
+ ✓ server/productCommerce.test.ts (8 tests) 6ms
+ ✓ shared/careLabels.standard.test.ts (6 tests) 7ms
+ ✓ client/src/pages/StoreDisplayCatalog.contract.test.ts (8 tests) 3ms
+ ✓ client/src/i18n/locales.test.ts (3 tests) 13ms
+ ✓ client/src/pages/AccountManagement.contract.test.ts (5 tests) 4ms
+ ✓ shared/pricingPolicy.test.ts (7 tests) 17ms
+ ✓ client/src/components/DisplayLookbookManager.contract.test.ts (2 tests) 4ms
+ ✓ client/src/pages/BrowseProducts.contract.test.ts (5 tests) 10ms
+ ✓ server/centralPricing.contract.test.ts (3 tests) 9ms
+ ✓ server/presenceAlert.contract.test.ts (4 tests) 3ms
+ ✓ server/trialStore.contract.test.ts (6 tests) 6ms
+ ✓ client/src/pages/CareLabels.contract.test.ts (4 tests) 7ms
+ ✓ server/styling.test.ts (4 tests) 3ms
+ ✓ client/src/lib/siteAnalytics.contract.test.ts (3 tests) 5ms
+ ✓ client/src/lib/mvpStore.test.ts (4 tests) 5ms
+ ✓ server/ownerAdminRecovery.contract.test.ts (4 tests) 6ms
+ ✓ client/src/components/NormalizedProductImage.test.ts (6 tests) 7ms
+ ✓ client/src/pages/ProductManagerV2.priceTagOcr.contract.test.ts (4 tests) 3ms
+ ✓ server/storeDisplayAccount.contract.test.ts (4 tests) 5ms
+ ✓ shared/setProducts.test.ts (4 tests) 2ms
+ ✓ server/productDeletion.test.ts (4 tests) 10ms
+ ✓ server/lesoul.contract.test.ts (14 tests) 8ms
+ ✓ server/storeBranding.contract.test.ts (3 tests) 2ms
+ ✓ client/src/components/PurchaseRequestCard.contract.test.ts (3 tests) 2ms
+ ✓ client/src/pages/StoreDisplayCatalog.recommendationFlow.test.ts (9 tests) 311ms
+ ✓ server/singleOwnerAdmin.contract.test.ts (3 tests) 6ms
+ ✓ client/src/components/StylistPanel.test.ts (6 tests) 2ms
+ ✓ client/src/components/ProductStatusBadges.test.ts (6 tests) 5ms
+ ✓ server/stylistCuratedOnly.contract.test.ts (4 tests) 3ms
+ ✓ client/src/components/DisplayLookbookManager.gallery-scroll.contract.test.ts (3 tests) 3ms
+ ✓ client/src/pages/SaleSettings.contract.test.ts (3 tests) 4ms
+ ✓ server/fitEngine.test.ts (3 tests) 4ms
+ ✓ server/routers/uploads.test.ts (5 tests) 4ms
+ ✓ client/src/pages/StoreDisplayCatalog.camera.contract.test.ts (4 tests) 2ms
+ ✓ shared/productConversion.test.ts (3 tests) 3ms
+ ✓ client/src/lib/visitor.test.ts (3 tests) 2ms
+ ✓ server/trialStoreCatalogFilter.contract.test.ts (3 tests) 6ms
+ ✓ server/productShareReferral.contract.test.ts (4 tests) 14ms
+ ✓ server/perProductPricing.contract.test.ts (2 tests) 7ms
+ ✓ server/productAvailability.test.ts (3 tests) 6ms
+ ✓ server/adminTrial.contract.test.ts (2 tests) 6ms
+ ✓ server/displayRecommendation.contract.test.ts (4 tests) 3ms
+ ✓ client/src/components/BlackColorVerificationNotice.test.ts (3 tests) 3ms
+ ✓ server/aiUsageOperations.contract.test.ts (3 tests) 2ms
+ ✓ shared/catalogDisplay.test.ts (2 tests) 7ms
+ ✓ server/categoryMeasurementFields.contract.test.ts (2 tests) 7ms
+ ✓ client/src/pages/StoreDisplayCatalog.showcase.contract.test.ts (4 tests) 2ms
+ ✓ client/src/components/StoreInquiryQr.test.ts (3 tests) 15ms
+ ✓ shared/customerMeasurements.test.ts (11 tests) 9ms
+ ✓ server/auth.logout.test.ts (1 test) 4ms
+ ✓ server/anyLanguageTranslation.contract.test.ts (2 tests) 3ms
+ ✓ client/src/lib/lookLocalization.test.ts (3 tests) 5ms
+ ✓ client/src/components/MobileScreen.scroll.contract.test.ts (2 tests) 2ms
+ ✓ server/locales.test.ts (1 test) 3ms
+ ✓ server/aiProviderSettings.contract.test.ts (3 tests) 3ms
+ ✓ shared/categoryMeasurementFields.test.ts (3 tests) 6ms
+ ✓ client/src/lib/imageColorCorrection.test.ts (2 tests) 2ms
+ ✓ client/src/lib/productShareCard.test.ts (3 tests) 65ms
+ ✓ client/src/pages/OperationsDashboard.contract.test.ts (3 tests) 2ms
+ ✓ client/src/pages/ProductManager.priceTagOcr.contract.test.ts (3 tests) 2ms
+ ✓ shared/catalogOrder.test.ts (2 tests) 3ms
+ ✓ server/deviceViewport.test.ts (4 tests) 3ms
+ ✓ server/careLabels.test.ts (3 tests) 44ms
+ ✓ server/access.test.ts (3 tests) 6ms
+ ✓ server/inventory.contract.test.ts (3 tests) 2ms
+ ✓ server/primaryAdminAccess.contract.test.ts (2 tests) 8ms
+ ✓ client/src/contexts/PurchaseListContext.test.ts (2 tests) 2ms
+ ✓ client/src/components/ProductDetailScreen.contract.test.ts (1 test) 2ms
+ ✓ server/pureWhiteRemoval.contract.test.ts (2 tests) 4ms
+ ✓ client/src/pages/StyleMatch.contract.test.ts (2 tests) 5ms
+ ✓ server/productTranslation.contract.test.ts (2 tests) 4ms
+ ✓ shared/presenceAlert.test.ts (2 tests) 2ms
+ ✓ server/testAccess.test.ts (3 tests) 3ms
+ ✓ shared/priceTagOcr.test.ts (2 tests) 2ms
+ ✓ server/customerOwnership.test.ts (2 tests) 3ms
+ ✓ shared/catalogAvailability.test.ts (3 tests) 3ms
+ ✓ server/setProducts.contract.test.ts (2 tests) 2ms
+ ✓ client/src/pages/OriginalQualityUpload.contract.test.ts (2 tests) 4ms
+ ✓ shared/productImages.test.ts (2 tests) 2ms
+ ✓ client/src/components/PresenceAudioRecorder.contract.test.ts (2 tests) 2ms
+ ✓ server/catalogDetailPerformance.contract.test.ts (2 tests) 2ms
+ ✓ client/src/components/SaleAnnouncement.contract.test.ts (2 tests) 3ms
+ ✓ client/src/components/CatalogAvailabilityFilter.test.ts (2 tests) 7ms
+ ✓ shared/fitEngine.test.ts (2 tests) 2ms
+ ✓ client/src/pages/StoreDisplayCatalog.language.contract.test.ts (2 tests) 3ms
+ ✓ server/bodyModel.test.ts (2 tests) 5ms
+ ✓ server/storeDisplayReadOnly.contract.test.ts (2 tests) 2ms
+ ✓ server/liyingReferenceModels.contract.test.ts (1 test) 2ms
+ ✓ client/src/pages/Profile.contract.test.ts (1 test) 3ms
+ ✓ server/vipEarlyAccess.test.ts (2 tests) 4ms
+ ✓ server/purchasePolicy.test.ts (1 test) 2ms
+ ✓ server/bodyModelLocalization.test.ts (2 tests) 2ms
+ ✓ client/src/pages/ReleaseControl.presenceAlert.contract.test.ts (1 test) 6ms
+ ✓ server/redeemAuth.contract.test.ts (2 tests) 2ms
+ ✓ server/productImageViews.test.ts (3 tests) 5ms
+ ✓ server/ownerAdminRoleResolution.test.ts (3 tests) 3ms
+ ✓ server/og.product.contract.test.ts (1 test) 2ms
+ ✓ shared/aiProvider.test.ts (3 tests) 2ms
+ ✓ client/src/pages/ProductFitManager.measurementFields.contract.test.ts (2 tests) 2ms
+ ✓ server/generationValidation.test.ts (1 test) 2ms
+ ✓ server/poseLocalization.test.ts (1 test) 2ms
+ ✓ shared/curatedOutfits.test.ts (1 test) 14ms
+ ✓ client/src/pages/ProductManagerV2.search.contract.test.ts (2 tests) 4ms
+ ✓ client/src/components/ErrorBoundary.contract.test.ts (1 test) 2ms
+ ✓ client/src/components/FitReferenceNotice.test.ts (2 tests) 5ms
+ ✓ shared/productBulkImages.test.ts (2 tests) 2ms
+ ✓ client/src/pages/PresenceAlert.contract.test.ts (2 tests) 3ms
+ ✓ server/visitorAnalytics.test.ts (2 tests) 4ms
+ ✓ server/sizeRecommendation.test.ts (1 test) 2ms
+ ✓ server/vipAccess.test.ts (2 tests) 363ms
+   ✓ VIP account credential security > uses a salted server-side hash and rejects incorrect credentials 361ms
+ ✓ client/src/components/PurchaseScreen.contract.test.ts (1 test) 2ms
+ ✓ server/catalogInitialization.contract.test.ts (1 test) 3ms
+ ✓ server/fixedModels.test.ts (1 test) 2ms
+ ✓ client/src/components/DisplayLookbookManager.localization.contract.test.ts (2 tests) 5ms
+ ✓ client/src/pages/PurchaseListPrice.contract.test.ts (1 test) 1ms
+ ✓ shared/adminTranslation.test.ts (1 test) 2ms
+ ✓ client/src/components/WeChatShareGuide.test.ts (2 tests) 2ms
+ ✓ shared/anonymousNickname.test.ts (1 test) 11ms
+ ✓ server/adminTrial.test.ts (2 tests) 2ms
+ ✓ client/src/components/ProductPrice.contract.test.ts (1 test) 1ms
+stdout | server/_core/sdk.session.test.ts
+[OAuth] Initialized with baseURL: 
+
+stderr | server/_core/sdk.session.test.ts
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+
+ ✓ server/_core/sdk.session.test.ts (1 test) 5ms
+
+ Test Files  128 passed (128)
+      Tests  414 passed (414)
+   Start at  13:41:23
+   Duration  9.79s (transform 2.56s, setup 0ms, collect 25.85s, tests 1.41s, environment 21ms, prepare 14.21s)
+

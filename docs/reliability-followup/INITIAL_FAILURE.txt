@@ -1,0 +1,270 @@
+
+ RUN  v2.1.9 /Users/LEO/Documents/lesoul-ai-fitting
+
+ ✓ client/src/pages/StoreDisplayCatalog.cameraLifecycle.contract.test.ts (9 tests) 14ms
+ ✓ client/src/pages/SetProductManagement.contract.test.ts (14 tests) 11ms
+ ✓ server/displayLookbook.contract.test.ts (9 tests) 5ms
+ ✓ server/stylistEngine.test.ts (7 tests) 85ms
+ ✓ server/fashionProvider.test.ts (10 tests) 7ms
+ ✓ client/src/pages/CareLabelAdmin.contract.test.ts (1 test) 3ms
+ ✓ server/productCommerce.test.ts (8 tests) 4ms
+ ✓ client/src/pages/Login.contract.test.ts (9 tests) 59ms
+ ✓ client/src/pages/StoreDisplayCatalog.contract.test.ts (8 tests) 3ms
+ ✓ shared/careLabels.standard.test.ts (6 tests) 5ms
+ ✓ shared/pricingPolicy.test.ts (7 tests) 16ms
+ ✓ client/src/i18n/locales.test.ts (3 tests) 8ms
+ ✓ client/src/pages/AccountManagement.contract.test.ts (5 tests) 19ms
+ ✓ client/src/components/DisplayLookbookManager.contract.test.ts (2 tests) 6ms
+ ✓ client/src/pages/BrowseProducts.contract.test.ts (5 tests) 3ms
+ ✓ server/trialStore.contract.test.ts (6 tests) 6ms
+ ✓ server/centralPricing.contract.test.ts (3 tests) 5ms
+ ✓ server/presenceAlert.contract.test.ts (4 tests) 12ms
+ ✓ server/styling.test.ts (4 tests) 3ms
+ ✓ client/src/pages/CareLabels.contract.test.ts (4 tests) 4ms
+ ✓ client/src/lib/siteAnalytics.contract.test.ts (3 tests) 4ms
+ ✓ client/src/lib/mvpStore.test.ts (4 tests) 3ms
+ ✓ server/ownerAdminRecovery.contract.test.ts (4 tests) 2ms
+ ✓ client/src/components/NormalizedProductImage.test.ts (6 tests) 4ms
+ ✓ client/src/pages/ProductManagerV2.priceTagOcr.contract.test.ts (4 tests) 2ms
+ ✓ server/productDeletion.test.ts (4 tests) 4ms
+ ✓ shared/setProducts.test.ts (4 tests) 3ms
+ ✓ server/storeDisplayAccount.contract.test.ts (4 tests) 3ms
+ ✓ client/src/pages/StoreDisplayCatalog.recommendationFlow.test.ts (9 tests) 276ms
+ ✓ server/storeBranding.contract.test.ts (3 tests) 3ms
+ ❯ server/lesoul.contract.test.ts (14 tests | 1 failed) 21ms
+   × customer-facing curated experience contract > keeps all active products browseable by category and retains product detail before purchase 13ms
+     → expected 'import CatalogAvailabilityFilter from…' to contain 'trpc.catalog.browseProducts.useQuery()'
+ ✓ client/src/components/ProductStatusBadges.test.ts (6 tests) 5ms
+ ✓ client/src/components/PurchaseRequestCard.contract.test.ts (3 tests) 3ms
+ ✓ client/src/components/StylistPanel.test.ts (6 tests) 2ms
+ ✓ server/singleOwnerAdmin.contract.test.ts (3 tests) 4ms
+ ✓ server/routers/uploads.test.ts (5 tests) 7ms
+ ✓ server/stylistCuratedOnly.contract.test.ts (4 tests) 6ms
+ ✓ client/src/components/DisplayLookbookManager.gallery-scroll.contract.test.ts (3 tests) 2ms
+ ✓ server/fitEngine.test.ts (3 tests) 2ms
+ ✓ client/src/pages/SaleSettings.contract.test.ts (3 tests) 3ms
+ ✓ shared/productConversion.test.ts (3 tests) 3ms
+ ✓ client/src/pages/StoreDisplayCatalog.camera.contract.test.ts (4 tests) 2ms
+ ✓ server/productShareReferral.contract.test.ts (4 tests) 4ms
+ ✓ server/trialStoreCatalogFilter.contract.test.ts (3 tests) 4ms
+ ✓ server/perProductPricing.contract.test.ts (2 tests) 3ms
+ ✓ server/productAvailability.test.ts (3 tests) 2ms
+ ✓ client/src/lib/visitor.test.ts (3 tests) 33ms
+ ✓ server/adminTrial.contract.test.ts (2 tests) 2ms
+ ✓ server/aiUsageOperations.contract.test.ts (3 tests) 3ms
+ ✓ server/displayRecommendation.contract.test.ts (4 tests) 2ms
+ ✓ client/src/components/BlackColorVerificationNotice.test.ts (3 tests) 3ms
+ ✓ shared/catalogDisplay.test.ts (2 tests) 2ms
+ ✓ client/src/components/StoreInquiryQr.test.ts (3 tests) 3ms
+ ✓ server/categoryMeasurementFields.contract.test.ts (2 tests) 3ms
+ ✓ client/src/pages/StoreDisplayCatalog.showcase.contract.test.ts (4 tests) 2ms
+ ✓ client/src/lib/lookLocalization.test.ts (3 tests) 6ms
+ ✓ server/anyLanguageTranslation.contract.test.ts (2 tests) 3ms
+ ✓ shared/customerMeasurements.test.ts (11 tests) 4ms
+ ✓ server/auth.logout.test.ts (1 test) 4ms
+ ✓ client/src/components/MobileScreen.scroll.contract.test.ts (2 tests) 2ms
+ ✓ server/locales.test.ts (1 test) 4ms
+ ✓ server/aiProviderSettings.contract.test.ts (3 tests) 3ms
+ ✓ client/src/lib/imageColorCorrection.test.ts (2 tests) 2ms
+ ✓ client/src/lib/productShareCard.test.ts (3 tests) 30ms
+ ✓ shared/categoryMeasurementFields.test.ts (3 tests) 3ms
+ ✓ client/src/pages/OperationsDashboard.contract.test.ts (3 tests) 2ms
+ ✓ client/src/pages/ProductManager.priceTagOcr.contract.test.ts (3 tests) 2ms
+ ✓ server/deviceViewport.test.ts (4 tests) 2ms
+ ✓ server/careLabels.test.ts (3 tests) 10ms
+ ✓ server/manusRuntime.test.ts (3 tests) 13ms
+ ✓ server/access.test.ts (3 tests) 4ms
+ ✓ shared/catalogOrder.test.ts (2 tests) 4ms
+ ✓ server/inventory.contract.test.ts (3 tests) 2ms
+ ✓ server/primaryAdminAccess.contract.test.ts (2 tests) 11ms
+ ✓ client/src/contexts/PurchaseListContext.test.ts (2 tests) 3ms
+ ✓ server/pureWhiteRemoval.contract.test.ts (2 tests) 3ms
+ ✓ client/src/components/ProductDetailScreen.contract.test.ts (1 test) 2ms
+ ✓ server/testAccess.test.ts (3 tests) 2ms
+ ✓ server/productTranslation.contract.test.ts (2 tests) 2ms
+ ✓ shared/presenceAlert.test.ts (2 tests) 2ms
+ ✓ client/src/pages/StyleMatch.contract.test.ts (2 tests) 2ms
+ ✓ shared/priceTagOcr.test.ts (2 tests) 2ms
+ ✓ server/setProducts.contract.test.ts (2 tests) 4ms
+ ✓ shared/catalogAvailability.test.ts (3 tests) 3ms
+ ✓ server/customerOwnership.test.ts (2 tests) 3ms
+ ✓ client/src/pages/OriginalQualityUpload.contract.test.ts (2 tests) 7ms
+ ✓ shared/productImages.test.ts (2 tests) 8ms
+ ✓ server/catalogDetailPerformance.contract.test.ts (2 tests) 2ms
+ ✓ client/src/components/PresenceAudioRecorder.contract.test.ts (2 tests) 2ms
+ ✓ client/src/components/SaleAnnouncement.contract.test.ts (2 tests) 3ms
+ ✓ client/src/components/CatalogAvailabilityFilter.test.ts (2 tests) 8ms
+ ✓ shared/fitEngine.test.ts (2 tests) 2ms
+ ✓ client/src/pages/StoreDisplayCatalog.language.contract.test.ts (2 tests) 2ms
+ ✓ server/bodyModel.test.ts (2 tests) 5ms
+ ✓ server/vipEarlyAccess.test.ts (2 tests) 2ms
+ ✓ server/storeDisplayReadOnly.contract.test.ts (2 tests) 2ms
+ ✓ server/liyingReferenceModels.contract.test.ts (1 test) 2ms
+ ✓ client/src/pages/Profile.contract.test.ts (1 test) 2ms
+ ✓ server/purchasePolicy.test.ts (1 test) 1ms
+ ✓ client/src/pages/ReleaseControl.presenceAlert.contract.test.ts (1 test) 2ms
+ ✓ server/productImageViews.test.ts (3 tests) 2ms
+ ✓ server/bodyModelLocalization.test.ts (2 tests) 2ms
+ ✓ server/ownerAdminRoleResolution.test.ts (3 tests) 4ms
+ ✓ server/redeemAuth.contract.test.ts (2 tests) 2ms
+ ✓ server/og.product.contract.test.ts (1 test) 3ms
+ ✓ shared/curatedOutfits.test.ts (1 test) 4ms
+ ✓ shared/aiProvider.test.ts (3 tests) 2ms
+ ✓ client/src/pages/ProductFitManager.measurementFields.contract.test.ts (2 tests) 2ms
+ ✓ server/poseLocalization.test.ts (1 test) 2ms
+ ✓ server/generationValidation.test.ts (1 test) 2ms
+ ✓ client/src/pages/ProductManagerV2.search.contract.test.ts (2 tests) 2ms
+ ✓ client/src/components/ErrorBoundary.contract.test.ts (1 test) 1ms
+ ✓ shared/productBulkImages.test.ts (2 tests) 3ms
+ ✓ client/src/components/FitReferenceNotice.test.ts (2 tests) 2ms
+ ✓ client/src/pages/PresenceAlert.contract.test.ts (2 tests) 6ms
+ ✓ server/vipAccess.test.ts (2 tests) 235ms
+ ✓ server/sizeRecommendation.test.ts (1 test) 3ms
+ ✓ server/visitorAnalytics.test.ts (2 tests) 4ms
+ ✓ client/src/components/PurchaseScreen.contract.test.ts (1 test) 4ms
+ ✓ server/catalogInitialization.contract.test.ts (1 test) 2ms
+ ✓ server/fixedModels.test.ts (1 test) 3ms
+ ✓ client/src/components/DisplayLookbookManager.localization.contract.test.ts (2 tests) 5ms
+ ✓ client/src/components/WeChatShareGuide.test.ts (2 tests) 2ms
+ ✓ client/src/pages/PurchaseListPrice.contract.test.ts (1 test) 1ms
+ ✓ shared/anonymousNickname.test.ts (1 test) 3ms
+ ✓ shared/adminTranslation.test.ts (1 test) 5ms
+ ✓ server/adminTrial.test.ts (2 tests) 1ms
+ ✓ client/src/components/ProductPrice.contract.test.ts (1 test) 1ms
+stdout | server/_core/sdk.session.test.ts
+[OAuth] Initialized with baseURL: 
+
+stderr | server/_core/sdk.session.test.ts
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+
+ ✓ server/_core/sdk.session.test.ts (1 test) 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/lesoul.contract.test.ts > customer-facing curated experience contract > keeps all active products browseable by category and retains product detail before purchase
+AssertionError: expected 'import CatalogAvailabilityFilter from…' to contain 'trpc.catalog.browseProducts.useQuery()'
+
+- Expected
++ Received
+
+- trpc.catalog.browseProducts.useQuery()
++ import CatalogAvailabilityFilter from "@/components/CatalogAvailabilityFilter";
++ import MobileScreen from "@/components/MobileScreen";
++ import ProductDetailScreen from "@/components/ProductDetailScreen";
++ import NormalizedProductImage from "@/components/NormalizedProductImage";
++ import ProductPrice from "@/components/ProductPrice";
++ import { ProductStatusBadges } from "@/components/ProductStatusBadges";
++ import BlackColorVerificationNotice from "@/components/BlackColorVerificationNotice";
++ import { trpc } from "@/lib/trpc";
++ import { getVisitorId } from "@/lib/visitor";
++ import { localizedProductName } from "@shared/productCommerce";
++ import { customerProductImage } from "@shared/productImages";
++ import { formatKeyMeasurement } from "@shared/catalogDisplay";
++ import { localizedCategoryName } from "@shared/productCategories";
++ import { filterCatalogAvailability, type CatalogAvailabilityView, isNewArrival } from "@shared/productAvailability";
++ import { isSetProduct } from "@shared/setProducts";
++ import { usePinchCompactTabs } from "@/hooks/usePinchCompactTabs";
++ import { ChevronLeft, LoaderCircle, ShoppingBag } from "lucide-react";
++ import { useEffect, useMemo, useRef, useState } from "react";
++ import { useTranslation } from "react-i18next";
++ import { useLocation } from "wouter";
++
++ export const CUSTOMER_CATALOG_PAGE_SIZE = 6;
++
++ function chunkProducts<T>(items: T[], size: number) {
++   return Array.from({ length: Math.ceil(items.length / size) }, (_, index) => items.slice(index * size, index * size + size));
++ }
++
++ export default function BrowseProducts() {
++   const [location, navigate] = useLocation();
++   const { i18n } = useTranslation();
++   const utils = trpc.useUtils();
++   const language = i18n.language;
++   const locale = language.startsWith("ko") ? "ko" : language.startsWith("zh") ? "zh" : "en";
++   const copy = {
++     en: { eyebrow: "LESOUL COLLECTION", title: "BROWSE PRODUCTS", body: "Explore every active LESOUL piece, organised by category. Product browsing remains available even when image generation is unavailable.", back: "Home", all: "All", newArrivals: "NEW ARRIVALS", allProducts: "ALL PRODUCTS", empty: "No products in this category yet.", loading: "Loading products…", loadingMore: "Loading more products…", measurements: "VIEW MEASUREMENTS", categories: { top: "Top", bottom: "Bottom", outer: "Outer", dress: "Dress", shoes: "Shoes", bag: "Bag" } },
++     ko: { eyebrow: "LESOUL 컬렉션", title: "상품 둘러보기", body: "활성 LESOUL 상품을 종류별로 둘러보세요. 이미지 생성 횟수를 모두 사용한 뒤에도 상품 조회는 계속 이용할 수 있습니다.", back: "홈", all: "전체", newArrivals: "신상품", allProducts: "전체 상품", empty: "이 종류에는 아직 등록된 상품이 없습니다.", loading: "상품을 불러오는 중…", loadingMore: "다음 상품을 불러오는 중…", measurements: "실측 사이즈 보기", categories: { top: "상의", bottom: "하의", outer: "아우터", dress: "원피스", shoes: "신발", bag: "가방" } },
++     zh: { eyebrow: "LESOUL 系列", title: "浏览商品", body: "按品类浏览全部在售 LESOUL 商品。即使图像生成次数用完，仍可继续浏览商品。", back: "首页", all: "全部", newArrivals: "新品", allProducts: "全部商品", empty: "该分类暂未上架商品。", loading: "正在加载商品…", loadingMore: "正在加载更多商品…", measurements: "查看实测尺寸", categories: { top: "上装", bottom: "下装", outer: "外套", dress: "连衣裙", shoes: "鞋履", bag: "包袋" } },
++   }[locale];
++   const catalog = trpc.catalog.browseProducts.useQuery(undefined, { refetchInterval: 10_000, refetchOnWindowFocus: true, refetchOnReconnect: true });
++   const managedCategories = trpc.catalog.productCategories.useQuery(undefined, { refetchInterval: 5000, refetchOnWindowFocus: true });
++   const purchaseConfig = trpc.purchase.config.useQuery();
++   const [category, setCategory] = useState("all");
++   const [availabilityView, setAvailabilityView] = useState<CatalogAvailabilityView>("available");
++   const { ref: categoryTabsRef, compact: compactCategoryTabs } = usePinchCompactTabs();
++   const [detailId, setDetailId] = useState<number | null>(null);
++   const trackShareVisit = trpc.catalog.trackWeChatShareVisit.useMutation();
++   const products = catalog.data ?? [];
++   const categoryOptions = managedCategories.data ?? [];
++   const detailInput = (productId: number) => ({ productId, visitorId: getVisitorId(), browseAll: true });
++   const prefetchDetail = (productId: number) => void utils.catalog.productDetail.prefetch(detailInput(productId), { staleTime: 60_000 });
++   const showNewArrivalRow = availabilityView === "available";
++   const { visible, newArrivals, regularProducts } = useMemo(() => {
++     const stockProducts = filterCatalogAvailability(products, availabilityView);
++     const filtered = category === "all" ? stockProducts : stockProducts.filter((product) => String(product.displayCategory?.id ?? product.category) === category);
++     const arrivals = filtered.filter((product) => isNewArrival(product)).sort((left, right) => Number(new Date(right.newArrivalAt ?? right.createdAt ?? 0)) - Number(new Date(left.newArrivalAt ?? left.createdAt ?? 0)));
++     return { visible: filtered, newArrivals: arrivals, regularProducts: showNewArrivalRow ? filtered.filter((product) => !isNewArrival(product)) : filtered };
++   }, [category, products, showNewArrivalRow, availabilityView]);
++   const newArrivalPages = useMemo(() => showNewArrivalRow ? chunkProducts(newArrivals, CUSTOMER_CATALOG_PAGE_SIZE) : [], [newArrivals, showNewArrivalRow]);
++   const regularProductPages = useMemo(() => chunkProducts(regularProducts, CUSTOMER_CATALOG_PAGE_SIZE), [regularProducts]);
++   const [visibleArrivalPageCount, setVisibleArrivalPageCount] = useState(1);
++   const [visibleRegularPageCount, setVisibleRegularPageCount] = useState(1);
++   const loadMoreRef = useRef<HTMLDivElement>(null);
++   const hasMorePages = visibleArrivalPageCount < newArrivalPages.length || visibleRegularPageCount < regularProductPages.length;
++
++   useEffect(() => {
++     setVisibleArrivalPageCount(1);
++     setVisibleRegularPageCount(1);
++   }, [category, products.length, availabilityView]);
++
++   useEffect(() => {
++     const target = loadMoreRef.current;
++     if (!target || !hasMorePages) return;
++     const observer = new IntersectionObserver(([entry]) => {
++       if (!entry.isIntersecting) return;
++       setVisibleArrivalPageCount((count) => Math.min(count + 1, newArrivalPages.length));
++       setVisibleRegularPageCount((count) => Math.min(count + 1, regularProductPages.length));
++     }, { rootMargin: "480px 0px" });
++     observer.observe(target);
++     return () => observer.disconnect();
++   }, [hasMorePages, newArrivalPages.length, regularProductPages.length]);
++
++   useEffect(() => {
++     const params = new URLSearchParams(location.split("?")[1] ?? "");
++     const sharedProductId = Number(params.get("product"));
++     if (sharedProductId && products.some((product) => product.id === sharedProductId)) {
++       setDetailId(sharedProductId);
++       if (params.get("source") === "wechat_share") {
++         const key = `lesoul.wechat-share.${sharedProductId}.${getVisitorId()}`;
++         if (!window.sessionStorage.getItem(key)) {
++           window.sessionStorage.setItem(key, "1");
++           trackShareVisit.mutate({ productId: sharedProductId, visitorId: getVisitorId() });
++         }
++       }
++     }
++   }, [location, products]);
++
++   const renderProductCard = (product: (typeof products)[number]) => {
++     return <article key={product.id} className="flex h-full min-w-0 flex-col overflow-hidden rounded-[1.25rem] border border-[#ded8cf] bg-white shadow-[0_8px_20px_rgba(38,31,24,.05)]"><button onPointerEnter={() => prefetchDetail(product.id)} onFocus={() => prefetchDetail(product.id)} onPointerDown={() => prefetchDetail(product.id)} onClick={() => setDetailId(product.id)} className="flex min-h-0 flex-1 flex-col text-left transition active:scale-[.98]"><div className="relative"><NormalizedProductImage src={customerProductImage(product.imageViews?.front, product.imageUrl)} alt={localizedProductName(product, language)} catalogDisplay={product.catalogDisplay} className="aspect-[3/4] w-full" /><ProductStatusBadges availabilityStatus={product.availabilityStatus} legacyStatus={product.status} isNew={product.isNew} newArrivalAt={product.newArrivalAt} pricingMode={purchaseConfig.data?.pricingMode} excludeNewArrivalsFromSale={purchaseConfig.data?.excludeNewArrivalsFromSale} />{isSetProduct(product) && <span className="absolute bottom-2 left-2 rounded-full bg-black/85 px-2 py-1 text-[9px] font-bold tracking-[.12em] text-white">{language.startsWith("ko") ? `세트 · ${product.setComponents?.length ?? 0}` : language.startsWith("zh") ? `套装 · ${product.setComponents?.length ?? 0}` : `SET · ${product.setComponents?.length ?? 0}`}</span>}</div><BlackColorVerificationNotice color={product.color} className="mx-3 mt-2" /><div className="flex flex-1 flex-col p-3 pb-2"><p className="h-3 truncate text-[9px] font-bold tracking-[.13em] text-[#8b7b6b]">{product.brand ?? "\u00a0"}</p><p className="mt-1 truncate text-xs font-semibold leading-4 text-[#29231d]">{localizedProductName(product, language)}</p><div className="mt-2 min-h-4"><ProductPrice product={product} hideInquiry className="text-xs font-bold" /></div><p className="mt-1 min-h-3 truncate text-[10px] text-[#756b61]">{localizedCategoryName(product.displayCategory, language)}{formatKeyMeasurement(product, language) ? ` · ${formatKeyMeasurement(product, language)}` : ""}</p><p className="mt-1 min-h-3 truncate text-[9px] font-bold tracking-[.07em] text-[#8a7968]">{copy.measurements} →</p></div></button></article>;
++   };
++
++   const initialDetailProduct = detailId ? products.find((product) => product.id === detailId) : undefined;
++   return <MobileScreen><main className="lesoul-mobile-frame px-4 pb-7 pt-4 sm:px-6"><header className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-[.16em] text-[#7a7065]">{copy.eyebrow}</p><h1 className="mt-1 font-serif text-3xl">{copy.title}</h1><p className="mt-2 max-w-md text-sm leading-5 text-[#71685f]">{copy.body}</p></div><button onClick={() => navigate("/")} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-[#ddd6cc] bg-white px-3 text-[10px] font-bold"><ChevronLeft size={14} />{copy.back}</button></header><CatalogAvailabilityFilter value={availabilityView} onChange={setAvailabilityView} locale={locale} /><nav ref={categoryTabsRef} data-compact={compactCategoryTabs ? "true" : "false"} className={`mt-5 flex overflow-x-auto pb-1 transition-[gap] duration-200 ${compactCategoryTabs ? "gap-1" : "gap-2"}`} aria-label={copy.title}><button onClick={() => setCategory("all")} className={`shrink-0 rounded-full font-bold transition-[padding,font-size] duration-200 ${compactCategoryTabs ? "px-2 py-1.5 text-[9px]" : "px-3 py-2 text-[10px]"} ${category === "all" ? "bg-black text-white" : "border border-[#ded8cf] bg-white text-[#635b52]"}`}>{copy.all}</button>{categoryOptions.map((item) => <button key={item.id} onClick={() => setCategory(String(item.id))} className={`shrink-0 rounded-full font-bold transition-[padding,font-size] duration-200 ${compactCategoryTabs ? "px-2 py-1.5 text-[9px]" : "px-3 py-2 text-[10px]"} ${category === String(item.id) ? "bg-black text-white" : "border border-[#ded8cf] bg-white text-[#635b52]"}`}>{localizedCategoryName(item, language)}</button>)}</nav>{catalog.isLoading ? <div className="grid min-h-64 place-items-center"><LoaderCircle className="animate-spin" aria-label={copy.loading} /><span className="sr-only">{copy.loading}</span></div> : visible.length ? <div className="mt-5 space-y-7">{showNewArrivalRow && newArrivals.length > 0 && <section aria-labelledby="new-arrivals-heading"><div className="mb-3"><h2 id="new-arrivals-heading" className="text-sm font-bold tracking-[.14em] text-[#2b2723]">{copy.newArrivals}</h2></div><div className="space-y-4">{newArrivalPages.slice(0, visibleArrivalPageCount).map((page, index) => <div key={`new-arrivals-page-${index}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}>{page.map(renderProductCard)}</div>)}</div></section>}{regularProducts.length > 0 && <section aria-labelledby="all-products-heading">{showNewArrivalRow && newArrivals.length > 0 && <h2 id="all-products-heading" className="mb-3 text-sm font-bold tracking-[.14em] text-[#2b2723]">{copy.allProducts}</h2>}<div className="space-y-4">{regularProductPages.slice(0, visibleRegularPageCount).map((page, index) => <div key={`all-products-page-${index}`} className="grid grid-cols-2 gap-3 sm:grid-cols-3" data-catalog-page-size={CUSTOMER_CATALOG_PAGE_SIZE}>{page.map(renderProductCard)}</div>)}</div></section>}<div ref={loadMoreRef} className="flex min-h-12 items-center justify-center py-4" aria-live="polite">{hasMorePages && <><LoaderCircle size={16} className="animate-spin text-[#8b7d6f]" /><span className="ml-2 text-[10px] text-[#756b61]">{copy.loadingMore}</span></>}</div></div> : <div className="mt-10 rounded-2xl border border-dashed border-[#d9d1c7] bg-white p-8 text-center"><ShoppingBag className="mx-auto text-[#86796d]" size={26} /><p className="mt-3 text-sm text-[#71675e]">{copy.empty}</p></div>}{detailId && <ProductDetailScreen productId={detailId} initialProduct={initialDetailProduct} browseAll onClose={() => setDetailId(null)} />}</main></MobileScreen>;
++ }
++
+
+ ❯ server/lesoul.contract.test.ts:111:20
+    109|     expect(catalog).toContain("browseProducts: publicProcedure");
+    110|     expect(catalog).toContain("product.isActive !== 0");
+    111|     expect(browse).toContain("trpc.catalog.browseProducts.useQuery()");
+       |                    ^
+    112|     expect(detail).toContain("<PurchaseScreen productId={product.id}");
+    113|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 128 passed (129)
+      Tests  1 failed | 416 passed (417)
+   Start at  16:09:27
+   Duration  8.88s (transform 2.69s, setup 0ms, collect 22.01s, tests 1.21s, environment 19ms, prepare 12.20s)
+

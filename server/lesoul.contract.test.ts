@@ -108,7 +108,8 @@ describe("customer-facing curated experience contract", () => {
     const detail = source("../client/src/components/ProductDetailScreen.tsx");
     expect(catalog).toContain("browseProducts: publicProcedure");
     expect(catalog).toContain("product.isActive !== 0");
-    expect(browse).toContain("trpc.catalog.browseProducts.useQuery()");
+    expect(browse).toContain("trpc.catalog.browseProducts.useQuery(undefined,");
+    expect(browse).toContain("refetchInterval: 10_000");
     expect(detail).toContain("<PurchaseScreen productId={product.id}");
   });
 

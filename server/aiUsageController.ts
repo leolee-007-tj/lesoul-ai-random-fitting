@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, or, sql } from "drizzle-orm";
 import { ENV } from "./_core/env";
 import { getDb } from "./db";
 import { aiAccessBlocks, aiUsageEvents, generationLogs, releaseSettings, users, visitorEntitlements } from "../drizzle/schema";
@@ -29,12 +29,14 @@ export const CUSTOMER_LOOKBOOK_DAILY_LIMIT = 3;
 
 const imageFeatures: AiFeatureType[] = ["AI_BODY_MODEL", "AI_FITTING", "LIYING_AI", "QUICK_FIT", "REGENERATION"];
 const successfulStatus = ["SUCCESS"] as const;
+const imageUsageCondition = () => or(inArray(aiUsageEvents.featureType, imageFeatures), and(eq(aiUsageEvents.featureType,"AI_STYLIST"), sql`${aiUsageEvents.generationId} like 'CUSTOMER_LOOKBOOK_%'`));
+type UsageDb = Pick<NonNullable<Awaited<ReturnType<typeof getDb>>>, "select" | "insert" | "update">;
 const billableRequestStatuses = ["REQUESTED", "SUCCESS", "FAILED", "CANCELLED"] as const;
 const startOfDay = () => { const value = new Date(); value.setUTCHours(0, 0, 0, 0); return value; };
 const startOfMonth = () => { const value = new Date(); value.setUTCDate(1); value.setUTCHours(0, 0, 0, 0); return value; };
 
-export async function getCentralSettings() {
-  const db = await getDb();
+export async function getCentralSettings(connection?: UsageDb) {
+  const db = connection ?? await getDb();
   if (!db) throw new Error("AI settings are temporarily unavailable.");
   const existing = (await db.select().from(releaseSettings).where(eq(releaseSettings.id, 1)).limit(1))[0];
   if (existing) return existing;
@@ -42,8 +44,8 @@ export async function getCentralSettings() {
   return (await db.select().from(releaseSettings).where(eq(releaseSettings.id, 1)).limit(1))[0]!;
 }
 
-export async function getCentralEntitlement(visitorId: string) {
-  const db = await getDb();
+export async function getCentralEntitlement(visitorId: string, connection?: UsageDb) {
+  const db = connection ?? await getDb();
   if (!db) return undefined;
   const now = new Date();
   const rows = await db.select().from(visitorEntitlements).where(eq(visitorEntitlements.visitorId, visitorId)).orderBy(desc(visitorEntitlements.createdAt));
@@ -70,10 +72,10 @@ function featureCapability(feature: AiFeatureType) {
   return "aiFitting" as const;
 }
 
-async function resolveAiRole(visitorId: string, actor?: AiActor) {
+async function resolveAiRole(visitorId: string, actor?: AiActor, connection?: UsageDb) {
   const accountBound = Boolean(actor?.openId && visitorId === `account:${actor.openId}`);
   const isAdmin = Boolean(actor && (actor.role === "admin" || actor.openId === ENV.ownerOpenId));
-  const entitlement = accountBound ? await getCentralEntitlement(visitorId) : undefined;
+  const entitlement = accountBound ? await getCentralEntitlement(visitorId,connection) : undefined;
   // VIP is an account role. Historical redeem rows remain readable but do not grant new VIP access.
   const isVip = Boolean(accountBound && actor?.role === "vip");
   return { role: (isAdmin ? "ADMIN" : isVip ? "VIP" : "NORMAL") as AiRole, isAdmin, isVip, entitlement };
@@ -94,8 +96,8 @@ export async function getAiRoleCapabilities(input: { visitorId: string; actor?: 
   };
 }
 
-async function successfulGenerationCount(visitorId: string) {
-  const db = await getDb();
+async function successfulGenerationCount(visitorId: string, connection?: UsageDb) {
+  const db = connection ?? await getDb();
   if (!db) return 0;
   const [events, logs] = await Promise.all([
     db.select({ generationId: aiUsageEvents.generationId }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), inArray(aiUsageEvents.featureType, imageFeatures), inArray(aiUsageEvents.status, successfulStatus))),
@@ -108,23 +110,23 @@ async function successfulGenerationCount(visitorId: string) {
   return historicalSuccessfulLogs + imageGenerationSuccesses + bodyModelSuccesses;
 }
 
-async function pendingReservations(visitorId: string) {
-  const db = await getDb();
+async function pendingReservations(visitorId: string, connection?: UsageDb) {
+  const db = connection ?? await getDb();
   if (!db) return 0;
   const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), inArray(aiUsageEvents.featureType, imageFeatures), eq(aiUsageEvents.status, "REQUESTED")));
   return rows.length;
 }
 
-async function successfulFeatureCount(visitorId: string, feature: AiFeatureType) {
-  const db = await getDb();
+async function successfulFeatureCount(visitorId: string, feature: AiFeatureType, connection?: UsageDb) {
+  const db = connection ?? await getDb();
   if (!db) return 0;
   const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), eq(aiUsageEvents.featureType, feature), eq(aiUsageEvents.status, "SUCCESS")));
   return rows.length;
 }
-async function successfulCustomerLookbookCount(visitorId: string) {
-  const db = await getDb();
+async function successfulCustomerLookbookCount(visitorId: string, connection?: UsageDb) {
+  const db = connection ?? await getDb();
   if (!db) return 0;
-  const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), eq(aiUsageEvents.featureType, "AI_STYLIST"), eq(aiUsageEvents.status, "SUCCESS"), gte(aiUsageEvents.startedAt, startOfDay()), sql`${aiUsageEvents.generationId} like 'CUSTOMER_LOOKBOOK_%'`));
+  const rows = await db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(eq(aiUsageEvents.visitorId, visitorId), eq(aiUsageEvents.featureType, "AI_STYLIST"), inArray(aiUsageEvents.status, billableRequestStatuses), gte(aiUsageEvents.startedAt, startOfDay()), sql`${aiUsageEvents.generationId} like 'CUSTOMER_LOOKBOOK_%'`));
   return rows.length;
 }
 export async function getCustomerLookbookRemaining(visitorId: string, actor?: AiActor) {
@@ -133,15 +135,16 @@ export async function getCustomerLookbookRemaining(visitorId: string, actor?: Ai
   return Math.max(0, CUSTOMER_LOOKBOOK_DAILY_LIMIT - await successfulCustomerLookbookCount(visitorId));
 }
 
-export async function evaluateAiAccess(input: { visitorId: string; feature: AiFeatureType; skipQuota?: boolean; customerLookbook?: boolean; actor?: AiActor }): Promise<AiAccessDecision> {
-  const db = await getDb();
+export async function evaluateAiAccess(input: { visitorId: string; feature: AiFeatureType; skipQuota?: boolean; customerLookbook?: boolean; actor?: AiActor }, connection?: UsageDb): Promise<AiAccessDecision> {
+  const db = connection ?? await getDb();
   if (!db) throw new Error("AI access service is temporarily unavailable.");
-  const settings = await getCentralSettings();
-  const resolvedRole = await resolveAiRole(input.visitorId, input.actor);
+  const settings = await getCentralSettings(db);
+  const resolvedRole = await resolveAiRole(input.visitorId, input.actor,db);
   const { isAdmin, isVip, entitlement } = resolvedRole;
   const releaseMode = settings.releaseMode;
   const catalogTier = entitlement?.catalogTier ?? (releaseMode === "BETA_PUBLIC" ? "beta" : "full");
-  const estimatedCostFen = estimatedFeatureCost(settings, input.feature);
+  const isImageRequest = input.feature !== "AI_STYLIST" || Boolean(input.customerLookbook);
+  const estimatedCostFen = estimatedFeatureCost(settings, input.customerLookbook ? "AI_FITTING" : input.feature);
   const base = { releaseMode, catalogTier, isVip, isAdmin, estimatedCostFen } as const;
   const capability = featureCapability(input.feature);
   if (input.feature === "AI_STYLIST" && !input.customerLookbook && !settings.normalStyleMatchEnabled && !isAdmin) return { allowed: false, reason: "style_match_disabled", remaining: 0, ...base };
@@ -150,22 +153,22 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   if (!ROLE_AI_PERMISSIONS[resolvedRole.role][capability]) return { allowed: false, reason: "role_forbidden", remaining: null, ...base };
   const activeBlock = (await db.select().from(aiAccessBlocks).where(eq(aiAccessBlocks.visitorId, input.visitorId)).limit(1))[0];
   if (activeBlock?.isActive) return { allowed: false, reason: "paused", remaining: null, ...base };
-  if (!settings.generationEnabled && input.feature !== "AI_STYLIST") return { allowed: false, reason: "paused", remaining: null, ...base };
+  if (!settings.generationEnabled && isImageRequest) return { allowed: false, reason: "paused", remaining: null, ...base };
 
   const now = new Date();
   const [dailyEvents, monthlyEvents] = await Promise.all([
-    db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(gte(aiUsageEvents.startedAt, startOfDay()), inArray(aiUsageEvents.featureType, imageFeatures), inArray(aiUsageEvents.status, billableRequestStatuses))),
-    db.select({ estimatedCostFen: aiUsageEvents.estimatedCostFen }).from(aiUsageEvents).where(and(gte(aiUsageEvents.startedAt, startOfMonth()), inArray(aiUsageEvents.featureType, imageFeatures), inArray(aiUsageEvents.status, billableRequestStatuses))),
+    db.select({ id: aiUsageEvents.id }).from(aiUsageEvents).where(and(gte(aiUsageEvents.startedAt, startOfDay()), imageUsageCondition(), inArray(aiUsageEvents.status, billableRequestStatuses))),
+    db.select({ estimatedCostFen: aiUsageEvents.estimatedCostFen }).from(aiUsageEvents).where(and(gte(aiUsageEvents.startedAt, startOfMonth()), imageUsageCondition(), inArray(aiUsageEvents.status, billableRequestStatuses))),
   ]);
   const effectiveDailyRequestLimit = settings.dailyAiRequestLimit > 0 ? settings.dailyAiRequestLimit : settings.globalDailyGenerationLimit;
-  if (input.feature !== "AI_STYLIST" && effectiveDailyRequestLimit > 0 && dailyEvents.length >= effectiveDailyRequestLimit) return { allowed: false, reason: "daily_limit", remaining: null, ...base };
-  if (input.feature !== "AI_STYLIST" && settings.monthlyGenerationLimit > 0 && monthlyEvents.length >= settings.monthlyGenerationLimit) return { allowed: false, reason: "monthly_limit", remaining: null, ...base };
+  if (isImageRequest && effectiveDailyRequestLimit > 0 && dailyEvents.length >= effectiveDailyRequestLimit) return { allowed: false, reason: "daily_limit", remaining: null, ...base };
+  if (isImageRequest && settings.monthlyGenerationLimit > 0 && monthlyEvents.length >= settings.monthlyGenerationLimit) return { allowed: false, reason: "monthly_limit", remaining: null, ...base };
   const monthlyEstimatedCostFen = monthlyEvents.reduce((total, item) => total + item.estimatedCostFen, 0);
-  if (input.feature !== "AI_STYLIST" && settings.stopAiAtBudgetLimit && settings.monthlyAiBudgetFen > 0 && monthlyEstimatedCostFen + estimatedCostFen > settings.monthlyAiBudgetFen) return { allowed: false, reason: "budget_limit", remaining: null, ...base };
+  if (isImageRequest && settings.stopAiAtBudgetLimit && settings.monthlyAiBudgetFen > 0 && monthlyEstimatedCostFen + estimatedCostFen > settings.monthlyAiBudgetFen) return { allowed: false, reason: "budget_limit", remaining: null, ...base };
   if (input.feature === "AI_STYLIST") {
     if (isAdmin || isVip || input.skipQuota) return { allowed: true, remaining: null, ...base };
     const limit = input.customerLookbook ? CUSTOMER_LOOKBOOK_DAILY_LIMIT : settings.normalStyleMatchLimit;
-    const used = input.customerLookbook ? await successfulCustomerLookbookCount(input.visitorId) : await successfulFeatureCount(input.visitorId, "AI_STYLIST");
+    const used = input.customerLookbook ? await successfulCustomerLookbookCount(input.visitorId, db) : await successfulFeatureCount(input.visitorId, "AI_STYLIST",db);
     const remaining = Math.max(0, limit - used);
     if (limit > 0 && remaining <= 0) return { allowed: false, reason: "style_match_quota", remaining: 0, ...base };
     return { allowed: true, remaining: limit > 0 ? remaining : null, ...base };
@@ -173,24 +176,33 @@ export async function evaluateAiAccess(input: { visitorId: string; feature: AiFe
   if (input.skipQuota || isAdmin || isVip) return { allowed: true, remaining: isVip ? null : settings.normalAiGenerationLimit, ...base };
   // Historical release modes and entitlement rows remain queryable, but access is no longer granted by redeem code.
 
-  const [completed, reserved] = await Promise.all([successfulGenerationCount(input.visitorId), pendingReservations(input.visitorId)]);
+  const [completed, reserved] = await Promise.all([successfulGenerationCount(input.visitorId,db), pendingReservations(input.visitorId,db)]);
   const remaining = Math.max(0, settings.normalAiGenerationLimit - completed - reserved);
   if (remaining <= 0) return { allowed: false, reason: "quota_exhausted", remaining: 0, ...base };
   return { allowed: true, remaining, ...base };
 }
 
 export async function beginAiUsage(input: { visitorId: string; feature: AiFeatureType; generationId?: string | null; provider: string; model?: string | null; skipQuota?: boolean; customerLookbook?: boolean; actor?: AiActor }) {
-  const access = await evaluateAiAccess({ visitorId: input.visitorId, feature: input.feature, skipQuota: input.skipQuota, customerLookbook: input.customerLookbook, actor: input.actor });
   const db = await getDb();
   if (!db) throw new Error("AI usage service is temporarily unavailable.");
-  if (!access.allowed) {
-    const status = access.reason === "paused" ? "PAUSED" : access.reason === "budget_limit" ? "BLOCKED_BY_BUDGET" : "BLOCKED_BY_LIMIT" as const;
-    await db.insert(aiUsageEvents).values({ visitorId: input.visitorId, generationId: input.generationId ?? null, featureType: input.feature, requestType: input.feature === "AI_STYLIST" ? "RULE_ENGINE" : "IMAGE_GENERATION", provider: input.provider, model: input.model ?? null, status, estimatedCostFen: 0, completedAt: new Date(), errorMessage: access.reason ?? null });
-    throw new Error(`GENERATION_ACCESS_DENIED:${access.reason}`);
-  }
-  const entitlement = await getCentralEntitlement(input.visitorId);
-  const created = await db.insert(aiUsageEvents).values({ visitorId: input.visitorId, entitlementId: entitlement?.id ?? null, generationId: input.generationId ?? null, featureType: input.feature, requestType: input.feature === "AI_STYLIST" ? "RULE_ENGINE" : "IMAGE_GENERATION", provider: input.provider, model: input.model ?? null, status: "REQUESTED", estimatedCostFen: access.estimatedCostFen });
-  return { eventId: Number(created[0].insertId), access };
+  await getCentralSettings();
+  const reservation = await db.transaction(async tx => {
+    // Every reservation serializes through the existing settings row, including across processes.
+    await tx.select({id:releaseSettings.id}).from(releaseSettings).where(eq(releaseSettings.id,1)).for("update");
+    const access = await evaluateAiAccess(input, tx);
+    const isImageRequest = input.feature !== "AI_STYLIST" || Boolean(input.customerLookbook);
+    const common={visitorId:input.visitorId,generationId:input.generationId??null,featureType:input.feature,requestType:isImageRequest ? "IMAGE_GENERATION" as const : "RULE_ENGINE" as const,provider:input.provider,model:input.model??null};
+    if (!access.allowed) {
+      const status=access.reason==="paused" ? "PAUSED" : access.reason==="budget_limit" ? "BLOCKED_BY_BUDGET" : "BLOCKED_BY_LIMIT";
+      await tx.insert(aiUsageEvents).values({...common,status,estimatedCostFen:0,completedAt:new Date(),errorMessage:access.reason??null});
+      return {access,eventId:0};
+    }
+    const entitlement=await getCentralEntitlement(input.visitorId,tx);
+    const created=await tx.insert(aiUsageEvents).values({...common,entitlementId:entitlement?.id??null,status:"REQUESTED",estimatedCostFen:access.estimatedCostFen});
+    return {eventId:Number(created[0].insertId),access};
+  });
+  if(!reservation.access.allowed)throw new Error(`GENERATION_ACCESS_DENIED:${reservation.access.reason}`);
+  return reservation;
 }
 
 export async function finishAiUsage(eventId: number, outcome: Extract<AiUsageOutcome, "SUCCESS" | "FAILED" | "CANCELLED">, details?: { durationMs?: number; errorMessage?: string; providerUsageMetadata?: Record<string, unknown> | null }) {

@@ -1,3 +1,4 @@
+import { recommendationFailureMessage } from "../lib/recommendationErrors";
 import { describe, expect, it, vi } from "vitest";
 import fs from "node:fs";
 import vm from "node:vm";
@@ -18,7 +19,7 @@ function setup() {
   const imageReset = vi.fn();
   const setCapturedPhoto = vi.fn();
   const context = vm.createContext({
-    ...refs, capturedPhoto: "data:image/jpeg;base64,FIXTURE", displayRecommendationInput: { photoDataUrl: "fixture" }, customerProfile: {},
+    ...refs, recommendationFailureMessage, locale:"ko", capturedPhoto: "data:image/jpeg;base64,FIXTURE", displayRecommendationInput: { photoDataUrl: "fixture" }, customerProfile: {}, customerMeasurements: { values: {}, errors: [] },
     personalizedRecommendations: { mutateAsync: recommend, reset: recommendReset }, customerLookbook: { mutateAsync: generate, reset: imageReset },
     recommendationCopy: { noProducts: "no-products", recommendFailed: "recommend-failed", imageFailed: "image-failed" },
     setRecommendationStage: (value: string) => { state.stage = value; },
@@ -32,7 +33,7 @@ function setup() {
   if (start < 0 || end < 0) throw new Error("Recommendation callback boundaries missing");
   const compiled = ts.transpileModule(source.slice(start, end), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   const callbacks = vm.runInContext(compiled + ";({ runPersonalizedRecommendation, resetRecommendationSession });", context, { timeout: 1000 });
-  return { state, recommend, generate, ...refs, ...callbacks, recommendReset, imageReset, setCapturedPhoto };
+  return { state, recommend, generate, ...refs, ...callbacks, recommendReset, imageReset, setCapturedPhoto, context };
 }
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -47,6 +48,15 @@ describe("camera recommendation to fitting image", () => {
     expect(h.recommend).toHaveBeenCalledOnce();
     expect(h.generate).toHaveBeenCalledWith(expect.objectContaining({ productIds: [1, 2], photoDataUrl: "data:image/jpeg;base64,FIXTURE" }));
     expect(h.state).toEqual({ stage: "idle", error: "", url: "fixture-image", expanded: true });
+  });
+  it("explains the invalid field before any recommendation or image request", async () => {
+    const h = setup();
+    h.context.customerMeasurements = { values: {}, errors: ["키: 80–240 cm 숫자로 입력하거나 비워 주세요."] };
+    await h.runPersonalizedRecommendation();
+    expect(h.state.error).toContain("키: 80–240 cm");
+    expect(h.state.stage).toBe("idle");
+    expect(h.recommend).not.toHaveBeenCalled();
+    expect(h.generate).not.toHaveBeenCalled();
   });
   it("shows a recommendation failure and does not generate an image", async () => {
     const h = setup(); h.recommend.mockRejectedValueOnce(new Error("fixture failure"));

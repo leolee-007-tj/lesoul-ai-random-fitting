@@ -1,0 +1,28 @@
+{
+  "state": "OWNER_TESTS_PASSED",
+  "baseline_sha": "bc3922e9b7873f661dd65b38266e34a459f1cf6d",
+  "tests": 414,
+  "test_files": 128,
+  "failures": 0,
+  "skips": 0,
+  "duration_seconds": 9.79,
+  "typecheck": "passed",
+  "client_build": "passed",
+  "server_build": "passed",
+  "same_uid_diagnostic": true,
+  "candidate_verified": false,
+  "actual_model_calls": 0,
+  "root_requests": 0,
+  "live_database_writes": 0,
+  "live_site_deployment_verified": false,
+  "test_environment": "public disposable JWT fixture and app ID; no live credentials",
+  "initial_validation": {
+    "failures": 4,
+    "passed": 410,
+    "causes": [
+      "sparse checkout omitted existing HTML entry and existing SQL migration",
+      "missing disposable test signing configuration",
+      "stale translation call source assertion missing existing metadata argument"
+    ]
+  }
+}
