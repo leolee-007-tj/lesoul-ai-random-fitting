@@ -14,6 +14,7 @@ import { STYLE_PRESET_KEYS } from "../../shared/stylist";
 import { optionalKoreanCustomerCopy, requiredKoreanCustomerCopy } from "../../shared/adminTranslation";
 import { representativeSetCategory, SET_COMPONENT_CATEGORIES, sumSetComponentPrices, type SetProductComponent } from "../../shared/setProducts";
 import { normalizePriceTagExtraction } from "../../shared/priceTagOcr";
+import { productTranslationIssues, productTranslationRepair, productSourceTranslationChanged, PRODUCT_TEXT_FIELDS, PRODUCT_TEXT_LOCALES } from "../../shared/productLocalization";
 
 const setComponentInput = z.object({
   componentId: z.string().trim().min(1).max(64),
@@ -44,20 +45,17 @@ async function translateProductFields(name: string, description: string, metadat
   const content = response.choices?.[0]?.message?.content;
   if (typeof content !== "string") throw new Error("Translation response was empty.");
   const translated = JSON.parse(content) as Record<string, string>;
-    return Object.fromEntries(Object.entries(translated).map(([key, value]) => [key, value.trim()])) as ProductTranslationFields;
+  const fields = Object.fromEntries(PRODUCT_TEXT_FIELDS.flatMap(field => PRODUCT_TEXT_LOCALES.map(locale => {
+    const key = `${field}${locale}`;
+    const value = translated?.[key];
+    const maximum = field === "name" ? 160 : field === "description" ? 4000 : field === "color" ? 80 : field === "style" ? 200 : 120;
+    if (typeof value !== "string" || value.trim().length > maximum) throw new Error("PRODUCT_TRANSLATION_INCOMPLETE");
+    return [key, value.trim()];
+  }))) as ProductTranslationFields;
+  if (productTranslationIssues({ name, description, ...metadata, ...fields }).length) throw new Error("PRODUCT_TRANSLATION_INCOMPLETE");
+  return fields;
 }
 
-function containsChinese(value: string | null | undefined) {
-  return /[\u3400-\u9fff]/.test(value ?? "");
-}
-
-function needsProductTranslation(product: { name: string; nameEn?: string | null; nameKo?: string | null; nameZh?: string | null; description?: string | null; descriptionEn?: string | null; descriptionKo?: string | null; descriptionZh?: string | null; season?: string; seasonEn?: string | null; seasonKo?: string | null; seasonZh?: string | null; color?: string; colorEn?: string | null; colorKo?: string | null; colorZh?: string | null; style?: string; styleEn?: string | null; styleKo?: string | null; styleZh?: string | null }) {
-  const sourceNameIsChinese = containsChinese(product.name);
-  const sourceDescriptionIsChinese = containsChinese(product.description);
-  return !product.nameEn || !product.nameKo || !product.nameZh || !product.descriptionEn || !product.descriptionKo || !product.descriptionZh || !product.seasonEn || !product.seasonKo || !product.seasonZh || !product.colorEn || !product.colorKo || !product.colorZh || !product.styleEn || !product.styleKo || !product.styleZh
-    || (sourceNameIsChinese && product.nameKo === product.name)
-    || (sourceDescriptionIsChinese && product.descriptionKo === product.description);
-}
 
 const productInput = z.object({
   name: z.string().min(1).max(160),
@@ -340,17 +338,18 @@ ${referenceText}` },
   }),
   backfillProductTranslations: ownerProcedure.input(z.object({ limit: z.number().int().min(1).max(50).optional() }).optional()).mutation(async ({ input }) => {
     const batchSize = input?.limit ?? 20;
-    const products = (await getCatalog()).products.filter((product: any) => needsProductTranslation(product)).slice(0, batchSize);
+    const pending = (await getCatalog()).products.filter((product: any) => productTranslationIssues(product).length > 0);
+    const products = pending.slice(0, batchSize);
     let translated = 0;
     let failed = 0;
     for (const product of products) {
       try {
         const fields = await translateProductFields(product.name, product.description || product.name, { season: product.season, color: product.color, style: product.style });
-        await updateAdminProduct(product.id, fields);
+        await updateAdminProduct(product.id, productTranslationRepair(product, { name: product.name, ...fields }));
         translated += 1;
       } catch { failed += 1; }
     }
-    return { translated, failed, processed: products.length, hasMore: products.length === batchSize };
+    return { translated, failed, processed: products.length, remaining: pending.length - translated, hasMore: pending.length > products.length };
   }),
   createProduct: ownerProcedure.input(productInput).mutation(async ({ input }) => {
     const db = await getDb();
@@ -358,7 +357,7 @@ ${referenceText}` },
     const duplicate = (await db.select({ id: products.id }).from(products).where(eq(products.name, input.name.trim())).limit(1))[0];
     if (duplicate) throw new Error("PRODUCT_NAME_EXISTS");
     let translatedFields: Record<string, string> = {};
-    try { translatedFields = await translateProductFields(input.name, input.description, { season: input.season, color: input.color, style: input.style }); } catch { /* Keep the owner's source text if localization is temporarily unavailable. */ }
+    try { if (productTranslationIssues(input).length) translatedFields = await translateProductFields(input.name, input.description, { season: input.season, color: input.color, style: input.style }); } catch { /* Keep the owner's source text if localization is temporarily unavailable. */ }
     const inputWithTranslations = { ...input, ...translatedFields };
     const availabilityStatus = normaliseAvailabilityStatus(inputWithTranslations.availabilityStatus, inputWithTranslations.status);
     const inventoryQuantity = availabilityStatus === "SOLD_OUT" ? 0 : input.inventoryQuantity ?? 1;
@@ -369,7 +368,7 @@ ${referenceText}` },
     const catalogDisplay = input.catalogDisplay ? { manualScale: validDisplayScale(input.catalogDisplay.manualScale), objectPositionX: input.catalogDisplay.objectPositionX ?? 50, objectPositionY: input.catalogDisplay.objectPositionY ?? 50 } : null;
     const sale = resolveSaleFields({ ...productInputFields, ...setFields });
     await createAdminProduct({ ...productInputFields, ...setFields, ...sale, category: categoryLink.category, displayCategoryId: categoryLink.displayCategoryId, status: legacyStatusForAvailability(availabilityStatus), inventoryQuantity, isActive: input.isActive ?? 1, availabilityStatus, vipEarlyAccess: input.vipEarlyAccess ?? 0, isNew: input.isNew ?? 1, newArrivalAt: input.isNew === 0 ? null : input.newArrivalAt ?? new Date(), brand: input.brand ?? null, images: input.images ?? [input.imageUrl], imageViews: input.imageViews ?? { front: { original: input.imageUrl, studioCut: input.imageUrl, thumbnail: input.imageUrl } }, purchaseUrl: input.purchaseUrl ?? null, purchasePlatform: input.purchasePlatform ?? null, purchaseQrUrl: input.purchaseQrUrl ?? null, purchaseQrUpdatedAt: input.purchaseQrUrl ? new Date() : null, isFeatured: input.isFeatured ?? 0, featuredPriority: input.featuredPriority ?? 0, catalogTier: input.catalogTier ?? "full", garmentMeasurements: input.garmentMeasurements ?? null, sizeOptions: input.sizeOptions ?? null, catalogDisplay, stretchLevel: input.stretchLevel ?? "low" });
-    return { success: true };
+    return { success: true, translationIncomplete: productTranslationIssues(inputWithTranslations).length > 0 };
   }),
   updateProduct: ownerProcedure.input(productInput.partial().extend({ id: z.number().int().positive() })).mutation(async ({ input }) => {
     const { id, ...updates } = input;
@@ -382,8 +381,9 @@ ${referenceText}` },
     const inventoryQuantity = shouldBeSoldOut ? 0 : hasInventoryUpdate ? requestedInventory : undefined;
     const catalogDisplay = updates.catalogDisplay === undefined ? undefined : updates.catalogDisplay ? { manualScale: validDisplayScale(updates.catalogDisplay.manualScale), objectPositionX: updates.catalogDisplay.objectPositionX ?? 50, objectPositionY: updates.catalogDisplay.objectPositionY ?? 50 } : null;
     let translationUpdates: Record<string, string> = {};
-    const needsTranslation = Boolean(updates.name || updates.description || needsProductTranslation({ ...existing, ...updates }));
-    if (needsTranslation) { try { translationUpdates = await translateProductFields(updates.name ?? existing.name, updates.description ?? existing.description ?? existing.name, { season: updates.season ?? existing.season, color: updates.color ?? existing.color, style: updates.style ?? existing.style }); } catch { /* Keep existing localized content if localization is temporarily unavailable. */ } }
+    let translationFailed = false;
+    const needsTranslation = Boolean(productSourceTranslationChanged(existing, updates) || productTranslationIssues({ ...existing, ...updates }).length > 0);
+    if (needsTranslation) { try { translationUpdates = await translateProductFields(updates.name ?? existing.name, updates.description ?? existing.description ?? existing.name, { season: updates.season ?? existing.season, color: updates.color ?? existing.color, style: updates.style ?? existing.style }); } catch { translationFailed = true; /* Preserve data, but report that changed-source translations may be stale. */ } }
     const { productType: _productType, setComponents: _setComponents, ...productUpdatesRaw } = updates;
     const productUpdates = { ...productUpdatesRaw, ...translationUpdates };
     const setFields = resolveSetFields(updates, existing);
@@ -394,7 +394,7 @@ ${referenceText}` },
     const touchesSale = ["price", "priceOriginal", "discountRate", "priceSale", "saleEnabled"].some((key) => Object.prototype.hasOwnProperty.call(updates, key)) || Object.prototype.hasOwnProperty.call(setFields, "price");
     const sale = touchesSale ? resolveSaleFields({ ...productUpdates, ...setFields }, existing) : {};
     await updateAdminProduct(id, { ...productUpdates, ...setFields, ...sale, ...(categoryLink ? { displayCategoryId: categoryLink.displayCategoryId, category: categoryLink.category } : {}), ...(catalogDisplay !== undefined ? { catalogDisplay } : {}), ...(availabilityStatus ? { availabilityStatus, status: legacyStatusForAvailability(availabilityStatus) } : {}), ...(inventoryQuantity !== undefined ? { inventoryQuantity } : {}), ...(updates.isNew === 0 ? { newArrivalAt: null } : updates.isNew === 1 && !updates.newArrivalAt ? { newArrivalAt: new Date() } : {}), ...(Object.prototype.hasOwnProperty.call(updates, "purchaseQrUrl") ? { purchaseQrUpdatedAt: new Date() } : {}) });
-    return { success: true };
+    return { success: true, translationIncomplete: translationFailed || productTranslationIssues({ ...existing, ...productUpdates }).length > 0 };
   }),
   clearNewArrivals: ownerProcedure.input(z.object({ ids: z.array(z.number().int().positive()).max(1000).optional() }).optional()).mutation(async ({ input }) => {
     return clearAdminNewArrivals(input?.ids);
