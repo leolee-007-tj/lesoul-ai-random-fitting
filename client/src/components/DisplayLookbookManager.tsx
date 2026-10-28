@@ -8,7 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { normaliseAvailabilityStatus } from "../../../shared/productAvailability";
+import { isStylistEligible } from "../../../shared/productAvailability";
 
 type Locale = "ko" | "zh" | "en";
 type GarmentGroup = "all" | "top" | "bottom" | "outer" | "dress" | "accessory";
@@ -266,10 +266,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
     const sorted = products
       .filter(
         (product: any) =>
-          normaliseAvailabilityStatus(
-            product.availabilityStatus,
-            product.status
-          ) !== "SOLD_OUT"
+          isStylistEligible(product, true)
       )
       .sort(
         (a: any, b: any) =>
@@ -285,10 +282,7 @@ export default function DisplayLookbookManager({ locale }: { locale: Locale }) {
     products
       .filter(
         (product: any) =>
-          normaliseAvailabilityStatus(
-            product.availabilityStatus,
-            product.status
-          ) !== "SOLD_OUT"
+          isStylistEligible(product, true)
       )
       .forEach((product: any) => {
         const key = productKindKey(product);

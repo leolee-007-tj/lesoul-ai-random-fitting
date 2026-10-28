@@ -238,7 +238,7 @@ function completeOutfitWithCatalog(selectedProducts: any[], catalogProducts: any
   const selectedGroups = new Set(selectedProducts.map(outfitGroup));
   const missingGroup: OutfitGroup | null = selectedGroups.has("outer") && selectedGroups.has("bottom") && !selectedGroups.has("top") && settings.top ? "top" : selectedGroups.has("outer") && selectedGroups.has("top") && !selectedGroups.has("bottom") && settings.bottom ? "bottom" : selectedGroups.has("top") && selectedGroups.has("bottom") && !selectedGroups.has("outer") && settings.outer ? "outer" : null;
   if (!missingGroup) return { products: selectedProducts, addedGroup: null as OutfitGroup | null, addedFromCatalog: false };
-  const candidates = catalogProducts.filter((product) => outfitGroup(product) === missingGroup && !selectedProducts.some((selected) => selected.id === product.id) && normaliseAvailabilityStatus(product.availabilityStatus, product.status) !== "SOLD_OUT" && product.isActive !== 0 && productImage(product));
+  const candidates = catalogProducts.filter((product) => outfitGroup(product) === missingGroup && !selectedProducts.some((selected) => selected.id === product.id) && normaliseAvailabilityStatus(product.availabilityStatus, product.status) !== "SOLD_OUT" && Number(product.inventoryQuantity ?? 1) > 0 && product.isActive !== 0 && productImage(product));
   const addition = candidates.length ? randomItem(candidates) : null;
   return addition ? { products: [...selectedProducts, addition], addedGroup: missingGroup, addedFromCatalog: true } : { products: selectedProducts, addedGroup: missingGroup, addedFromCatalog: false };
 }
@@ -333,7 +333,7 @@ async function generateOutfitBatch(productIds: number[], requestedCount: number,
   const catalog = await getCatalog();
   const selectedProducts = productIds.map((id) => catalog.products.find((item) => item.id === id)).filter(Boolean) as any[];
   if (selectedProducts.length !== productIds.length) throw new Error("PRODUCT_NOT_FOUND");
-  if (selectedProducts.some((product) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) === "SOLD_OUT")) throw new Error("PRODUCT_SOLD_OUT");
+  if (selectedProducts.some((product) => normaliseAvailabilityStatus(product.availabilityStatus, product.status) === "SOLD_OUT" || Number(product.inventoryQuantity ?? 1) <= 0)) throw new Error("PRODUCT_SOLD_OUT");
   const garmentCount = selectedProducts.filter((product) => outfitGroup(product) !== "accessory").length;
   if (garmentCount > 3) throw new Error("OUTFIT_TOO_MANY_CLOTHING_ITEMS");
   const completed = autoComplete.top || autoComplete.bottom || autoComplete.outer ? completeOutfitWithCatalog(selectedProducts, catalog.products, autoComplete) : { products: selectedProducts, addedGroup: null as OutfitGroup | null, addedFromCatalog: false };
